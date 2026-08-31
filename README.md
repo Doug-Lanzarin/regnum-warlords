@@ -38,6 +38,11 @@ npm run preview   # serve o build de produção localmente, para testar
   gemas, relíquias, pedidos ao dragão), atualizados a cada 2 minutos.
 - **Chefes** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
+- **Notificações** (`/notificacoes`): timeline de avisos (título + descrição)
+  com um CRUD simples embutido — sem banco de dados nem servidor próprio,
+  ver [Configurando as notificações](#configurando-as-notificações) abaixo.
+- Navegação em **bottom tab bar** no mobile (até 640px), com a tab ativa
+  destacada; no desktop o menu continua no header.
 - Sistema de **temas** fiel às cores originais do CoRT: Escuro (padrão),
   Claro, OLED e os três reinos (Alsius, Ignis, Syrtis).
 - **PWA**: o app pode ser instalado (botão "Instalar app" quando o navegador
@@ -61,6 +66,33 @@ npm run preview   # serve o build de produção localmente, para testar
   restritas isso é comum, e o app deixa isso visível com o indicador
   "dados locais" / "dados ao vivo" na barra de ferramentas do Trainer.
 
+## Configurando as notificações
+
+A tab **Notificações** é um CRUD sem banco de dados: `api/notifications.ts`
+é uma [Vercel Function](https://vercel.com/docs/functions) (funciona com
+qualquer framework, não precisa ser Next.js) que lê e escreve
+`content/notifications.json` **direto no repositório**, através da API do
+GitHub — cada notificação criada ou removida vira um commit. Por isso não
+precisa de Postgres/Redis/etc., e o app continua 100% estático pro resto.
+
+- `GET /api/notifications` é público (qualquer visitante do site lê a lista).
+- `POST`/`DELETE` exigem o header `x-admin-token`, comparado no servidor
+  contra a variável de ambiente abaixo — sem ela, ninguém além de quem tem o
+  token consegue criar ou apagar notificações.
+
+Pra isso funcionar em produção, configure duas variáveis de ambiente no
+projeto na Vercel (Settings → Environment Variables):
+
+| Variável | O que é |
+| --- | --- |
+| `NOTIFICATIONS_GITHUB_TOKEN` | Um [fine-grained personal access token](https://github.com/settings/tokens?type=beta) do GitHub, com acesso só a este repositório e permissão **Contents: Read and write**. |
+| `NOTIFICATIONS_ADMIN_TOKEN` | Uma senha à sua escolha (qualquer string). É o que você digita em "Gerenciar" na tab Notificações pra poder criar/remover. |
+
+Depois de configurar, faça um novo deploy (ou aguarde o próximo push) pras
+variáveis entrarem em vigor. Em `npm run dev` local a rota `/api/notifications`
+não existe (o Vite não roda Functions da Vercel), então a tab mostra o estado
+de erro — isso é esperado, só funciona depois de publicado.
+
 ## Regenerando os ícones do PWA
 
 Os ícones em `public/icons/` foram gerados uma vez com o script
@@ -76,11 +108,16 @@ npm uninstall sharp
 ## Estrutura do projeto
 
 ```
+api/
+  notifications.ts   Vercel Function do CRUD de notificações (GitHub como "banco")
+content/
+  notifications.json  dados das notificações — editado só via api/notifications.ts
 src/
-  api/            clientes de dados (cort.ovh ao vivo + dados locais)
+  api/            clientes de dados (cort.ovh ao vivo, dados locais, /api/notifications)
   data/           constantes do jogo (classes, níveis, etc.)
   features/trainer/  lógica de cálculo do trainer + componentes de UI
-  layout/         navegação e layout geral do app
+  features/notifications/  hook + componentes do CRUD de notificações
+  layout/         navegação (header + bottom tab bar no mobile) e layout geral
   pages/          páginas roteadas
   pwa/            hook de instalação do PWA
   theme/          sistema de temas (CSS custom properties)

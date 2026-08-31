@@ -1,0 +1,30 @@
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	max-width: 320px;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--faded);
+}
+
+.field input {
+	width: 100%;
+}
+
+.error {
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--red);
+}
+
+.actions {
+	display: flex;
+	gap: var(--space-2);
+}

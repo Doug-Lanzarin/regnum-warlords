@@ -23,14 +23,25 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 2px;
-		padding: 8px 4px 6px;
+		gap: 3px;
+		padding: 8px 2px 6px;
 		min-height: 56px;
 		color: var(--faded);
+		position: relative;
 	}
 	.tab:hover {
 		text-decoration: none;
 		color: var(--foreground);
+	}
+
+	.iconWrap {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 46px;
+		height: 26px;
+		border-radius: var(--radius-full);
+		transition: background-color 0.18s var(--ease), color 0.18s var(--ease);
 	}
 
 	.icon {
@@ -38,12 +49,32 @@
 	}
 
 	.label {
-		font-size: 0.68rem;
+		font-size: 0.64rem;
 		font-weight: 600;
 		white-space: nowrap;
+		transition: color 0.18s var(--ease), font-weight 0.18s var(--ease);
 	}
 
 	.tabActive {
 		color: var(--links);
+	}
+	.tabActive .iconWrap {
+		background: color-mix(in srgb, var(--links) 20%, transparent);
+		color: var(--links);
+	}
+	.tabActive .label {
+		color: var(--links);
+		font-weight: 800;
+	}
+	.tabActive::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 28px;
+		height: 3px;
+		border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+		background: var(--links);
 	}
 }
