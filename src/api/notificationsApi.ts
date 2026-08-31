@@ -1,6 +1,6 @@
 // Client for our own /api/notifications serverless function (see
 // api/notifications.ts) — not a CoRT endpoint. GET is public; create/delete
-// require the admin token as the `x-admin-token` header.
+// require the management password as the `x-admin-password` header.
 
 export interface NotificationEntry {
 	id: string;
@@ -34,17 +34,17 @@ export function listNotifications(): Promise<{ notifications: NotificationEntry[
 	return request("");
 }
 
-export function createNotification(title: string, description: string, adminToken: string): Promise<{ notification: NotificationEntry }> {
+export function createNotification(title: string, description: string, adminPassword: string): Promise<{ notification: NotificationEntry }> {
 	return request("", {
 		method: "POST",
-		headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+		headers: { "Content-Type": "application/json", "x-admin-password": adminPassword },
 		body: JSON.stringify({ title, description }),
 	});
 }
 
-export function deleteNotification(id: string, adminToken: string): Promise<{ ok: true }> {
+export function deleteNotification(id: string, adminPassword: string): Promise<{ ok: true }> {
 	return request(`?id=${encodeURIComponent(id)}`, {
 		method: "DELETE",
-		headers: { "x-admin-token": adminToken },
+		headers: { "x-admin-password": adminPassword },
 	});
 }

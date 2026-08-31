@@ -6,15 +6,17 @@ import { randomUUID } from "node:crypto";
 // read always reflects the latest commit on the branch (no redeploy needed
 // to see a change — only the client's own polling/refresh interval).
 //
-// Required env vars (set in the Vercel project, never exposed to the client):
-//   NOTIFICATIONS_GITHUB_TOKEN  — a GitHub token with Contents: Read and
-//                                 write access on this repo only.
-//   NOTIFICATIONS_ADMIN_TOKEN   — any secret string of your choosing; the
-//                                 client must send it back as the
-//                                 `x-admin-token` header to create/delete.
+// Required env vars (set in the Vercel project, never exposed to the client
+// or committed to the repo — this repo is public, so anything hardcoded
+// here would be readable by anyone on GitHub):
+//   NOTIFICATIONS_GITHUB_TOKEN     — a GitHub token with Contents: Read and
+//                                    write access on this repo only.
+//   NOTIFICATIONS_ADMIN_PASSWORD   — the management password; the client
+//                                    sends it back as the `x-admin-password`
+//                                    header to create/delete.
 //
 // GET is public (anyone visiting the site can read the list). POST/DELETE
-// require the admin token, so random visitors can't write.
+// require the admin password, so random visitors can't write.
 
 interface VercelLikeRequest {
 	method?: string;
@@ -84,9 +86,9 @@ async function writeNotifications(notifications: NotificationEntry[], sha: strin
 }
 
 function isAuthorized(req: VercelLikeRequest): boolean {
-	const expected = process.env.NOTIFICATIONS_ADMIN_TOKEN;
+	const expected = process.env.NOTIFICATIONS_ADMIN_PASSWORD;
 	if (!expected) return false;
-	const provided = req.headers["x-admin-token"];
+	const provided = req.headers["x-admin-password"];
 	return typeof provided === "string" && provided === expected;
 }
 
@@ -100,7 +102,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		}
 
 		if (!isAuthorized(req)) {
-			res.status(401).json({ error: "Token de administrador inválido ou ausente." });
+			res.status(401).json({ error: "Senha de gerenciamento inválida ou ausente." });
 			return;
 		}
 
