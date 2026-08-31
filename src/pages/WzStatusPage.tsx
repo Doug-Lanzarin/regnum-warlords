@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
 import { RealmSummary } from "../features/wz/RealmSummary";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses, computeRealmFortCounts } from "../features/wz/wzEngine";
+import { computeEventLog } from "../features/wz/wzEventsEngine";
 import { WzMap } from "../features/wz/WzMap";
 import { formatRelativePast } from "../utils/time";
 import styles from "./WzStatusPage.module.css";
@@ -13,6 +15,7 @@ export function WzStatusPage() {
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
+	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 	const fortCounts = useMemo(() => computeRealmFortCounts(forts), [forts]);
 
 	if (loading && !data) {
@@ -66,6 +69,7 @@ export function WzStatusPage() {
 			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
+			<EventsLogSection events={events} now={now} />
 		</div>
 	);
 }
