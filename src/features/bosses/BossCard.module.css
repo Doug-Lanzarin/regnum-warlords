@@ -47,6 +47,7 @@
 	color: #10121a;
 	background: linear-gradient(135deg, var(--realm-color), color-mix(in srgb, var(--realm-color) 55%, white));
 	box-shadow: var(--shadow-pop);
+	object-fit: cover;
 }
 
 .headerText {
