@@ -2,6 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { createNotification, deleteNotification, listNotifications, NotificationsApiError, type NotificationEntry } from "../../api/notificationsApi";
 
 const ADMIN_PASSWORD_KEY = "rw_notifications_admin_password";
+/** Keeps the timeline current while the page (installed PWA or a regular
+ *  tab) is actually open and visible — skipped while backgrounded so an
+ *  installed app sitting behind another app doesn't keep polling for nothing. */
+const REFRESH_INTERVAL_MS = 30_000;
 
 function readStoredPassword(): string {
 	try {
@@ -57,6 +61,25 @@ export function useNotifications() {
 
 	useEffect(() => {
 		refresh();
+	}, [refresh]);
+
+	useEffect(() => {
+		const tick = setInterval(() => {
+			if (document.visibilityState === "visible") refresh();
+		}, REFRESH_INTERVAL_MS);
+
+		// Also catch up immediately when the page comes back to the
+		// foreground (e.g. reopening an installed PWA) instead of waiting
+		// out the rest of the interval.
+		function onVisibilityChange() {
+			if (document.visibilityState === "visible") refresh();
+		}
+		document.addEventListener("visibilitychange", onVisibilityChange);
+
+		return () => {
+			clearInterval(tick);
+			document.removeEventListener("visibilitychange", onVisibilityChange);
+		};
 	}, [refresh]);
 
 	const lock = useCallback(() => {
