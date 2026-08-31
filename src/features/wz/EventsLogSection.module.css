@@ -1,0 +1,96 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.heading {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+	padding-left: 2px;
+}
+.heading h2 {
+	font-size: 1.05rem;
+}
+.count {
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.log {
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+}
+
+.empty {
+	color: var(--faded);
+	font-size: 0.86rem;
+	margin: 0;
+}
+
+.list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.row {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-3);
+	padding: 7px 8px;
+	border-radius: var(--radius-sm);
+	font-size: 0.86rem;
+}
+
+.row:hover {
+	background: var(--card-background-alt);
+}
+
+.rowWish {
+	color: var(--red);
+	font-weight: 600;
+}
+
+.time {
+	flex-shrink: 0;
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--faded);
+	white-space: nowrap;
+}
+
+.line {
+	min-width: 0;
+}
+
+.realmText {
+	color: var(--realm-color, inherit);
+	font-weight: 700;
+}
+
+.more {
+	margin: 0;
+	padding-top: var(--space-2);
+	border-top: 1px solid var(--border);
+	font-size: 0.82rem;
+}
+
+@media (max-width: 640px) {
+	.row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+	.time {
+		width: auto;
+	}
+}
