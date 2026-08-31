@@ -4,6 +4,7 @@ import { DISCIPLINE_NAME_PT } from "../../data/trainerTranslationsPt";
 import type { DisciplineState, TrainerData } from "../../types/trainer";
 import { charLevelRequiredFor, maxSpellRank } from "./trainerEngine";
 import { spellName } from "./spellFormat";
+import { SkillIcon } from "./SkillIcon";
 import { SpellRow } from "./SpellRow";
 import styles from "./DisciplineColumn.module.css";
 
@@ -36,6 +37,7 @@ export function DisciplineColumn({
 	if (!discipline) return null;
 
 	const disciplineName = DISCIPLINE_NAME_PT[discipline.display_name.en] ?? discipline.display_name.en;
+	const spriteUrl = disciplineIconUrl(version, dataSource, name);
 
 	const nextLevel = Math.min(state.level + 2, MAX_DISCIPLINE_LEVEL);
 	const prevLevel = Math.max(state.level - 2, MIN_DISCIPLINE_LEVEL);
@@ -57,15 +59,7 @@ export function DisciplineColumn({
 	return (
 		<section className={`card ${styles.column}`}>
 			<header className={styles.header}>
-				<img
-					src={disciplineIconUrl(version, dataSource, name)}
-					alt=""
-					className={styles.icon}
-					loading="lazy"
-					onError={(e) => {
-						(e.currentTarget as HTMLImageElement).style.visibility = "hidden";
-					}}
-				/>
+				<SkillIcon spriteUrl={spriteUrl} frame={0} size={42} className={styles.icon} />
 				<div className={styles.headerText}>
 					<h3 className={styles.title}>{disciplineName}</h3>
 					{pointsInvested > 0 && (
@@ -116,6 +110,8 @@ export function DisciplineColumn({
 							rank={state.spellRanks[idx] ?? 0}
 							maxRank={cap}
 							locked={cap <= 0}
+							spriteUrl={spriteUrl}
+							spellIndex={idx}
 							onChange={(newRank) => onSpellRankChange(idx, newRank)}
 						/>
 					);

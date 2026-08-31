@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SPELL_GCD_PT, SPELL_TYPE_PT } from "../../data/trainerTranslationsPt";
 import type { Spell } from "../../types/trainer";
 import { spellDescription, spellEffectRows, spellName, spellScalarRows } from "./spellFormat";
+import { SkillIcon } from "./SkillIcon";
 import styles from "./SpellRow.module.css";
 
 interface Props {
@@ -9,10 +10,14 @@ interface Props {
 	rank: number;
 	maxRank: number;
 	locked: boolean;
+	/** Discipline icon sprite sheet this spell's icon is cut from. */
+	spriteUrl: string;
+	/** This spell's frame in the sprite (its index in `discipline.spells`, 0-based). */
+	spellIndex: number;
 	onChange: (newRank: number) => void;
 }
 
-export function SpellRow({ spell, rank, maxRank, locked, onChange }: Props) {
+export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, onChange }: Props) {
 	const [open, setOpen] = useState(false);
 	const scalarRows = spellScalarRows(spell);
 	const effectRows = spellEffectRows(spell);
@@ -30,6 +35,7 @@ export function SpellRow({ spell, rank, maxRank, locked, onChange }: Props) {
 				aria-label={`${open ? "Ocultar" : "Ver"} detalhes de ${spellName(spell)}`}
 				onClick={() => setOpen((o) => !o)}
 			>
+				<SkillIcon spriteUrl={spriteUrl} frame={spellIndex + 1} size={22} className={styles.icon} dim={rank === 0} />
 				<span className={styles.chevron} aria-hidden data-open={open}>
 					›
 				</span>
