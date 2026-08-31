@@ -34,41 +34,6 @@ export function computeRealmFortCounts(forts: FortStatus[]): Record<Realm, numbe
 	return counts;
 }
 
-export interface RelicStatus {
-	name: string;
-	home: Realm;
-	/** "altar" = safely home. "transit" = currently being carried (stolen and
-	 *  on the move — interceptable). "unknown" = no recent event to go on. */
-	status: "altar" | "transit" | "unknown";
-	holder: Realm | null;
-	since: number | null;
-}
-
-/** The `relics` field in the live snapshot only carries opaque icon
- *  filenames, not a decodable status — so status here is derived from the
- *  freshest matching entry in the event log instead (which does spell out
- *  "altar" vs "transit" and who currently holds it). */
-export function computeRelicStatuses(data: WzStatusData): RelicStatus[] {
-	const result: RelicStatus[] = [];
-	for (const home of Object.keys(data.relics) as Realm[]) {
-		for (const relicName of Object.keys(data.relics[home])) {
-			const latestEvent = data.events_log.find((e) => e.type === "relic" && e.name === relicName);
-			if (latestEvent) {
-				result.push({
-					name: relicName,
-					home,
-					status: latestEvent.location === "transit" ? "transit" : "altar",
-					holder: (latestEvent.owner as Realm) || null,
-					since: latestEvent.date,
-				});
-			} else {
-				result.push({ name: relicName, home, status: "unknown", holder: home, since: null });
-			}
-		}
-	}
-	return result;
-}
-
 export interface GemStatus {
 	index: number;
 	home: Realm;

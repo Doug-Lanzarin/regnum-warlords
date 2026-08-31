@@ -1,10 +1,9 @@
 import { useMemo } from "react";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
-import { RelicsSection } from "../features/wz/RelicsSection";
 import { RealmSummary } from "../features/wz/RealmSummary";
 import { useWzStatus } from "../features/wz/useWzStatus";
-import { computeFortStatuses, computeGemStatuses, computeRealmFortCounts, computeRelicStatuses } from "../features/wz/wzEngine";
+import { computeFortStatuses, computeGemStatuses, computeRealmFortCounts } from "../features/wz/wzEngine";
 import { WzMap } from "../features/wz/WzMap";
 import { formatRelativePast } from "../utils/time";
 import styles from "./WzStatusPage.module.css";
@@ -13,7 +12,6 @@ export function WzStatusPage() {
 	const { data, loading, error, now, lastUpdated, refresh } = useWzStatus();
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
-	const relics = useMemo(() => (data ? computeRelicStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const fortCounts = useMemo(() => computeRealmFortCounts(forts), [forts]);
 
@@ -51,7 +49,7 @@ export function WzStatusPage() {
 			<div className={`card ${styles.intro}`}>
 				<div>
 					<h1 className={styles.title}>Status da Zona de Guerra</h1>
-					<p className={styles.subtitle}>Quem controla cada forte e onde estão as relíquias agora — dados ao vivo do CoRT.</p>
+					<p className={styles.subtitle}>Quem controla cada forte e cada gema agora — dados ao vivo do CoRT.</p>
 				</div>
 
 				<RealmSummary fortCounts={fortCounts} totalForts={forts.length} />
@@ -68,7 +66,6 @@ export function WzStatusPage() {
 			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
-			<RelicsSection relics={relics} now={now} />
 		</div>
 	);
 }
