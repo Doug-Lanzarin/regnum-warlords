@@ -4,6 +4,7 @@ import { TrainerPage } from "./pages/TrainerPage";
 import { BossesPage } from "./pages/BossesPage";
 import { WzStatusPage } from "./pages/WzStatusPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
 	return (
@@ -12,6 +13,7 @@ export default function App() {
 				<Route path="/" element={<TrainerPage />} />
 				<Route path="/wz" element={<WzStatusPage />} />
 				<Route path="/bosses" element={<BossesPage />} />
+				<Route path="/configuracoes" element={<SettingsPage />} />
 				<Route
 					path="/bz"
 					element={<ComingSoonPage title="Zona de Batalha" description="Status e contagem regressiva das Battlezones." />}

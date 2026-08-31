@@ -121,6 +121,7 @@
 /* Phones: collapse the wordmark so the theme picker fits on the same row as the logo,
    keeping the sticky header to two compact rows instead of three. */
 @media (max-width: 560px) {
+	.nav { display: none; }
 	.inner {
 		gap: var(--space-3);
 		padding-block: var(--space-2);
