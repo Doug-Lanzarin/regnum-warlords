@@ -42,7 +42,7 @@ export function WzMap({ forts, relics, gems }: Props) {
 			<div className={styles.mapFrame}>
 				<div className={styles.map} style={{ aspectRatio: `${WZ_MAP_WIDTH} / ${WZ_MAP_HEIGHT}` }}>
 					<img className={styles.baseMap} src="/data/warstatus/base_map.2.png" alt="Mapa da Zona de Guerra de Champions of Regnum" />
-					{FORT_MAP_POSITIONS.map((position, index) => {
+					{FORT_MAP_POSITIONS.map((position) => {
 						const fort = forts.find((item) => item.name === position.name);
 						const owner = fort?.owner ?? position.home;
 						return (
@@ -53,7 +53,7 @@ export function WzMap({ forts, relics, gems }: Props) {
 								title={`${position.name}: ${owner}`}
 								aria-label={`${position.name}, controlado por ${owner}`}
 							>
-									<span className={styles.fortIcon} aria-hidden>{index + 1}</span>
+									<span className={styles.fortIcon} aria-hidden="true" />
 									<span className={styles.fortLabel}>{position.name.replace(/\s*\(\d+\)$/, "")}</span>
 							</div>
 						);

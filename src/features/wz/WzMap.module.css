@@ -23,7 +23,8 @@
 }
 .legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .legend i { display: inline-block; }
-.legendFort { width: 12px; height: 12px; border-radius: 3px; background: var(--links); }
+.legendFort { position: relative; width: 14px; height: 11px; border: 2px solid var(--links); border-radius: 2px 2px 3px 3px; background: var(--links); }
+.legendFort::before { content: ""; position: absolute; left: 1px; right: 1px; top: -5px; height: 5px; border: 1px solid var(--links); border-bottom: 0; background: repeating-linear-gradient(90deg, var(--links) 0 3px, transparent 3px 5px); }
 .legendGem { width: 10px; height: 10px; transform: rotate(45deg); background: var(--gold); }
 .legendRelic { width: 10px; height: 10px; border: 2px solid var(--gold); border-radius: 50%; }
 
@@ -33,7 +34,9 @@
 
 .fortMarker, .gemMarker, .relicMarker { position: absolute; transform: translate(-50%, -50%); }
 .fortMarker { z-index: 2; display: flex; align-items: center; gap: 3px; }
-.fortIcon { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--marker-color); border-radius: 6px; background: color-mix(in srgb, var(--marker-color) 70%, #18201e); color: #fff; font-size: 0.72rem; font-weight: 800; box-shadow: 0 1px 4px #0008; }
+.fortIcon { position: relative; display: block; width: 28px; height: 24px; border: 2px solid var(--marker-color); border-radius: 3px 3px 5px 5px; background: color-mix(in srgb, var(--marker-color) 70%, #18201e); box-shadow: 0 1px 4px #0008; }
+.fortIcon::before { content: ""; position: absolute; left: 3px; right: 3px; top: -6px; height: 7px; border: 2px solid var(--marker-color); border-bottom: 0; border-radius: 2px 2px 0 0; background: repeating-linear-gradient(90deg, var(--marker-color) 0 4px, transparent 4px 7px); }
+.fortIcon::after { content: ""; position: absolute; left: 10px; bottom: 0; width: 6px; height: 10px; border: 1px solid color-mix(in srgb, var(--marker-color) 85%, #18201e); border-bottom: 0; border-radius: 4px 4px 0 0; }
 .captured .fortIcon { border-style: dashed; }
 .fortLabel { position: absolute; top: 29px; left: 50%; transform: translateX(-50%); color: #f2eee5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; font-size: 0.62rem; font-weight: 700; white-space: nowrap; }
 .gemMarker { z-index: 3; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); background: var(--marker-color); border: 2px solid #f5df75; box-shadow: 0 0 0 2px #17231fcc, 0 1px 5px #000b; }
