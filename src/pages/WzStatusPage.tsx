@@ -49,23 +49,6 @@ export function WzStatusPage() {
 
 	return (
 		<div className={styles.wrap}>
-			<div className={`card ${styles.intro}`}>
-				<div>
-					<h1 className={styles.title}>Status da Zona de Guerra</h1>
-					<p className={styles.subtitle}>Quem controla cada forte e cada gema agora — dados ao vivo do CoRT.</p>
-				</div>
-
-				<RealmSummary fortCounts={fortCounts} totalForts={forts.length} />
-
-				<div className={styles.statusRow}>
-					{error && <span className={styles.staleWarning}>Falha ao atualizar — mostrando o último dado obtido.</span>}
-					{lastUpdated && <span className={styles.updated}>Atualizado {formatRelativePast(now - lastUpdated)}</span>}
-					<button className="btn btn-ghost" onClick={refresh}>
-						Atualizar
-					</button>
-				</div>
-			</div>
-
 			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
