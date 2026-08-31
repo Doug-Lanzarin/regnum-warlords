@@ -1,0 +1,146 @@
+/*
+ * Color tokens ported from CoRT's realm/appearance themes (css/style.css),
+ * kept faithful to the original palettes so the identity carries over.
+ * Layout, spacing and components around them are redesigned from scratch.
+ */
+
+:root {
+	--background: #0d1024;
+	--background-soft: #161a38;
+	--card-background: #1c2044;
+	--card-background-alt: #232852;
+	--menu-background: #191d3e;
+	--tooltip-background: #262b52;
+	--accent: #4a4f7a;
+	--accent-soft: rgba(156, 205, 249, 0.12);
+	--foreground: #f4f5fb;
+	--forms: #2b2f57;
+	--red: #ff8a92;
+	--blue: #9ccdf9;
+	--green: #7de384;
+	--purple: #bd93ff;
+	--faded: #a3a7c9;
+	--links: #8fd0ff;
+	--link-hover: #c9b3ff;
+	--border: rgba(255, 255, 255, 0.09);
+	--focus-ring: #8fd0ff;
+
+	--font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+	--font-display: "Sora", "Inter", "Segoe UI", system-ui, sans-serif;
+
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 18px;
+	--radius-full: 999px;
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 24px;
+	--space-6: 32px;
+	--space-7: 48px;
+	--shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 12px 28px rgba(0, 0, 0, 0.28);
+	--shadow-pop: 0 4px 10px rgba(0, 0, 0, 0.3), 0 20px 40px rgba(0, 0, 0, 0.32);
+	--ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+	color-scheme: dark;
+}
+
+:root[data-theme="Syrtis"] {
+	--background: #0e1f18;
+	--background-soft: #16301f;
+	--card-background: #16311f;
+	--card-background-alt: #1c3e26;
+	--menu-background: #1b3a24;
+	--tooltip-background: #1e3a26;
+	--accent: #3f6f4f;
+	--accent-soft: rgba(180, 255, 161, 0.14);
+	--foreground: #f2fbf3;
+	--forms: #2b5236;
+	--faded: #a9c9ab;
+	--links: #b4ffa1;
+	--link-hover: #d9ffcb;
+	--border: rgba(180, 255, 161, 0.16);
+	--focus-ring: #b4ffa1;
+}
+
+:root[data-theme="Alsius"] {
+	--background: #051529;
+	--background-soft: #0b2138;
+	--card-background: #142a44;
+	--card-background-alt: #1a3552;
+	--menu-background: #0f2740;
+	--tooltip-background: #1c2c48;
+	--accent: #2f5a80;
+	--accent-soft: rgba(156, 205, 249, 0.16);
+	--foreground: #f2f8ff;
+	--forms: #294f6e;
+	--faded: #a6bdd6;
+	--border: rgba(120, 180, 255, 0.16);
+	--focus-ring: #9ccdf9;
+}
+
+:root[data-theme="Ignis"] {
+	--background: #100404;
+	--background-soft: #1c0808;
+	--card-background: #2a0a0a;
+	--card-background-alt: #351010;
+	--menu-background: #240909;
+	--tooltip-background: #200c0c;
+	--accent: #7a2a2a;
+	--accent-soft: rgba(255, 220, 195, 0.12);
+	--foreground: #fdf3ee;
+	--forms: #5a2020;
+	--faded: #d8ada0;
+	--links: #ffb98c;
+	--link-hover: #ffcaa3;
+	--border: rgba(255, 150, 120, 0.16);
+	--focus-ring: #ffb98c;
+}
+
+:root[data-theme="Light"] {
+	--background: #f6f5f1;
+	--background-soft: #eeece5;
+	--card-background: #ffffff;
+	--card-background-alt: #fbfaf6;
+	--menu-background: #ffffff;
+	--tooltip-background: #fef6eb;
+	--accent: #e7e2d3;
+	--accent-soft: rgba(0, 76, 187, 0.08);
+	--foreground: #14161d;
+	--forms: #eceae3;
+	--red: #b3261e;
+	--blue: #004cbb;
+	--green: #157a00;
+	--purple: #7a1fa2;
+	--faded: #5b5d6b;
+	--links: #004cbb;
+	--link-hover: #7a1fa2;
+	--border: rgba(20, 22, 30, 0.1);
+	--focus-ring: #004cbb;
+	--shadow-card: 0 1px 2px rgba(20, 20, 30, 0.05), 0 10px 24px rgba(20, 20, 30, 0.08);
+	--shadow-pop: 0 4px 10px rgba(20, 20, 30, 0.08), 0 20px 36px rgba(20, 20, 30, 0.12);
+	color-scheme: light;
+}
+
+:root[data-theme="OLED"] {
+	--background: #000000;
+	--background-soft: #0a0a0a;
+	--card-background: #0a0a0a;
+	--card-background-alt: #131313;
+	--menu-background: #0c0c0c;
+	--tooltip-background: #161616;
+	--accent: #2a2a2a;
+	--accent-soft: rgba(102, 204, 255, 0.1);
+	--foreground: #ffffff;
+	--forms: #262626;
+	--red: #ff3333;
+	--blue: #00bfff;
+	--green: #39ff14;
+	--purple: #d94dff;
+	--faded: #9a9a9a;
+	--links: #66ccff;
+	--link-hover: #ffffff;
+	--border: rgba(255, 255, 255, 0.13);
+	--focus-ring: #66ccff;
+}

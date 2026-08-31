@@ -1,0 +1,26 @@
+.wrap {
+	padding: var(--space-6);
+	max-width: 640px;
+	margin: var(--space-6) auto;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.wrap h1 {
+	margin: 0;
+}
+
+.wrap p {
+	color: var(--faded);
+	margin: 0;
+}
+
+.hint {
+	font-size: 0.85rem;
+	border-top: 1px solid var(--border);
+	padding-top: var(--space-3);
+	margin-top: var(--space-2) !important;
+}

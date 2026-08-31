@@ -1,0 +1,82 @@
+.wrap {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: var(--space-4);
+}
+
+.group {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.groupLabel {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--faded);
+	padding-left: 2px;
+}
+
+.options {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.option {
+	--hue: var(--links);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 12px;
+	border-radius: var(--radius-md);
+	border: 1px solid var(--border);
+	background: var(--forms);
+	color: var(--foreground);
+	font-weight: 600;
+	font-size: 0.88rem;
+	text-align: left;
+	transition: border-color 0.15s var(--ease), background-color 0.15s var(--ease), transform 0.05s var(--ease);
+}
+
+.option:hover {
+	border-color: var(--hue);
+}
+
+.option:active {
+	transform: translateY(1px);
+}
+
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: var(--hue);
+	flex-shrink: 0;
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--hue) 25%, transparent);
+}
+
+.optionSelected {
+	background: color-mix(in srgb, var(--hue) 16%, var(--card-background));
+	border-color: var(--hue);
+	box-shadow: 0 0 0 1px var(--hue);
+}
+
+@media (max-width: 720px) {
+	.wrap {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 640px) {
+	.option {
+		padding: 12px 14px;
+		font-size: 0.92rem;
+	}
+	.dot {
+		width: 10px;
+		height: 10px;
+	}
+}

@@ -1,0 +1,79 @@
+.wrap {
+	position: sticky;
+	top: var(--header-height, 68px);
+	z-index: 20;
+	padding: var(--space-3) var(--space-4);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+	flex-wrap: wrap;
+}
+
+.points {
+	display: flex;
+	gap: var(--space-6);
+	flex-wrap: wrap;
+}
+
+.right {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	flex-wrap: wrap;
+}
+
+.source {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.sourceDot {
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: var(--faded);
+}
+
+.sourceLive .sourceDot,
+.sourceLive {
+	color: var(--green);
+}
+.sourceLive .sourceDot {
+	background: var(--green);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+/* Stays sticky on phones too: remaining points are the single most useful
+   reference while scrolling a long ability list, so keep it in view — just
+   trim it down so it doesn't eat too much of a small screen. */
+@media (max-width: 640px) {
+	.wrap {
+		padding: var(--space-2) var(--space-3);
+		gap: var(--space-2);
+		background: color-mix(in srgb, var(--card-background) 96%, transparent);
+		backdrop-filter: blur(8px);
+		box-shadow: var(--shadow-card);
+	}
+	.points {
+		gap: var(--space-3);
+		flex: 1 1 auto;
+	}
+	.right {
+		gap: var(--space-2);
+		width: 100%;
+		justify-content: space-between;
+	}
+	.source {
+		order: 2;
+	}
+	.right .btn {
+		flex: 1 1 auto;
+		justify-content: center;
+		padding: var(--space-2) var(--space-3);
+		font-size: 0.82rem;
+	}
+}

@@ -1,0 +1,64 @@
+.wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 180px;
+}
+
+.headerRow {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-2);
+}
+
+.label {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--faded);
+}
+
+.value {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 1.05rem;
+	color: var(--foreground);
+}
+
+.valueMuted {
+	font-family: var(--font-sans);
+	font-weight: 500;
+	font-size: 0.7rem;
+	color: var(--faded);
+	text-transform: none;
+	letter-spacing: normal;
+}
+
+.valueDanger {
+	color: var(--red);
+}
+
+.track {
+	height: 7px;
+}
+
+.fillDanger {
+	background: var(--red);
+}
+
+.footRow {
+	font-size: 0.7rem;
+	color: var(--faded);
+}
+
+@media (max-width: 640px) {
+	.wrap {
+		min-width: 140px;
+		flex: 1 1 140px;
+	}
+	.value {
+		font-size: 0.98rem;
+	}
+}

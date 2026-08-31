@@ -1,0 +1,134 @@
+.column {
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+	transition: box-shadow 0.15s var(--ease);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.icon {
+	width: 42px;
+	height: 42px;
+	border-radius: var(--radius-md);
+	background: var(--menu-background);
+	object-fit: cover;
+	flex-shrink: 0;
+	border: 1px solid var(--border);
+}
+
+.headerText {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.title {
+	margin: 0;
+	font-size: 0.92rem;
+	font-family: var(--font-display);
+	font-weight: 700;
+	line-height: 1.15;
+	overflow-wrap: anywhere;
+}
+
+.investedBadge {
+	font-size: 0.66rem;
+	font-weight: 700;
+	color: var(--links);
+	background: var(--accent-soft);
+	border-radius: var(--radius-full);
+	padding: 1px 8px;
+	width: fit-content;
+}
+
+.levelRow {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-bottom: var(--space-2);
+	border-bottom: 1px solid var(--border);
+}
+
+.levelStepper {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+}
+
+.stepBtn {
+	width: 24px;
+	height: 24px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--border);
+	background: var(--accent);
+	color: var(--foreground);
+	font-weight: 700;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+	transition: filter 0.15s var(--ease);
+}
+.stepBtn:hover:not(:disabled) {
+	filter: brightness(1.2);
+}
+.stepBtn:disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.levelValue {
+	font-size: 0.8rem;
+	color: var(--faded);
+}
+.levelValue strong {
+	color: var(--foreground);
+	font-family: var(--font-display);
+}
+
+.levelTrack {
+	height: 5px;
+}
+
+.levelHint {
+	font-size: 0.68rem;
+	color: var(--faded);
+}
+
+.spells {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+@media (max-width: 640px) {
+	.stepBtn {
+		width: 38px;
+		height: 38px;
+		font-size: 1.1rem;
+	}
+	.title {
+		font-size: 1rem;
+	}
+	.levelHint {
+		font-size: 0.74rem;
+	}
+	.levelValue {
+		font-size: 0.85rem;
+	}
+	.icon {
+		width: 46px;
+		height: 46px;
+	}
+}
