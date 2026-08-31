@@ -95,6 +95,7 @@ public/
 Inspirado no [CoRT](https://codeberg.org/mascal/CoRT), da comunidade de
 Champions of Regnum, licenciado sob AGPL-3.0. Os dados de referência do
 trainer (nomes, custos, textos das habilidades) usados aqui vêm do mesmo
-projeto. O mapa da Zona de Guerra (`public/data/wz/base_map.png`) e o
-posicionamento dos fortes na página de Status da WZ também vêm do CoRT
+projeto. O mapa da Zona de Guerra (`public/data/wz/base_map.png`), o
+posicionamento dos fortes na página de Status da WZ e os retratos dos
+chefes de mundo (`public/data/bosses/`) também vêm do CoRT
 ([mascaldotfr/CoRT](https://github.com/mascaldotfr/CoRT)).

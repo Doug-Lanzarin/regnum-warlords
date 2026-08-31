@@ -1,5 +1,5 @@
-import type { CSSProperties } from "react";
-import { BOSS_INFO } from "../../data/bossConstants";
+import { useState, type CSSProperties } from "react";
+import { BOSS_INFO, bossIconUrl } from "../../data/bossConstants";
 import type { BossKey } from "../../types/bosses";
 import { formatCountdown, formatDateTime, formatRelativePast } from "./countdown";
 import styles from "./BossCard.module.css";
@@ -14,6 +14,7 @@ interface Props {
 
 export function BossCard({ bossKey, prevSpawn, nextSpawns, now, featured }: Props) {
 	const info = BOSS_INFO[bossKey];
+	const [iconFailed, setIconFailed] = useState(false);
 	const nextTs = nextSpawns[0];
 	const msRemaining = nextTs * 1000 - now;
 	const upcoming = nextSpawns.slice(1);
@@ -26,9 +27,19 @@ export function BossCard({ bossKey, prevSpawn, nextSpawns, now, featured }: Prop
 			{featured && <span className={styles.featuredTag}>Próximo a reaparecer</span>}
 
 			<div className={styles.header}>
-				<span className={styles.emblem} aria-hidden>
-					{info.realm ? info.realm[0] : "⚙"}
-				</span>
+				{iconFailed ? (
+					<span className={styles.emblem} aria-hidden>
+						{info.realm ? info.realm[0] : "⚙"}
+					</span>
+				) : (
+					<img
+						src={bossIconUrl(bossKey)}
+						alt=""
+						className={styles.emblem}
+						loading="lazy"
+						onError={() => setIconFailed(true)}
+					/>
+				)}
 				<div className={styles.headerText}>
 					<h3 className={styles.name}>{info.name}</h3>
 					{info.realm && <span className={styles.realm}>{info.realm}</span>}
