@@ -8,6 +8,7 @@ const NAV_ITEMS = [
 	{ to: "/", label: "Trainer", end: true },
 	{ to: "/wz", label: "Status da WZ" },
 	{ to: "/bosses", label: "Chefes" },
+	{ to: "/notificacoes", label: "Notificações" },
 ];
 
 export function NavBar() {
