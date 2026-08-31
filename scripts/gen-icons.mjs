@@ -4,45 +4,34 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const outDir = fileURLToPath(new URL("../public/icons/", import.meta.url));
+const sourceFile = fileURLToPath(new URL("./assets/app-icon-source.jpg", import.meta.url));
 mkdirSync(outDir, { recursive: true });
 
-function svgIcon({ size, padding }) {
-	const inner = size - padding * 2;
-	return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-	<defs>
-		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0" stop-color="#1a2050"/>
-			<stop offset="1" stop-color="#0b0e22"/>
-		</linearGradient>
-		<linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0" stop-color="#9ccdf9"/>
-			<stop offset="1" stop-color="#bd93ff"/>
-		</linearGradient>
-	</defs>
-	<rect width="${size}" height="${size}" fill="url(#bg)"/>
-	<g transform="translate(${padding},${padding})">
-		<path d="M${inner * 0.5} ${inner * 0.06}
-			L${inner * 0.92} ${inner * 0.26}
-			V${inner * 0.56}
-			C${inner * 0.92} ${inner * 0.76} ${inner * 0.74} ${inner * 0.92} ${inner * 0.5} ${inner * 0.98}
-			C${inner * 0.26} ${inner * 0.92} ${inner * 0.08} ${inner * 0.76} ${inner * 0.08} ${inner * 0.56}
-			V${inner * 0.26} Z"
-			fill="url(#mark)" opacity="0.18" stroke="url(#mark)" stroke-width="${inner * 0.035}"/>
-		<text x="${inner * 0.5}" y="${inner * 0.62}" font-family="Segoe UI, Arial, sans-serif" font-size="${inner * 0.38}"
-			font-weight="800" fill="url(#mark)" text-anchor="middle">RW</text>
-	</g>
-</svg>`;
+// Sampled from the source artwork's own edge so the maskable padding blends
+// in instead of showing a visible seam around the safe-zone circle.
+const MASKABLE_BG = { r: 40, g: 111, b: 31 };
+
+const PNG_OPTS = { compressionLevel: 9, palette: true, quality: 90, effort: 10 };
+
+async function squareIcon(size, file) {
+	await sharp(sourceFile).resize(size, size, { fit: "cover" }).png(PNG_OPTS).toFile(path.join(outDir, file));
+	console.log("wrote", file);
 }
 
-const targets = [
-	{ file: "icon-192.png", size: 192, padding: 0 },
-	{ file: "icon-512.png", size: 512, padding: 0 },
-	{ file: "maskable-512.png", size: 512, padding: 64 },
-];
-
-for (const t of targets) {
-	const svg = svgIcon({ size: t.size, padding: t.padding });
-	await sharp(Buffer.from(svg)).png().toFile(path.join(outDir, t.file));
-	console.log("wrote", t.file);
+async function maskableIcon(size, file) {
+	// Maskable icons get cropped to a circle/squircle by the OS — keep the
+	// artwork inside the ~80% "safe zone" so the shield doesn't get clipped.
+	const inner = Math.round(size * 0.82);
+	const artwork = await sharp(sourceFile).resize(inner, inner, { fit: "cover" }).toBuffer();
+	await sharp({
+		create: { width: size, height: size, channels: 3, background: MASKABLE_BG },
+	})
+		.composite([{ input: artwork, gravity: "center" }])
+		.png(PNG_OPTS)
+		.toFile(path.join(outDir, file));
+	console.log("wrote", file);
 }
+
+await squareIcon(192, "icon-192.png");
+await squareIcon(512, "icon-512.png");
+await maskableIcon(512, "maskable-512.png");

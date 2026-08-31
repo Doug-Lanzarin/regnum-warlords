@@ -95,11 +95,17 @@ de erro — isso é esperado, só funciona depois de publicado.
 
 ## Regenerando os ícones do PWA
 
-Os ícones em `public/icons/` foram gerados uma vez com o script
-`scripts/gen-icons.mjs` (usa a lib `sharp`, que não fica como dependência do
-projeto). Para gerar de novo com outro visual:
+Os ícones em `public/icons/` são gerados a partir da arte-fonte em
+`scripts/assets/app-icon-source.jpg` pelo script `scripts/gen-icons.mjs`
+(usa a lib `sharp`, que não fica como dependência do projeto): recorta o
+ícone quadrado (`icon-192.png`, `icon-512.png`) e uma versão com margem pra
+`maskable-512.png`, que o Android/PWA recorta em círculo — sem a margem o
+brasão seria cortado nas bordas.
+
+Para trocar a arte ou gerar de novo:
 
 ```bash
+# troque scripts/assets/app-icon-source.jpg por outra imagem quadrada, se quiser
 npm i -D sharp
 node scripts/gen-icons.mjs
 npm uninstall sharp
