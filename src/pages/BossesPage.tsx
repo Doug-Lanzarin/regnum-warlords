@@ -1,11 +1,10 @@
 import { BossCard } from "../features/bosses/BossCard";
-import { formatRelativePast } from "../features/bosses/countdown";
 import { useBossTimers } from "../features/bosses/useBossTimers";
 import { BOSS_ORDER } from "../data/bossConstants";
 import styles from "./BossesPage.module.css";
 
 export function BossesPage() {
-	const { data, loading, error, now, lastUpdated, refresh } = useBossTimers();
+	const { data, loading, error, now, refresh } = useBossTimers();
 
 	if (loading && !data) {
 		return (
