@@ -86,10 +86,14 @@ async function writeNotifications(notifications: NotificationEntry[], sha: strin
 }
 
 function isAuthorized(req: VercelLikeRequest): boolean {
-	const expected = process.env.NOTIFICATIONS_ADMIN_PASSWORD;
+	// .trim() on both sides: a stray trailing space/newline is an easy thing
+	// to introduce when pasting the value into Vercel's env var field (or
+	// typing it on a mobile keyboard), and there's no security downside to
+	// ignoring pure whitespace padding around a single shared secret.
+	const expected = process.env.NOTIFICATIONS_ADMIN_PASSWORD?.trim();
 	if (!expected) return false;
 	const provided = req.headers["x-admin-password"];
-	return typeof provided === "string" && provided === expected;
+	return typeof provided === "string" && provided.trim() === expected;
 }
 
 export default async function handler(req: VercelLikeRequest, res: VercelLikeResponse) {
@@ -102,6 +106,18 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		}
 
 		if (!isAuthorized(req)) {
+			// Never logs the actual values (server- or client-provided) — just
+			// enough to tell "not configured" apart from "value mismatch" (and
+			// a length mismatch strongly suggests stray whitespace) from the
+			// Vercel function logs, without exposing the secret anywhere.
+			const expected = process.env.NOTIFICATIONS_ADMIN_PASSWORD;
+			const provided = req.headers["x-admin-password"];
+			console.warn("notifications auth rejected:", {
+				configured: Boolean(expected),
+				expectedLength: expected?.trim().length ?? 0,
+				providedType: typeof provided,
+				providedLength: typeof provided === "string" ? provided.trim().length : null,
+			});
 			res.status(401).json({ error: "Senha de gerenciamento inválida ou ausente." });
 			return;
 		}
