@@ -6,9 +6,9 @@ export function NotFoundPage() {
 		<div className={`card ${styles.wrap}`}>
 			<span className="badge">404</span>
 			<h1>Página não encontrada</h1>
-			<p>Volte para o Trainer pelo menu acima.</p>
+			<p>Volte para o Treinador pelo menu acima.</p>
 			<Link className="btn btn-primary" to="/">
-				Ir para o Trainer
+				Ir para o Treinador
 			</Link>
 		</div>
 	);
