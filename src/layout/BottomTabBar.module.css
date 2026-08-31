@@ -1,80 +1,104 @@
+/* Now the app's only navigation surface (the header was removed) — shown
+   at every screen size: docked to the bottom edge on phones, a floating
+   pill above that on wider screens. */
 .bar {
-	display: none;
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 40;
+	display: flex;
+	align-items: stretch;
+	background: color-mix(in srgb, var(--menu-background) 94%, transparent);
+	backdrop-filter: blur(10px);
+	border-top: 1px solid var(--border);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-@media (max-width: 640px) {
+.tab {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	padding: 8px 2px 6px;
+	min-height: 56px;
+	color: var(--faded);
+	position: relative;
+}
+.tab:hover {
+	text-decoration: none;
+	color: var(--foreground);
+}
+
+.iconWrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 46px;
+	height: 26px;
+	border-radius: var(--radius-full);
+	transition: background-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.icon {
+	flex-shrink: 0;
+}
+
+.label {
+	font-size: 0.64rem;
+	font-weight: 600;
+	white-space: nowrap;
+	transition: color 0.18s var(--ease), font-weight 0.18s var(--ease);
+}
+
+.tabActive {
+	color: var(--links);
+}
+.tabActive .iconWrap {
+	background: color-mix(in srgb, var(--links) 20%, transparent);
+	color: var(--links);
+}
+.tabActive .label {
+	color: var(--links);
+	font-weight: 800;
+}
+.tabActive::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 28px;
+	height: 3px;
+	border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+	background: var(--links);
+}
+
+/* Tablets/desktop: detach into a floating pill instead of a full-width dock. */
+@media (min-width: 641px) {
 	.bar {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 40;
-		display: flex;
-		align-items: stretch;
-		background: color-mix(in srgb, var(--menu-background) 94%, transparent);
-		backdrop-filter: blur(10px);
-		border-top: 1px solid var(--border);
-		padding-bottom: env(safe-area-inset-bottom, 0px);
+		left: 50%;
+		right: auto;
+		bottom: var(--space-4);
+		transform: translateX(-50%);
+		width: max-content;
+		max-width: calc(100% - var(--space-6));
+		border: 1px solid var(--border);
+		border-radius: var(--radius-full);
+		box-shadow: var(--shadow-pop);
+		padding-bottom: 0;
 	}
 
 	.tab {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 3px;
-		padding: 8px 2px 6px;
-		min-height: 56px;
-		color: var(--faded);
-		position: relative;
-	}
-	.tab:hover {
-		text-decoration: none;
-		color: var(--foreground);
+		min-height: 52px;
+		padding: 8px 20px 6px;
 	}
 
-	.iconWrap {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 46px;
-		height: 26px;
-		border-radius: var(--radius-full);
-		transition: background-color 0.18s var(--ease), color 0.18s var(--ease);
-	}
-
-	.icon {
-		flex-shrink: 0;
-	}
-
-	.label {
-		font-size: 0.64rem;
-		font-weight: 600;
-		white-space: nowrap;
-		transition: color 0.18s var(--ease), font-weight 0.18s var(--ease);
-	}
-
-	.tabActive {
-		color: var(--links);
-	}
-	.tabActive .iconWrap {
-		background: color-mix(in srgb, var(--links) 20%, transparent);
-		color: var(--links);
-	}
-	.tabActive .label {
-		color: var(--links);
-		font-weight: 800;
-	}
+	/* The top indicator reads fine flush against a screen edge, but would
+	   poke out oddly against this pill's rounded corners. */
 	.tabActive::before {
-		content: "";
-		position: absolute;
-		top: 0;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 28px;
-		height: 3px;
-		border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-		background: var(--links);
+		display: none;
 	}
 }

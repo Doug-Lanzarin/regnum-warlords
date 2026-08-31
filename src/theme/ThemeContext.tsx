@@ -22,12 +22,9 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readStoredTheme(): ThemeName {
-	try {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (stored && (THEMES as readonly string[]).includes(stored)) return stored as ThemeName;
-	} catch {
-		// ignore
-	}
+	// The theme picker lived in the header, which is removed for now — stay
+	// on the default until it's back, regardless of what an earlier visit
+	// may have stored (see AppLayout).
 	return "Dark";
 }
 
