@@ -97,7 +97,7 @@ export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | n
 	return null;
 }
 
-export function computeEventLog(data: WzStatusData, limit = 40): HumanizedEvent[] {
+export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent[] {
 	const events: HumanizedEvent[] = [];
 	for (let i = 0; i < data.events_log.length && events.length < limit; i++) {
 		const humanized = humanizeEvent(data.events_log[i], i);
