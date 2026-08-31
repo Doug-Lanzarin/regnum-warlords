@@ -35,8 +35,7 @@ export function NotificationsPage() {
 	return (
 		<div className={styles.wrap}>
 			<div className={`card ${styles.intro}`}>
-				<h1 className={styles.title}>Notificações</h1>
-				<p className={styles.subtitle}>Novidades e avisos sobre o Regnum Warlords.</p>
+				<h1 className={styles.title}>Avisos Warlords</h1>
 			</div>
 
 			<NotificationTimeline notifications={notifications} now={now} editable={false} busy={busy} onDelete={remove} />
