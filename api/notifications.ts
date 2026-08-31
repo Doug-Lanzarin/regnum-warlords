@@ -148,7 +148,11 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		res.setHeader("Allow", "GET, POST, DELETE");
 		res.status(405).json({ error: "Método não suportado." });
 	} catch (error) {
+		// Logged in full for whoever has access to the Vercel function logs;
+		// the response only ever gets a generic message — this endpoint is
+		// public (GET needs no auth), so internal details like "which env var
+		// is missing" must never reach an arbitrary caller.
 		console.error("notifications api error:", error);
-		res.status(500).json({ error: error instanceof Error ? error.message : "Erro interno." });
+		res.status(500).json({ error: "Notificações indisponíveis no momento. Tente novamente mais tarde." });
 	}
 }
