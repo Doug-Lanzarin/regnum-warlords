@@ -17,10 +17,3 @@
 	color: var(--faded);
 	margin: 0;
 }
-
-.hint {
-	font-size: 0.85rem;
-	border-top: 1px solid var(--border);
-	padding-top: var(--space-3);
-	margin-top: var(--space-2) !important;
-}

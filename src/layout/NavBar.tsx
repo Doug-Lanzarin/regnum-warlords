@@ -8,10 +8,6 @@ const NAV_ITEMS = [
 	{ to: "/", label: "Trainer", end: true },
 	{ to: "/wz", label: "Status da WZ" },
 	{ to: "/bosses", label: "Chefes" },
-	{ to: "/bz", label: "Zona de Batalha" },
-	{ to: "/estatisticas-wz", label: "Estatísticas da WZ" },
-	{ to: "/estatisticas-trainer", label: "Estatísticas do Trainer" },
-	{ to: "/missoes", label: "Missões" },
 ];
 
 export function NavBar() {

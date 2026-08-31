@@ -43,16 +43,13 @@ npm run preview   # serve o build de produção localmente, para testar
 - **PWA**: o app pode ser instalado (botão "Instalar app" quando o navegador
   permite) e funciona offline para o Trainer, já que os dados de referência
   (`public/data/trainer/1.35.19`) ficam empacotados localmente.
-- Navegação já pronta para as demais páginas do CoRT (Zona de Batalha,
-  Estatísticas, Missões) — hoje como páginas "em construção", prontas para
-  receber as próximas implementações.
 
 ## O que falta (próximos passos)
 
-- Implementar as páginas "em construção" restantes (`src/pages/ComingSoonPage.tsx`
-  é o placeholder de todas elas). O cliente de API ao vivo do CoRT já está
-  pronto em `src/api/cortApi.ts` (bosses, zona de batalha, status da WZ,
-  eventos, estatísticas) — falta só montar a UI de cada página.
+- Zona de Batalha, Estatísticas (WZ e Trainer) e Missões ainda não têm
+  página nem tab no menu. O cliente de API ao vivo do CoRT já está pronto em
+  `src/api/cortApi.ts` (bosses, zona de batalha, status da WZ, eventos,
+  estatísticas) para quando alguma delas for implementada.
 - Hoje só a versão `1.35.19` dos dados do trainer está empacotada em
   `public/data/trainer/`. Para adicionar versões antigas, copie o
   `trainerdata.json` e a pasta `icons/` de cada versão do repositório do CoRT
