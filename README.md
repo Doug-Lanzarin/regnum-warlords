@@ -25,18 +25,18 @@ npm run preview   # serve o build de produção localmente, para testar
 
 ## O que já está pronto
 
-- **Trainer** (`/`): calculadora completa de build — escolha de classe (as 6
+- **Treinador** (`/`): calculadora completa de build — escolha de classe (as 6
   classes avançadas: Knight, Barbarian, Conjurer, Warlock, Hunter, Marksman),
   nível (10–60, incluindo o Cristal Necro no 60), disciplinas com custo em
   pontos de disciplina, habilidades com rank (0–5) em pontos de poder,
   detalhes de cada habilidade (mana, recarga, dano/buffs por rank) e
   compartilhamento de build por link.
-- **Status da WZ** (`/wz`): dados ao vivo de `cort.ovh` — mapa da Zona de
+- **Warzone** (`/wz`): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
   invadidos), gemas por reino e um log dos eventos recentes (capturas,
   gemas, relíquias, pedidos ao dragão), atualizados a cada 2 minutos.
-- **Chefes** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
+- **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +
   descrição). O CRUD (criar/remover) fica numa página separada sem link em
@@ -46,7 +46,7 @@ npm run preview   # serve o build de produção localmente, para testar
   header foi removido por enquanto, então essa barra (fixa embaixo no
   celular, flutuante no desktop) é a única navegação do app hoje, com a
   tab ativa destacada.
-- **PWA**: o app funciona offline para o Trainer, já que os dados de
+- **PWA**: o app funciona offline para o Treinador, já que os dados de
   referência (`public/data/trainer/1.35.19`) ficam empacotados localmente.
 
 > **Tema e instalação do PWA temporariamente fora do ar**: o seletor de
@@ -70,7 +70,7 @@ npm run preview   # serve o build de produção localmente, para testar
   que pode ser atualizado por eles a qualquer momento) e cai para a cópia
   local se a rede estiver bloqueada ou indisponível — em redes corporativas
   restritas isso é comum, e o app deixa isso visível com o indicador
-  "dados locais" / "dados ao vivo" na barra de ferramentas do Trainer.
+  "dados locais" / "dados ao vivo" na barra de ferramentas do Treinador.
 
 ## Configurando as notificações
 
@@ -157,6 +157,6 @@ Inspirado no [CoRT](https://codeberg.org/mascal/CoRT), da comunidade de
 Champions of Regnum, licenciado sob AGPL-3.0. Os dados de referência do
 trainer (nomes, custos, textos das habilidades) usados aqui vêm do mesmo
 projeto. O mapa da Zona de Guerra (`public/data/wz/base_map.png`), o
-posicionamento dos fortes na página de Status da WZ e os retratos dos
+posicionamento dos fortes na página de Warzone e os retratos dos
 chefes de mundo (`public/data/bosses/`) também vêm do CoRT
 ([mascaldotfr/CoRT](https://github.com/mascaldotfr/CoRT)).
