@@ -16,12 +16,8 @@
 }
 
 .icon {
-	width: 42px;
-	height: 42px;
 	border-radius: var(--radius-md);
 	background: var(--menu-background);
-	object-fit: cover;
-	flex-shrink: 0;
 	border: 1px solid var(--border);
 }
 
@@ -126,9 +122,5 @@
 	}
 	.levelValue {
 		font-size: 0.85rem;
-	}
-	.icon {
-		width: 46px;
-		height: 46px;
 	}
 }
