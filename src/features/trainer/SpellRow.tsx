@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SPELL_GCD_PT, SPELL_TYPE_PT } from "../../data/trainerTranslationsPt";
 import type { Spell } from "../../types/trainer";
 import { spellDescription, spellEffectRows, spellName, spellScalarRows } from "./spellFormat";
 import styles from "./SpellRow.module.css";
@@ -74,7 +75,7 @@ export function SpellRow({ spell, rank, maxRank, locked, onChange }: Props) {
 					<dl className={styles.metaGrid}>
 						<div>
 							<dt>Tipo</dt>
-							<dd>{spell.type}</dd>
+							<dd>{SPELL_TYPE_PT[spell.type] ?? spell.type}</dd>
 						</div>
 						<div>
 							<dt>Invocação</dt>
@@ -86,7 +87,7 @@ export function SpellRow({ spell, rank, maxRank, locked, onChange }: Props) {
 						</div>
 						<div>
 							<dt>Recarga global</dt>
-							<dd>{spell.gcd}</dd>
+							<dd>{SPELL_GCD_PT[spell.gcd] ?? spell.gcd}</dd>
 						</div>
 						{typeof spell.range === "number" && spell.range > 0 && (
 							<div>
