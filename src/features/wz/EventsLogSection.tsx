@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { REALM_COLOR } from "../../data/realms";
 import { formatDateTime, formatRelativePast } from "../../utils/time";
 import type { HumanizedEvent } from "./wzEventsEngine";
@@ -42,9 +41,6 @@ export function EventsLogSection({ events, now }: Props) {
 						))}
 					</ul>
 				)}
-				<p className={styles.more}>
-					<Link to="/eventos">Ver mais eventos →</Link>
-				</p>
 			</div>
 		</section>
 	);

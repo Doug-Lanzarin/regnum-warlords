@@ -9,7 +9,6 @@ const NAV_ITEMS = [
 	{ to: "/wz", label: "Status da WZ" },
 	{ to: "/bosses", label: "Chefes" },
 	{ to: "/bz", label: "Zona de Batalha" },
-	{ to: "/eventos", label: "Eventos da WZ" },
 	{ to: "/estatisticas-wz", label: "Estatísticas da WZ" },
 	{ to: "/estatisticas-trainer", label: "Estatísticas do Trainer" },
 	{ to: "/missoes", label: "Missões" },

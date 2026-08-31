@@ -34,8 +34,8 @@ npm run preview   # serve o build de produção localmente, para testar
 - **Status da WZ** (`/wz`): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
-  invadidos), gemas por reino e relíquias (no altar, em trânsito ou
-  capturadas), atualizados a cada 2 minutos.
+  invadidos), gemas por reino e um log dos eventos recentes (capturas,
+  gemas, relíquias, pedidos ao dragão), atualizados a cada 2 minutos.
 - **Chefes** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - Sistema de **temas** fiel às cores originais do CoRT: Escuro (padrão),
@@ -44,8 +44,8 @@ npm run preview   # serve o build de produção localmente, para testar
   permite) e funciona offline para o Trainer, já que os dados de referência
   (`public/data/trainer/1.35.19`) ficam empacotados localmente.
 - Navegação já pronta para as demais páginas do CoRT (Zona de Batalha,
-  Eventos da WZ, Estatísticas, Missões) — hoje como páginas "em construção",
-  prontas para receber as próximas implementações.
+  Estatísticas, Missões) — hoje como páginas "em construção", prontas para
+  receber as próximas implementações.
 
 ## O que falta (próximos passos)
 

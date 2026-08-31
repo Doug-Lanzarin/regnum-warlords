@@ -11,9 +11,9 @@ export interface WzFort {
 	icon: string;
 }
 
-/** A line from CoRT's rolling war event log, newest first. Used here only
- *  to derive "current status" for forts/relics (last time it changed hands) —
- *  the full history feed itself belongs to the separate "Eventos da WZ" page. */
+/** A line from CoRT's rolling war event log, newest first. Used both to
+ *  derive "current status" for forts (last time it changed hands) and to
+ *  render the events log on the WZ Status page. */
 export interface WzEvent {
 	date: number; // unix seconds
 	name: string;
