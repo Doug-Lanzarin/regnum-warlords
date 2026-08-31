@@ -1,5 +1,6 @@
 import { disciplineIconUrl } from "../../api/trainerData";
 import { MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../../data/trainerConstants";
+import { DISCIPLINE_NAME_PT } from "../../data/trainerTranslationsPt";
 import type { DisciplineState, TrainerData } from "../../types/trainer";
 import { charLevelRequiredFor, maxSpellRank } from "./trainerEngine";
 import { spellName } from "./spellFormat";
@@ -34,6 +35,8 @@ export function DisciplineColumn({
 	const discipline = trainerData.disciplines[name];
 	if (!discipline) return null;
 
+	const disciplineName = DISCIPLINE_NAME_PT[discipline.display_name.en] ?? discipline.display_name.en;
+
 	const nextLevel = Math.min(state.level + 2, MAX_DISCIPLINE_LEVEL);
 	const prevLevel = Math.max(state.level - 2, MIN_DISCIPLINE_LEVEL);
 	const nextRequiredLevel = charLevelRequiredFor(trainerData, nextLevel);
@@ -42,7 +45,7 @@ export function DisciplineColumn({
 	const pointsInvested = state.spellRanks.reduce((a, b) => a + b, 0);
 
 	const normalizedFilter = filter.trim().toLowerCase();
-	const disciplineMatches = !normalizedFilter || discipline.display_name.en.toLowerCase().includes(normalizedFilter);
+	const disciplineMatches = !normalizedFilter || disciplineName.toLowerCase().includes(normalizedFilter);
 
 	const visibleSpells = discipline.spells
 		.map((spell, idx) => ({ spell, idx }))
@@ -64,7 +67,7 @@ export function DisciplineColumn({
 					}}
 				/>
 				<div className={styles.headerText}>
-					<h3 className={styles.title}>{discipline.display_name.en}</h3>
+					<h3 className={styles.title}>{disciplineName}</h3>
 					{pointsInvested > 0 && (
 						<span className={styles.investedBadge}>{pointsInvested} pts investidos</span>
 					)}
