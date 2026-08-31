@@ -17,10 +17,6 @@ export default function App() {
 					element={<ComingSoonPage title="Zona de Batalha" description="Status e contagem regressiva das Battlezones." />}
 				/>
 				<Route
-					path="/eventos"
-					element={<ComingSoonPage title="Eventos da WZ" description="Histórico de eventos e mudanças de forte/relíquia na Zona de Guerra." />}
-				/>
-				<Route
 					path="/estatisticas-wz"
 					element={<ComingSoonPage title="Estatísticas da WZ" description="Estatísticas históricas de guerra por reino." />}
 				/>
