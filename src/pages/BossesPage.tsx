@@ -41,24 +41,6 @@ export function BossesPage() {
 
 	return (
 		<div className={styles.wrap}>
-			<div className={`card ${styles.intro}`}>
-				<div>
-					<h1 className={styles.title}>Chefes de mundo</h1>
-					<p className={styles.subtitle}>
-						Contagem regressiva de respawn dos chefes de Ignis, Syrtis e Alsius — dados ao vivo do CoRT.
-					</p>
-				</div>
-				<div className={styles.statusRow}>
-					{error && <span className={styles.staleWarning}>Falha ao atualizar — mostrando o último dado obtido.</span>}
-					{lastUpdated && (
-						<span className={styles.updated}>Atualizado {formatRelativePast(now - lastUpdated)}</span>
-					)}
-					<button className="btn btn-ghost" onClick={refresh}>
-						Atualizar
-					</button>
-				</div>
-			</div>
-
 			<div className={styles.grid}>
 				{sorted.map((key) => (
 					<BossCard
