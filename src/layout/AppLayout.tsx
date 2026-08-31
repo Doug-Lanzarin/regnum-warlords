@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BottomTabBar } from "./BottomTabBar";
 import { NavBar } from "./NavBar";
 import styles from "./AppLayout.module.css";
 
@@ -16,6 +17,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 					, feito para a comunidade de Champions of Regnum.
 				</p>
 			</footer>
+			<BottomTabBar />
 		</div>
 	);
 }

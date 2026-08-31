@@ -140,3 +140,11 @@
 		min-width: 0;
 	}
 }
+
+/* Phones: navigation moves to the fixed BottomTabBar, so drop it from the
+   header instead of showing it twice. */
+@media (max-width: 640px) {
+	.nav {
+		display: none;
+	}
+}
