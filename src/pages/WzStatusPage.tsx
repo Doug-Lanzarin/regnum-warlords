@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { FortsSection } from "../features/wz/FortsSection";
 import { RelicsSection } from "../features/wz/RelicsSection";
 import { RealmSummary } from "../features/wz/RealmSummary";
+import { WzMap } from "../features/wz/WzMap";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { computeFortStatuses, computeRealmFortCounts, computeRelicStatuses } from "../features/wz/wzEngine";
 import { formatRelativePast } from "../utils/time";
@@ -62,6 +63,7 @@ export function WzStatusPage() {
 				</div>
 			</div>
 
+			<WzMap forts={forts} relics={relics} gems={data.gems} />
 			<FortsSection forts={forts} now={now} />
 			<RelicsSection relics={relics} now={now} />
 		</div>

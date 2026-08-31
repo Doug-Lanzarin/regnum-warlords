@@ -1,0 +1,66 @@
+.section {
+	padding: var(--space-5);
+}
+
+.header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--space-4);
+	margin-bottom: var(--space-4);
+}
+
+.header h2 { font-size: 1.05rem; }
+.header p { margin: 4px 0 0; color: var(--faded); font-size: 0.82rem; }
+
+.legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px 12px;
+	color: var(--faded);
+	font-size: 0.75rem;
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.legend i { display: inline-block; }
+.legendFort { width: 12px; height: 12px; border-radius: 3px; background: var(--links); }
+.legendGem { width: 10px; height: 10px; transform: rotate(45deg); background: var(--gold); }
+.legendRelic { width: 10px; height: 10px; border: 2px solid var(--gold); border-radius: 50%; }
+
+.mapFrame { overflow: auto; border: 1px solid var(--forms); background: #17231f; }
+.map { position: relative; width: min(100%, 500px); min-width: 360px; margin: 0 auto; overflow: hidden; }
+.baseMap { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.fortMarker, .gemMarker, .relicMarker { position: absolute; transform: translate(-50%, -50%); }
+.fortMarker { z-index: 2; display: flex; align-items: center; gap: 3px; }
+.fortIcon { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--marker-color); border-radius: 6px; background: color-mix(in srgb, var(--marker-color) 70%, #18201e); color: #fff; font-size: 0.72rem; font-weight: 800; box-shadow: 0 1px 4px #0008; }
+.captured .fortIcon { border-style: dashed; }
+.fortLabel { position: absolute; top: 29px; left: 50%; transform: translateX(-50%); color: #f2eee5; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; font-size: 0.62rem; font-weight: 700; white-space: nowrap; }
+.gemMarker { z-index: 3; width: 13px; height: 13px; transform: translate(-50%, -50%) rotate(45deg); background: var(--marker-color); border: 2px solid #f5df75; box-shadow: 0 0 0 2px #17231fcc, 0 1px 5px #000b; }
+.relicMarker { z-index: 3; width: 16px; height: 16px; border: 3px solid var(--marker-color); border-radius: 50%; background: #f5df75; box-shadow: 0 0 0 2px #17231fcc, 0 1px 5px #000b; }
+.relicMarker.transit { background: transparent; border-style: dashed; }
+
+@media (max-width: 640px) {
+	.section { padding: var(--space-4); }
+	.header { flex-direction: column; }
+	.legend { justify-content: flex-start; }
+	.mapFrame { margin-inline: calc(var(--space-4) * -1); border-inline: 0; }
+}
+
+@media (min-width: 641px) { .mapFrame { display: flex; justify-content: center; } }
+
+@media (prefers-reduced-motion: no-preference) {
+	.fortIcon, .gemMarker, .relicMarker { transition: transform 160ms ease, box-shadow 160ms ease; }
+	.fortMarker:hover .fortIcon, .gemMarker:hover, .relicMarker:hover { box-shadow: 0 0 0 3px #f5df7544, 0 2px 8px #000b; }
+}
+
+@media (max-width: 640px) { .fortLabel { font-size: 0.58rem; } }
+
+/* Preserve the original map's 500px coordinate system while scaling responsively. */
+.map::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+
+/* Fallback for browsers without color-mix. */
+@supports not (background: color-mix(in srgb, red 50%, white)) { .fortIcon { background: #263c35; } }
+
+EOF
+sed -i '/^EOF$/d' "/vercel/share/v0-project/src/features/wz/WzMap.module.css"
