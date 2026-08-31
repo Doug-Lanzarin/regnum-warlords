@@ -43,14 +43,22 @@
 	gap: var(--space-4);
 }
 
+.introTop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	flex-wrap: wrap;
+}
+
 .title {
 	font-size: 1.3rem;
 }
 
-.subtitle {
-	margin: 4px 0 0;
-	color: var(--faded);
-	font-size: 0.88rem;
+.actionError {
+	margin: 0;
+	font-size: 0.82rem;
+	color: var(--red);
 }
 
 @media (max-width: 640px) {

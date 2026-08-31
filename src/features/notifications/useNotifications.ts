@@ -1,25 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { createNotification, deleteNotification, listNotifications, NotificationsApiError, type NotificationEntry } from "../../api/notificationsApi";
 
-const ADMIN_TOKEN_KEY = "rw_notifications_admin_token";
+const ADMIN_PASSWORD_KEY = "rw_notifications_admin_password";
 
-function readStoredToken(): string {
+function readStoredPassword(): string {
 	try {
-		return localStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
+		return localStorage.getItem(ADMIN_PASSWORD_KEY) ?? "";
 	} catch {
 		return "";
 	}
 }
-function storeToken(token: string) {
+function storePassword(password: string) {
 	try {
-		localStorage.setItem(ADMIN_TOKEN_KEY, token);
+		localStorage.setItem(ADMIN_PASSWORD_KEY, password);
 	} catch {
-		// localStorage unavailable (private mode, etc.) — the session just won't remember the token.
+		// localStorage unavailable (private mode, etc.) — the session just won't remember it.
 	}
 }
-function clearStoredToken() {
+function clearStoredPassword() {
 	try {
-		localStorage.removeItem(ADMIN_TOKEN_KEY);
+		localStorage.removeItem(ADMIN_PASSWORD_KEY);
 	} catch {
 		// see above
 	}
@@ -28,12 +28,13 @@ function clearStoredToken() {
 /** Notifications are a lightweight CRUD backed by our own /api/notifications
  *  (GitHub-as-a-database, see api/notifications.ts) rather than CoRT — so
  *  this hook mirrors useWzStatus/useBossTimers' loading/error shape but adds
- *  the admin-token-gated create/delete actions. */
+ *  the password-gated create/delete actions (only used by the hidden
+ *  /warlords/gerenciamento/notificacoes admin page). */
 export function useNotifications() {
 	const [notifications, setNotifications] = useState<NotificationEntry[] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [adminToken, setAdminToken] = useState<string>(() => readStoredToken());
+	const [adminPassword, setAdminPassword] = useState<string>(() => readStoredPassword());
 	const [actionError, setActionError] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
@@ -59,23 +60,21 @@ export function useNotifications() {
 	}, [refresh]);
 
 	const lock = useCallback(() => {
-		setAdminToken("");
-		clearStoredToken();
+		setAdminPassword("");
+		clearStoredPassword();
 	}, []);
 
-	const unlock = useCallback((token: string) => {
-		setAdminToken(token);
-		storeToken(token);
+	const unlock = useCallback((password: string) => {
+		setAdminPassword(password);
+		storePassword(password);
 		setActionError(null);
 	}, []);
-
-	const dismissError = useCallback(() => setActionError(null), []);
 
 	const handleActionError = useCallback(
 		(err: unknown, fallback: string) => {
 			if (err instanceof NotificationsApiError && err.status === 401) {
 				lock();
-				setActionError("Token de administrador inválido. Entre novamente.");
+				setActionError("Senha inválida. Entre novamente.");
 			} else {
 				setActionError(err instanceof Error ? err.message : fallback);
 			}
@@ -88,7 +87,7 @@ export function useNotifications() {
 			setBusy(true);
 			setActionError(null);
 			try {
-				await createNotification(title, description, adminToken);
+				await createNotification(title, description, adminPassword);
 				refresh();
 				return true;
 			} catch (err) {
@@ -98,7 +97,7 @@ export function useNotifications() {
 				setBusy(false);
 			}
 		},
-		[adminToken, refresh, handleActionError],
+		[adminPassword, refresh, handleActionError],
 	);
 
 	const remove = useCallback(
@@ -106,7 +105,7 @@ export function useNotifications() {
 			setBusy(true);
 			setActionError(null);
 			try {
-				await deleteNotification(id, adminToken);
+				await deleteNotification(id, adminPassword);
 				refresh();
 			} catch (err) {
 				handleActionError(err, "Erro ao remover notificação.");
@@ -114,7 +113,7 @@ export function useNotifications() {
 				setBusy(false);
 			}
 		},
-		[adminToken, refresh, handleActionError],
+		[adminPassword, refresh, handleActionError],
 	);
 
 	return {
@@ -123,13 +122,12 @@ export function useNotifications() {
 		error,
 		now,
 		refresh,
-		unlocked: adminToken !== "",
+		unlocked: adminPassword !== "",
 		unlock,
 		lock,
 		create,
 		remove,
 		actionError,
-		dismissError,
 		busy,
 	};
 }

@@ -38,9 +38,10 @@ npm run preview   # serve o build de produção localmente, para testar
   gemas, relíquias, pedidos ao dragão), atualizados a cada 2 minutos.
 - **Chefes** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
-- **Notificações** (`/notificacoes`): timeline de avisos (título + descrição)
-  com um CRUD simples embutido — sem banco de dados nem servidor próprio,
-  ver [Configurando as notificações](#configurando-as-notificações) abaixo.
+- **Notificações** (`/notificacoes`): timeline pública de avisos (título +
+  descrição). O CRUD (criar/remover) fica numa página separada sem link em
+  lugar nenhum — sem banco de dados nem servidor próprio, ver
+  [Configurando as notificações](#configurando-as-notificações) abaixo.
 - Navegação em **bottom tab bar** no mobile (até 640px), com a tab ativa
   destacada; no desktop o menu continua no header.
 - Sistema de **temas** fiel às cores originais do CoRT: Escuro (padrão),
@@ -68,17 +69,21 @@ npm run preview   # serve o build de produção localmente, para testar
 
 ## Configurando as notificações
 
-A tab **Notificações** é um CRUD sem banco de dados: `api/notifications.ts`
-é uma [Vercel Function](https://vercel.com/docs/functions) (funciona com
-qualquer framework, não precisa ser Next.js) que lê e escreve
+A tab **Notificações** (`/notificacoes`) é uma timeline pública e
+**somente leitura** — não tem nenhum botão de gerenciar nela. Criar e remover
+notificações acontece numa página separada e sem link em lugar nenhum do
+menu: **`/warlords/gerenciamento/notificacoes`**.
+
+`api/notifications.ts` é uma [Vercel Function](https://vercel.com/docs/functions)
+(funciona com qualquer framework, não precisa ser Next.js) que lê e escreve
 `content/notifications.json` **direto no repositório**, através da API do
 GitHub — cada notificação criada ou removida vira um commit. Por isso não
 precisa de Postgres/Redis/etc., e o app continua 100% estático pro resto.
 
 - `GET /api/notifications` é público (qualquer visitante do site lê a lista).
-- `POST`/`DELETE` exigem o header `x-admin-token`, comparado no servidor
-  contra a variável de ambiente abaixo — sem ela, ninguém além de quem tem o
-  token consegue criar ou apagar notificações.
+- `POST`/`DELETE` exigem o header `x-admin-password`, comparado no servidor
+  contra a variável de ambiente abaixo — sem ela, ninguém além de quem sabe a
+  senha consegue criar ou apagar notificações.
 
 Pra isso funcionar em produção, configure duas variáveis de ambiente no
 projeto na Vercel (Settings → Environment Variables):
@@ -86,12 +91,20 @@ projeto na Vercel (Settings → Environment Variables):
 | Variável | O que é |
 | --- | --- |
 | `NOTIFICATIONS_GITHUB_TOKEN` | Um [fine-grained personal access token](https://github.com/settings/tokens?type=beta) do GitHub, com acesso só a este repositório e permissão **Contents: Read and write**. |
-| `NOTIFICATIONS_ADMIN_TOKEN` | Uma senha à sua escolha (qualquer string). É o que você digita em "Gerenciar" na tab Notificações pra poder criar/remover. |
+| `NOTIFICATIONS_ADMIN_PASSWORD` | A senha usada em `/warlords/gerenciamento/notificacoes`. |
+
+> **Sobre a senha ser sempre a mesma:** como este repositório é **público**,
+> qualquer valor escrito direto no código-fonte (em `api/notifications.ts`,
+> por exemplo) fica visível pra qualquer pessoa que olhar o repo no GitHub —
+> por isso a senha não vem fixa no código, só funciona através dessa
+> variável de ambiente, que só você vê no painel da Vercel. Configure
+> `NOTIFICATIONS_ADMIN_PASSWORD` com o valor que você quiser usar como senha
+> universal de gerenciamento.
 
 Depois de configurar, faça um novo deploy (ou aguarde o próximo push) pras
 variáveis entrarem em vigor. Em `npm run dev` local a rota `/api/notifications`
-não existe (o Vite não roda Functions da Vercel), então a tab mostra o estado
-de erro — isso é esperado, só funciona depois de publicado.
+não existe (o Vite não roda Functions da Vercel), então as duas páginas
+mostram o estado de erro — isso é esperado, só funciona depois de publicado.
 
 ## Regenerando os ícones do PWA
 

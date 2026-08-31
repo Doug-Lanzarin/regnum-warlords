@@ -1,17 +1,12 @@
-import { useState } from "react";
-import { AdminUnlock } from "../features/notifications/AdminUnlock";
-import { NotificationForm } from "../features/notifications/NotificationForm";
 import { NotificationTimeline } from "../features/notifications/NotificationTimeline";
 import { useNotifications } from "../features/notifications/useNotifications";
 import styles from "./NotificationsPage.module.css";
 
+/** Public, read-only timeline. Management lives on the unlisted
+ *  /warlords/gerenciamento/notificacoes page instead — nothing here hints
+ *  that it exists. */
 export function NotificationsPage() {
-	const { notifications, loading, error, now, refresh, unlocked, unlock, lock, create, remove, actionError, dismissError, busy } = useNotifications();
-	const [showUnlock, setShowUnlock] = useState(false);
-	// A failed create/delete can knock unlocked back to false (wrong/expired
-	// token) — keep the form (and its error) visible instead of silently
-	// collapsing back to the "Gerenciar" link with no explanation.
-	const showUnlockForm = !unlocked && (showUnlock || actionError !== null);
+	const { notifications, loading, error, now, refresh, remove, busy } = useNotifications();
 
 	if (loading && notifications === null) {
 		return (
@@ -40,47 +35,11 @@ export function NotificationsPage() {
 	return (
 		<div className={styles.wrap}>
 			<div className={`card ${styles.intro}`}>
-				<div className={styles.introTop}>
-					<div>
-						<h1 className={styles.title}>Notificações</h1>
-						<p className={styles.subtitle}>Novidades e avisos sobre o Regnum Warlords.</p>
-					</div>
-					{unlocked ? (
-						<button className="btn btn-ghost" onClick={lock}>
-							Sair do modo de gerenciamento
-						</button>
-					) : (
-						!showUnlockForm && (
-							<button className={styles.manageLink} onClick={() => setShowUnlock(true)}>
-								Gerenciar
-							</button>
-						)
-					)}
-				</div>
-
-				{showUnlockForm && (
-					<AdminUnlock
-						error={actionError}
-						onUnlock={(token) => {
-							unlock(token);
-							setShowUnlock(false);
-						}}
-						onCancel={() => {
-							setShowUnlock(false);
-							dismissError();
-						}}
-					/>
-				)}
-
-				{unlocked && (
-					<>
-						<NotificationForm busy={busy} onSubmit={create} />
-						{actionError && <p className={styles.actionError}>{actionError}</p>}
-					</>
-				)}
+				<h1 className={styles.title}>Notificações</h1>
+				<p className={styles.subtitle}>Novidades e avisos sobre o Regnum Warlords.</p>
 			</div>
 
-			<NotificationTimeline notifications={notifications} now={now} editable={unlocked} busy={busy} onDelete={remove} />
+			<NotificationTimeline notifications={notifications} now={now} editable={false} busy={busy} onDelete={remove} />
 		</div>
 	);
 }
