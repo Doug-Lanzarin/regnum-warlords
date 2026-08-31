@@ -62,5 +62,3 @@
 /* Fallback for browsers without color-mix. */
 @supports not (background: color-mix(in srgb, red 50%, white)) { .fortIcon { background: #263c35; } }
 
-EOF
-sed -i '/^EOF$/d' "/vercel/share/v0-project/src/features/wz/WzMap.module.css"
