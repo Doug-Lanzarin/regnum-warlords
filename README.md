@@ -42,13 +42,18 @@ npm run preview   # serve o build de produção localmente, para testar
   descrição). O CRUD (criar/remover) fica numa página separada sem link em
   lugar nenhum — sem banco de dados nem servidor próprio, ver
   [Configurando as notificações](#configurando-as-notificações) abaixo.
-- Navegação em **bottom tab bar** no mobile (até 640px), com a tab ativa
-  destacada; no desktop o menu continua no header.
-- Sistema de **temas** fiel às cores originais do CoRT: Escuro (padrão),
-  Claro, OLED e os três reinos (Alsius, Ignis, Syrtis).
-- **PWA**: o app pode ser instalado (botão "Instalar app" quando o navegador
-  permite) e funciona offline para o Trainer, já que os dados de referência
-  (`public/data/trainer/1.35.19`) ficam empacotados localmente.
+- Navegação em **bottom tab bar** em todas as telas (não só mobile) — o
+  header foi removido por enquanto, então essa barra (fixa embaixo no
+  celular, flutuante no desktop) é a única navegação do app hoje, com a
+  tab ativa destacada.
+- **PWA**: o app funciona offline para o Trainer, já que os dados de
+  referência (`public/data/trainer/1.35.19`) ficam empacotados localmente.
+
+> **Tema e instalação do PWA temporariamente fora do ar**: o seletor de
+> tema e o botão "Instalar app" ficavam no header, removido por enquanto —
+> o app fica fixo no tema Escuro (padrão) até o header (ou outro lugar pra
+> esses controles) voltar. O sistema de temas em si continua no código
+> (`src/theme/`), só não está exposto na interface.
 
 ## O que falta (próximos passos)
 
@@ -136,7 +141,7 @@ src/
   data/           constantes do jogo (classes, níveis, etc.)
   features/trainer/  lógica de cálculo do trainer + componentes de UI
   features/notifications/  hook + componentes do CRUD de notificações
-  layout/         navegação (header + bottom tab bar no mobile) e layout geral
+  layout/         navegação (bottom tab bar, em todas as telas) e layout geral
   pages/          páginas roteadas
   pwa/            hook de instalação do PWA
   theme/          sistema de temas (CSS custom properties)

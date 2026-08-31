@@ -14,9 +14,12 @@
 	color: var(--faded);
 	font-size: 0.85rem;
 	border-top: 1px solid var(--border);
+	/* Room for the fixed BottomTabBar, the app's only nav now that the
+	   header is gone — floats a bit higher on wider screens than it docks
+	   on phones, hence the different value below 641px. */
+	padding-bottom: calc(var(--space-5) + 86px);
 }
 
-/* Room for the fixed BottomTabBar that replaces the header nav here. */
 @media (max-width: 640px) {
 	.footer {
 		padding-bottom: calc(var(--space-5) + 56px + env(safe-area-inset-bottom, 0px));
