@@ -1,0 +1,90 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.heading {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+	padding-left: 2px;
+}
+.heading h2 {
+	font-size: 1.05rem;
+}
+.count {
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: var(--space-3);
+	align-items: start;
+}
+
+.column {
+	--realm-color: var(--links);
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-width: 0;
+}
+
+.columnHeader {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.realmDot {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	background: var(--realm-color);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--realm-color) 25%, transparent);
+	flex-shrink: 0;
+}
+
+.realmName {
+	margin: 0;
+	font-size: 0.95rem;
+	font-family: var(--font-display);
+	font-weight: 700;
+	flex: 1;
+}
+
+.held {
+	font-size: 0.72rem;
+	color: var(--faded);
+	white-space: nowrap;
+}
+
+.list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.gemDot {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: var(--radius-md);
+	background: var(--card-background-alt);
+	border: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+	.grid {
+		grid-template-columns: 1fr;
+	}
+}

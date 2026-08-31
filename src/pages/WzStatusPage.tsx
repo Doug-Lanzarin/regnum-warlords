@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { FortsSection } from "../features/wz/FortsSection";
+import { GemsSection } from "../features/wz/GemsSection";
 import { RelicsSection } from "../features/wz/RelicsSection";
 import { RealmSummary } from "../features/wz/RealmSummary";
 import { useWzStatus } from "../features/wz/useWzStatus";
-import { computeFortStatuses, computeRealmFortCounts, computeRelicStatuses } from "../features/wz/wzEngine";
+import { computeFortStatuses, computeGemStatuses, computeRealmFortCounts, computeRelicStatuses } from "../features/wz/wzEngine";
+import { WzMap } from "../features/wz/WzMap";
 import { formatRelativePast } from "../utils/time";
 import styles from "./WzStatusPage.module.css";
 
@@ -12,6 +14,7 @@ export function WzStatusPage() {
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const relics = useMemo(() => (data ? computeRelicStatuses(data) : []), [data]);
+	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const fortCounts = useMemo(() => computeRealmFortCounts(forts), [forts]);
 
 	if (loading && !data) {
@@ -62,7 +65,9 @@ export function WzStatusPage() {
 				</div>
 			</div>
 
+			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
+			<GemsSection gems={gems} />
 			<RelicsSection relics={relics} now={now} />
 		</div>
 	);
