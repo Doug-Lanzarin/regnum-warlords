@@ -8,6 +8,17 @@ export interface SpellEffectRow {
 
 const EFFECT_KEYS = ["buffs", "debuffs", "damage", "heal"] as const;
 
+/** Ranked spells carry an array (one value per rank); single-tier spells
+ *  (see `isSingleTierSpell` in trainerEngine.ts) carry a bare string/number
+ *  or a boolean flag instead — normalized here into a single-cell row so
+ *  the rank-by-rank table still renders something sensible for them. */
+function normalizeValues(value: string[] | string | boolean | number | number[] | undefined): string[] {
+	if (Array.isArray(value)) return value.map(String);
+	if (typeof value === "boolean") return value ? ["Sim"] : [];
+	if (value == null) return [];
+	return [String(value)];
+}
+
 export function spellEffectRows(spell: Spell): SpellEffectRow[] {
 	const rows: SpellEffectRow[] = [];
 	for (const key of EFFECT_KEYS) {
@@ -15,7 +26,8 @@ export function spellEffectRows(spell: Spell): SpellEffectRow[] {
 		if (!Array.isArray(entries)) continue;
 		for (const entry of entries) {
 			const label = EFFECT_LABEL_PT[entry.en] ?? entry.en;
-			rows.push({ label, values: entry.value ?? [] });
+			const values = normalizeValues(entry.value);
+			if (values.length > 0) rows.push({ label, values });
 		}
 	}
 	return rows;
@@ -23,8 +35,10 @@ export function spellEffectRows(spell: Spell): SpellEffectRow[] {
 
 export function spellScalarRows(spell: Spell): SpellEffectRow[] {
 	const rows: SpellEffectRow[] = [];
-	if (Array.isArray(spell.mana)) rows.push({ label: "Mana", values: spell.mana.map(String) });
-	if (Array.isArray(spell.duration)) rows.push({ label: "Duração (s)", values: spell.duration.map(String) });
+	const mana = normalizeValues(spell.mana);
+	if (mana.length > 0) rows.push({ label: "Mana", values: mana });
+	const duration = normalizeValues(spell.duration);
+	if (duration.length > 0) rows.push({ label: "Duração (s)", values: duration });
 	return rows;
 }
 
