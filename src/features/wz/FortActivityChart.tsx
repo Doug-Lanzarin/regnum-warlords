@@ -37,26 +37,33 @@ export function FortActivityChart({ rangeData }: Props) {
 
 	return (
 		<section className={styles.section}>
-			<div className={styles.heading}>
-				<h2>Atividade dos reinos</h2>
-				<span className={styles.count}>
-					{activity ? `${total} fortes mudaram de mãos ${RANGE_PHRASE[range]}` : "carregando…"}
-				</span>
-			</div>
+			<div className={styles.header}>
+				<div className={styles.titleGroup}>
+					<h2>Atividade dos reinos</h2>
+					<span className={styles.count}>
+						{activity ? `${total} fortes mudaram de mãos ${RANGE_PHRASE[range]}` : "carregando…"}
+					</span>
+				</div>
 
-			<div className={styles.tabs} role="tablist" aria-label="Período">
-				{RANGE_ORDER.map((r) => (
-					<button
-						key={r}
-						type="button"
-						role="tab"
-						aria-selected={range === r}
-						className={`${styles.tab} ${range === r ? styles.tabActive : ""}`}
-						onClick={() => setRange(r)}
-					>
-						{RANGE_TAB_LABEL[r]}
-					</button>
-				))}
+				<div className={styles.tabsGroup}>
+					<span className={styles.tabsLabel} id="fort-activity-range-label">
+						Período
+					</span>
+					<div className={styles.tabs} role="tablist" aria-labelledby="fort-activity-range-label">
+						{RANGE_ORDER.map((r) => (
+							<button
+								key={r}
+								type="button"
+								role="tab"
+								aria-selected={range === r}
+								className={`${styles.tab} ${range === r ? styles.tabActive : ""}`}
+								onClick={() => setRange(r)}
+							>
+								{RANGE_TAB_LABEL[r]}
+							</button>
+						))}
+					</div>
+				</div>
 			</div>
 
 			<div className={`card ${styles.card}`}>
@@ -66,7 +73,7 @@ export function FortActivityChart({ rangeData }: Props) {
 					<p className={styles.empty}>Nenhum forte capturado {RANGE_PHRASE[range]}.</p>
 				) : (
 					<ul className={styles.list}>
-						{activity.map(({ realm, count }, index) => (
+						{activity.map(({ realm, count }) => (
 							<li
 								key={realm}
 								className={styles.row}
@@ -88,11 +95,6 @@ export function FortActivityChart({ rangeData }: Props) {
 									/>
 								</div>
 								<span className={styles.value}>{count}</span>
-								{index === 0 && count > 0 && (
-									<span className={styles.leaderTag} title={`Reino mais ativo ${RANGE_PHRASE[range]}`} aria-hidden>
-										🔥
-									</span>
-								)}
 							</li>
 						))}
 					</ul>
