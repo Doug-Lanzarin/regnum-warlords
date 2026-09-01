@@ -12,6 +12,7 @@ import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine
 import {
 	computeDragonWishes,
 	computeEventLog,
+	computeFortActivityByFortName,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	type RealmActivityCount,
@@ -28,6 +29,10 @@ export function WzStatusPage() {
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 	const wishes = useMemo(() => computeDragonWishes(eventsDump), [eventsDump]);
+	const fortActivityByFort = useMemo(
+		() => computeFortActivityByFortName(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
+		[eventsDump, now],
+	);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
 			"24h": computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
@@ -69,7 +74,7 @@ export function WzStatusPage() {
 
 	return (
 		<div className={styles.wrap}>
-			<WzMap forts={forts} />
+			<WzMap forts={forts} activityByFort={fortActivityByFort} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
 			{wishes.length > 0 && (

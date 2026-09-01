@@ -34,7 +34,10 @@ npm run preview   # serve o build de produção localmente, para testar
 - **Warzone** (`/`, tela inicial do app): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
-  invadidos), gemas por reino, os últimos 5 pedidos ao dragão em destaque
+  invadidos) e um mapa de calor sobreposto mostrando quais fortes foram mais
+  disputados nas últimas 24h (brilho na cor de quem controla agora, maior
+  quanto mais vezes o forte mudou de mãos), gemas por reino, os últimos 5
+  pedidos ao dragão em destaque
   (buscados do dump de eventos de 10 dias do CoRT, já que pedidos ao dragão
   são raros o bastante pra não aparecerem sempre no log recente de baixo) e
   um log dos eventos recentes (capturas, gemas, relíquias, pedidos ao

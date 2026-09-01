@@ -16,7 +16,9 @@ export interface HumanizedEvent {
 	isWish?: boolean;
 }
 
-function cleanFortName(name: string): string {
+/** Strips the trailing "(n)" fort-number suffix (e.g. "Imperia Castle (1)"
+ *  from `WzStatusData.forts`) — the raw event log names forts without it. */
+export function cleanFortName(name: string): string {
 	return name.replace(/\s*\(\d+\)$/, "");
 }
 
@@ -184,4 +186,19 @@ export function computeFortActivityTimeline(
 		buckets[idx].count += 1;
 	}
 	return buckets;
+}
+
+/** How many times each individual fort (by its cleaned name — see
+ *  `cleanFortName`) changed hands within the trailing `windowMs` — the data
+ *  behind the WZ map's heat overlay ("where's the fighting concentrated
+ *  right now"). Forts with no recent activity simply don't appear as keys. */
+export function computeFortActivityByFortName(events: WzEvent[], windowMs: number, now: number): Record<string, number> {
+	const cutoff = now - windowMs;
+	const counts: Record<string, number> = {};
+	for (const event of events) {
+		if (event.type !== "fort") continue;
+		if (event.date * 1000 < cutoff) continue;
+		counts[event.name] = (counts[event.name] ?? 0) + 1;
+	}
+	return counts;
 }
