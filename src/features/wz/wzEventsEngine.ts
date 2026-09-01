@@ -106,11 +106,15 @@ export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent
 	return events;
 }
 
-/** Just the "wish" events (dragon wishes) from the log, newest first. */
-export function computeDragonWishes(data: WzStatusData, limit = 5): HumanizedEvent[] {
+/** Just the "wish" events (dragon wishes) from an events list, newest first.
+ *  Takes a plain event array rather than `WzStatusData` because dragon
+ *  wishes are rare enough to not reliably show up in the ~100-entry rolling
+ *  window of `WzStatusData.events_log` — callers should pass the larger
+ *  events.json dump instead (see `useDragonWishes`). */
+export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEvent[] {
 	const wishes: HumanizedEvent[] = [];
-	for (let i = 0; i < data.events_log.length && wishes.length < limit; i++) {
-		const event = data.events_log[i];
+	for (let i = 0; i < events.length && wishes.length < limit; i++) {
+		const event = events[i];
 		if (event.type !== "wish") continue;
 		const humanized = humanizeEvent(event, i);
 		if (humanized) wishes.push(humanized);
