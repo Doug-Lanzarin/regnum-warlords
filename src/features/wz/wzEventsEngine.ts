@@ -1,4 +1,4 @@
-import type { Realm } from "../../data/realms";
+import { REALMS, type Realm } from "../../data/realms";
 import type { WzEvent, WzStatusData } from "../../types/wz";
 
 export interface EventSegment {
@@ -110,7 +110,7 @@ export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent
  *  Takes a plain event array rather than `WzStatusData` because dragon
  *  wishes are rare enough to not reliably show up in the ~100-entry rolling
  *  window of `WzStatusData.events_log` — callers should pass the larger
- *  events.json dump instead (see `useDragonWishes`). */
+ *  events.json dump instead (see `useEventsDump`). */
 export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEvent[] {
 	const wishes: HumanizedEvent[] = [];
 	for (let i = 0; i < events.length && wishes.length < limit; i++) {
@@ -120,4 +120,26 @@ export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEven
 		if (humanized) wishes.push(humanized);
 	}
 	return wishes;
+}
+
+export interface RealmActivityCount {
+	realm: Realm;
+	count: number;
+}
+
+/** How many forts (regular keeps and Great Walls alike) each realm has
+ *  captured or recaptured within the last `windowMs` — same rationale as
+ *  `computeDragonWishes` for pulling from the larger events.json dump
+ *  instead of `WzStatusData.events_log`: a busy war can blow through the
+ *  ~100-entry recent window in well under a day, well before it's had a
+ *  chance to reflect the trailing 24h. Sorted most-active realm first. */
+export function computeFortActivityByRealm(events: WzEvent[], windowMs: number, now: number): RealmActivityCount[] {
+	const cutoff = now - windowMs;
+	const counts: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+	for (const event of events) {
+		if (event.type !== "fort") continue;
+		if (event.date * 1000 < cutoff) continue;
+		if (event.owner in counts) counts[event.owner as Realm] += 1;
+	}
+	return REALMS.map((realm) => ({ realm, count: counts[realm] })).sort((a, b) => b.count - a.count);
 }

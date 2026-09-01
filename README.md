@@ -41,7 +41,10 @@ npm run preview   # serve o build de produção localmente, para testar
   (buscados do dump de eventos de 10 dias do CoRT, já que pedidos ao dragão
   são raros o bastante pra não aparecerem sempre no log recente de baixo) e
   um log dos eventos recentes (capturas, gemas, relíquias, pedidos ao
-  dragão), atualizados a cada 2 minutos.
+  dragão) e um gráfico de barras com quantos fortes cada reino
+  capturou/recapturou nas últimas 24h (também vindo do dump de 10 dias, pelo
+  mesmo motivo dos pedidos ao dragão), pra saber de cara quem está mais
+  ativo na guerra agora. Tudo atualizado a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +

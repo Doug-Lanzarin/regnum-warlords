@@ -1,0 +1,109 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.heading {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+	padding-left: 2px;
+}
+.heading h2 {
+	font-size: 1.05rem;
+}
+
+.count {
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.card {
+	padding: var(--space-4) var(--space-5);
+}
+
+.empty {
+	color: var(--faded);
+	font-size: 0.88rem;
+	text-align: center;
+	padding: var(--space-3) 0;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: 4px 6px;
+	border-radius: var(--radius-md);
+	transition: background-color 0.15s var(--ease);
+}
+.row:hover,
+.row:focus-visible {
+	background: var(--forms);
+}
+
+.realmLabel {
+	flex: 0 0 84px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 700;
+	font-size: 0.88rem;
+}
+
+.realmDot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: var(--realm-color);
+	flex-shrink: 0;
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--realm-color) 25%, transparent);
+}
+
+.leaderTag {
+	flex-shrink: 0;
+	font-size: 0.85rem;
+	line-height: 1;
+}
+
+.track {
+	flex: 1;
+	height: 18px;
+	border-radius: 999px;
+	background: var(--forms);
+	overflow: hidden;
+}
+
+.bar {
+	height: 100%;
+	border-radius: 0 4px 4px 0;
+	background: var(--realm-color);
+	min-width: 3px;
+	transition: width 0.4s var(--ease);
+}
+
+.value {
+	flex: 0 0 auto;
+	min-width: 24px;
+	text-align: right;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: var(--foreground);
+}
+
+@media (max-width: 480px) {
+	.realmLabel {
+		flex-basis: 70px;
+		font-size: 0.82rem;
+	}
+	.card {
+		padding: var(--space-3) var(--space-4);
+	}
+}

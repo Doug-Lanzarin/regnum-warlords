@@ -1,21 +1,28 @@
 import { useMemo } from "react";
 import { EventsLogSection } from "../features/wz/EventsLogSection";
+import { FortActivityChart } from "../features/wz/FortActivityChart";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
-import { useDragonWishes } from "../features/wz/useDragonWishes";
+import { useEventsDump } from "../features/wz/useEventsDump";
 import { useWzStatus } from "../features/wz/useWzStatus";
+import { FORT_ACTIVITY_WINDOW_MS } from "../data/wzConstants";
 import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine";
-import { computeEventLog } from "../features/wz/wzEventsEngine";
+import { computeDragonWishes, computeEventLog, computeFortActivityByRealm } from "../features/wz/wzEventsEngine";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
 export function WzStatusPage() {
 	const { data, loading, error, now, refresh } = useWzStatus();
-	const { wishes } = useDragonWishes();
+	const { events: eventsDump } = useEventsDump();
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
+	const wishes = useMemo(() => computeDragonWishes(eventsDump), [eventsDump]);
+	const fortActivity = useMemo(
+		() => computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
+		[eventsDump, now],
+	);
 
 	if (loading && !data) {
 		return (
@@ -55,6 +62,7 @@ export function WzStatusPage() {
 				<EventsLogSection events={wishes} now={now} title="Pedidos ao Dragão" countLabel="pedidos recentes" />
 			)}
 			<EventsLogSection events={events} now={now} />
+			<FortActivityChart activity={fortActivity} />
 		</div>
 	);
 }
