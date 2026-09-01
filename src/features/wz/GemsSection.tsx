@@ -17,14 +17,14 @@ export function GemsSection({ gems }: Props) {
 			<div className={styles.grid}>
 				{REALMS.map((realm) => {
 					const realmGems = gems.filter((g) => g.home === realm);
-					const held = realmGems.filter((g) => g.owner === realm).length;
+					const claimed = realmGems.filter((g) => g.owner !== null).length;
 					return (
 						<div key={realm} className={`card ${styles.column}`} style={{ "--realm-color": REALM_COLOR[realm] } as React.CSSProperties}>
 							<div className={styles.columnHeader}>
 								<span className={styles.realmDot} aria-hidden />
 								<h3 className={styles.realmName}>{realm}</h3>
 								<span className={styles.held}>
-									{held}/{realmGems.length} sob controle
+									{claimed}/{realmGems.length} reivindicadas
 								</span>
 							</div>
 							<ul className={styles.list}>
