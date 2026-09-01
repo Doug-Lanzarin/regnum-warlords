@@ -188,17 +188,27 @@ export function computeFortActivityTimeline(
 	return buckets;
 }
 
-/** How many times each individual fort (by its cleaned name — see
- *  `cleanFortName`) changed hands within the trailing `windowMs` — the data
- *  behind the WZ map's heat overlay ("where's the fighting concentrated
- *  right now"). Forts with no recent activity simply don't appear as keys. */
-export function computeFortActivityByFortName(events: WzEvent[], windowMs: number, now: number): Record<string, number> {
+/** Per-fort, per-realm capture counts within the trailing `windowMs` — the
+ *  data behind the WZ heatmap. Keyed by the fort's cleaned name (see
+ *  `cleanFortName`); forts with no recent activity simply don't appear as
+ *  keys. A single fort is often fought over by more than one realm in a
+ *  day (e.g. it changes hands 3 different ways), so this keeps the full
+ *  per-realm split instead of collapsing to "whoever holds it now" —
+ *  callers that want a flat total can sum the per-realm counts. */
+export function computeFortActivityBreakdown(
+	events: WzEvent[],
+	windowMs: number,
+	now: number,
+): Record<string, Partial<Record<Realm, number>>> {
 	const cutoff = now - windowMs;
-	const counts: Record<string, number> = {};
+	const breakdown: Record<string, Partial<Record<Realm, number>>> = {};
 	for (const event of events) {
 		if (event.type !== "fort") continue;
 		if (event.date * 1000 < cutoff) continue;
-		counts[event.name] = (counts[event.name] ?? 0) + 1;
+		const realm = event.owner as Realm;
+		if (!REALMS.includes(realm)) continue;
+		const fortCounts = (breakdown[event.name] ??= {});
+		fortCounts[realm] = (fortCounts[realm] ?? 0) + 1;
 	}
-	return counts;
+	return breakdown;
 }
