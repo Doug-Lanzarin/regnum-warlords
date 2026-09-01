@@ -34,14 +34,28 @@
 	color: var(--faded);
 }
 
-.levelWrap {
-	max-width: 420px;
+.grid {
+	display: grid;
+	grid-template-columns: 1fr auto minmax(260px, 340px);
+	gap: var(--space-5);
+	align-items: stretch;
+}
+
+.divider {
+	width: 1px;
+	background: var(--border);
+}
+
+@media (max-width: 860px) {
+	.grid {
+		grid-template-columns: 1fr;
+	}
+	.divider {
+		display: none;
+	}
 }
 
 @media (max-width: 640px) {
-	.levelWrap {
-		max-width: none;
-	}
 	.wrap {
 		padding: var(--space-4);
 		gap: var(--space-4);
