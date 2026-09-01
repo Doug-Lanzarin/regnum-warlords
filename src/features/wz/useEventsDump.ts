@@ -2,21 +2,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { cortApi } from "../../api/cortApi";
 import { WZ_REFRESH_INTERVAL_MS } from "../../data/wzConstants";
 import type { WzEvent } from "../../types/wz";
-import { computeDragonWishes, type HumanizedEvent } from "./wzEventsEngine";
 
-export interface UseDragonWishesResult {
-	wishes: HumanizedEvent[];
+export interface UseEventsDumpResult {
+	events: WzEvent[];
 	loading: boolean;
 }
 
-/** Pulls from CoRT's separate `events.json` dump (~10 days) instead of
- *  `wstatus.json`'s ~100-entry rolling log — wishes are rare enough that
- *  the last 5 are often older than that window, regardless of where they
- *  fall in it. Fails soft: on error we just keep whatever wishes we last
- *  had (or none), since this section is supplementary to the main WZ
- *  status page. */
-export function useDragonWishes(): UseDragonWishesResult {
-	const [wishes, setWishes] = useState<HumanizedEvent[]>([]);
+/** CoRT's separate `events.json` dump (~10 days) — used by anything that
+ *  needs more history than `wstatus.json`'s ~100-entry rolling log gives
+ *  (dragon wishes, 24h fort-activity totals). Fetched once here and shared,
+ *  rather than once per feature, so two features on the same page don't
+ *  double the polling. Fails soft: keeps whatever it last had (or an empty
+ *  list) on error, since callers treat this as supplementary data. */
+export function useEventsDump(): UseEventsDumpResult {
+	const [events, setEvents] = useState<WzEvent[]>([]);
 	const [loading, setLoading] = useState(true);
 	const requestId = useRef(0);
 
@@ -27,8 +26,7 @@ export function useDragonWishes(): UseDragonWishesResult {
 			.warzoneEvents()
 			.then((result) => {
 				if (id !== requestId.current) return;
-				const events = result.filter((entry): entry is WzEvent => "type" in entry);
-				setWishes(computeDragonWishes(events));
+				setEvents(result.filter((entry): entry is WzEvent => "type" in entry));
 			})
 			.catch(() => {
 				// fails soft — see doc comment above
@@ -44,5 +42,5 @@ export function useDragonWishes(): UseDragonWishesResult {
 		return () => clearInterval(poll);
 	}, [fetchData]);
 
-	return { wishes, loading };
+	return { events, loading };
 }
