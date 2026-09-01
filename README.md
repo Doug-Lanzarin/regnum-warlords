@@ -45,7 +45,10 @@ npm run preview   # serve o build de produção localmente, para testar
   dragão); semana/mês/3 meses usam o `stats.json` do CoRT, que já vem
   pré-agregado por período (o log bruto de eventos não cobre mais que uns
   10 dias, então essas janelas maiores não dariam pra calcular a partir
-  dele). Tudo atualizado a cada 2 minutos.
+  dele); e um gráfico de curva (linha) com o total de fortes capturados
+  a cada 15/30/60 minutos ao longo das últimas 24h — pra ver os horários
+  de pico de atividade da guerra, com cursor/toque mostrando o valor exato
+  de cada ponto. Tudo atualizado a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +

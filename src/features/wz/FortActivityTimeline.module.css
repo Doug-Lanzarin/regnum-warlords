@@ -1,0 +1,160 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	padding-left: 2px;
+}
+
+.titleGroup {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-2);
+	flex-wrap: wrap;
+}
+.titleGroup h2 {
+	font-size: 1.05rem;
+}
+
+.count {
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.tabsGroup {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.tabsLabel {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--faded);
+}
+
+.tabs {
+	display: flex;
+	gap: 2px;
+	padding: 3px;
+	background: var(--forms);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-full);
+	width: fit-content;
+}
+
+.tab {
+	padding: 6px 14px;
+	border-radius: var(--radius-full);
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: var(--faded);
+	transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+.tab:hover {
+	color: var(--foreground);
+}
+.tabActive {
+	background: var(--links);
+	color: #0a0a12;
+	box-shadow: var(--shadow-card);
+}
+
+.card {
+	padding: var(--space-4) var(--space-5);
+}
+
+.chartWrap {
+	position: relative;
+}
+
+.svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 600 / 220;
+	touch-action: pan-y;
+	cursor: crosshair;
+}
+
+.gridline {
+	stroke: var(--border);
+	stroke-width: 1;
+}
+
+.yLabel {
+	font-size: 10px;
+	fill: var(--faded);
+	font-variant-numeric: tabular-nums;
+}
+
+.xLabel {
+	font-size: 10px;
+	fill: var(--faded);
+}
+
+.area {
+	fill: color-mix(in srgb, var(--links) 12%, transparent);
+	stroke: none;
+}
+
+.line {
+	fill: none;
+	stroke: var(--links);
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+}
+
+.crosshair {
+	stroke: var(--faded);
+	stroke-width: 1;
+	opacity: 0.5;
+}
+
+.hoverDot {
+	fill: var(--links);
+	stroke: var(--card-background);
+	stroke-width: 2;
+}
+
+.tooltip {
+	position: absolute;
+	transform: translate(-50%, -100%) translateY(-10px);
+	background: var(--tooltip-background);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-md);
+	padding: 6px 10px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--foreground);
+	white-space: nowrap;
+	pointer-events: none;
+	box-shadow: var(--shadow-card);
+	z-index: 1;
+}
+.tooltip strong {
+	font-variant-numeric: tabular-nums;
+	color: var(--links);
+}
+
+.tooltipTime {
+	margin-left: 6px;
+	color: var(--faded);
+	font-weight: 500;
+}
+
+@media (max-width: 480px) {
+	.card {
+		padding: var(--space-3) var(--space-4);
+	}
+}
