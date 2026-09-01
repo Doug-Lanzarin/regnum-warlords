@@ -41,3 +41,27 @@ export interface WzStatusData {
  *  entries. Its first element is a `{ generated }` timestamp header, not an
  *  event. */
 export type WzEventsDumpEntry = WzEvent | { generated: number };
+
+export interface WzStatsForts {
+	total: number;
+	captured: number;
+	recovered: number;
+	most_captured: { name: string; count: number };
+}
+
+/** One realm's pre-aggregated stats for a report window. Only `forts` is
+ *  typed in full — that's all this app currently reads. */
+export interface WzStatsRealmReport {
+	forts: WzStatsForts;
+	[extra: string]: unknown;
+}
+
+export type WzStatsReport = Record<Realm, WzStatsRealmReport>;
+
+/** Raw shape of https://cort.ovh/api/var/stats.json — `[0]` is a metadata
+ *  header (`generated`, hourly activity series, ...), `[1]`/`[2]`/`[3]` are
+ *  pre-aggregated per-realm reports for the last 7/30/90 days respectively
+ *  (CoRT's own `report_days = [7, 30, 90]` in wstats.js). Unlike
+ *  `events.json`'s raw log, this covers windows the raw event history
+ *  doesn't reach (30/90 days), since it's computed server-side. */
+export type WzStatsDump = [{ generated: number; [extra: string]: unknown }, WzStatsReport, WzStatsReport, WzStatsReport];

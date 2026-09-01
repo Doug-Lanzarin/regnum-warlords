@@ -42,9 +42,13 @@ npm run preview   # serve o build de produção localmente, para testar
   são raros o bastante pra não aparecerem sempre no log recente de baixo) e
   um log dos eventos recentes (capturas, gemas, relíquias, pedidos ao
   dragão) e um gráfico de barras com quantos fortes cada reino
-  capturou/recapturou nas últimas 24h (também vindo do dump de 10 dias, pelo
-  mesmo motivo dos pedidos ao dragão), pra saber de cara quem está mais
-  ativo na guerra agora. Tudo atualizado a cada 2 minutos.
+  capturou/recapturou, pra saber de cara quem está mais ativo na guerra —
+  com abas pra alternar entre 24h, semana, mês e 3 meses. A aba de 24h usa
+  o dump de eventos de 10 dias do CoRT (mesmo motivo dos pedidos ao
+  dragão); semana/mês/3 meses usam o `stats.json` do CoRT, que já vem
+  pré-agregado por período (o log bruto de eventos não cobre mais que uns
+  10 dias, então essas janelas maiores não dariam pra calcular a partir
+  dele). Tudo atualizado a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +

@@ -1,5 +1,5 @@
 import { REALMS, type Realm } from "../../data/realms";
-import type { WzEvent, WzStatusData } from "../../types/wz";
+import type { WzEvent, WzStatsReport, WzStatusData } from "../../types/wz";
 
 export interface EventSegment {
 	text: string;
@@ -142,4 +142,12 @@ export function computeFortActivityByRealm(events: WzEvent[], windowMs: number, 
 		if (event.owner in counts) counts[event.owner as Realm] += 1;
 	}
 	return REALMS.map((realm) => ({ realm, count: counts[realm] })).sort((a, b) => b.count - a.count);
+}
+
+/** Same "who's most active" tally as `computeFortActivityByRealm`, but from
+ *  CoRT's pre-aggregated `stats.json` report (`forts.total` = captured +
+ *  recovered) instead of the raw event log — needed for windows (7/30/90
+ *  days) longer than what the raw event history covers. */
+export function computeFortActivityFromStats(report: WzStatsReport): RealmActivityCount[] {
+	return REALMS.map((realm) => ({ realm, count: report[realm]?.forts.total ?? 0 })).sort((a, b) => b.count - a.count);
 }

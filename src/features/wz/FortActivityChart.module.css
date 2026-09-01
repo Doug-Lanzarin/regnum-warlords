@@ -19,6 +19,32 @@
 	color: var(--faded);
 }
 
+.tabs {
+	display: flex;
+	gap: 4px;
+	padding: 3px;
+	background: var(--forms);
+	border-radius: var(--radius-full);
+	width: fit-content;
+}
+
+.tab {
+	padding: 6px 14px;
+	border-radius: var(--radius-full);
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: var(--faded);
+	transition: background-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+.tab:hover {
+	color: var(--foreground);
+}
+.tabActive {
+	background: var(--card-background);
+	color: var(--links);
+	box-shadow: var(--shadow-card);
+}
+
 .card {
 	padding: var(--space-4) var(--space-5);
 }
