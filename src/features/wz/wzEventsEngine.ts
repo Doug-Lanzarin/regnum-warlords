@@ -105,3 +105,15 @@ export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent
 	}
 	return events;
 }
+
+/** Just the "wish" events (dragon wishes) from the log, newest first. */
+export function computeDragonWishes(data: WzStatusData, limit = 5): HumanizedEvent[] {
+	const wishes: HumanizedEvent[] = [];
+	for (let i = 0; i < data.events_log.length && wishes.length < limit; i++) {
+		const event = data.events_log[i];
+		if (event.type !== "wish") continue;
+		const humanized = humanizeEvent(event, i);
+		if (humanized) wishes.push(humanized);
+	}
+	return wishes;
+}

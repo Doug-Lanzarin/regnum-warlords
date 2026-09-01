@@ -4,7 +4,7 @@ import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine";
-import { computeEventLog } from "../features/wz/wzEventsEngine";
+import { computeDragonWishes, computeEventLog } from "../features/wz/wzEventsEngine";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
@@ -13,6 +13,7 @@ export function WzStatusPage() {
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
+	const wishes = useMemo(() => (data ? computeDragonWishes(data) : []), [data]);
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 
 	if (loading && !data) {
@@ -49,6 +50,13 @@ export function WzStatusPage() {
 			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
+			<EventsLogSection
+				events={wishes}
+				now={now}
+				title="Pedidos ao Dragão"
+				countLabel="pedidos recentes"
+				emptyMessage="Nenhum pedido ao dragão recente."
+			/>
 			<EventsLogSection events={events} now={now} />
 		</div>
 	);
