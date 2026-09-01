@@ -30,6 +30,12 @@ export const BASE_ARCHETYPE: Record<AdvancedClass, "Arqueiro" | "Mago" | "Guerre
 	knight: "Guerreiro",
 };
 
+export const ARCHETYPE_HUE: Record<"Arqueiro" | "Mago" | "Guerreiro", string> = {
+	Guerreiro: "var(--red)",
+	Mago: "var(--purple)",
+	Arqueiro: "var(--green)",
+};
+
 export const CLASS_LABELS: Record<AdvancedClass, string> = {
 	knight: "Knight",
 	barbarian: "Barbarian",

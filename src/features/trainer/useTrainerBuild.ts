@@ -51,7 +51,10 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 					if (prev) return prev;
 					const restored = loadBuildFromLocalStorage();
 					if (restored && restored.clas) return restored;
-					return createEmptyBuild(data, "knight", 60, false, version);
+					// No class chosen yet — TrainerPage shows a class-picker screen
+					// for this instead of defaulting to one, so disciplines/skills
+					// aren't loaded until the user actually picks.
+					return { datasetVersion: version, clas: null, level: MAX_CHAR_LEVEL, necroGem: false, disciplines: {} };
 				});
 			})
 			.catch((err: Error) => {

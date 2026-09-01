@@ -1,11 +1,11 @@
-import { CLASS_LABELS } from "../../data/trainerConstants";
+import { ARCHETYPE_HUE, CLASS_LABELS } from "../../data/trainerConstants";
 import type { AdvancedClass } from "../../types/trainer";
 import styles from "./ClassPicker.module.css";
 
-const GROUPS: { archetype: string; classes: AdvancedClass[]; hue: string }[] = [
-	{ archetype: "Guerreiro", classes: ["knight", "barbarian"], hue: "var(--red)" },
-	{ archetype: "Mago", classes: ["conjurer", "warlock"], hue: "var(--purple)" },
-	{ archetype: "Arqueiro", classes: ["hunter", "marksman"], hue: "var(--green)" },
+const GROUPS: { archetype: keyof typeof ARCHETYPE_HUE; classes: AdvancedClass[] }[] = [
+	{ archetype: "Guerreiro", classes: ["knight", "barbarian"] },
+	{ archetype: "Mago", classes: ["conjurer", "warlock"] },
+	{ archetype: "Arqueiro", classes: ["hunter", "marksman"] },
 ];
 
 interface Props {
@@ -29,7 +29,7 @@ export function ClassPicker({ value, onChange }: Props) {
 									role="radio"
 									aria-checked={selected}
 									className={`${styles.option} ${selected ? styles.optionSelected : ""}`}
-									style={{ "--hue": group.hue } as React.CSSProperties}
+									style={{ "--hue": ARCHETYPE_HUE[group.archetype] } as React.CSSProperties}
 									onClick={() => onChange(c)}
 								>
 									<span className={styles.dot} aria-hidden />
