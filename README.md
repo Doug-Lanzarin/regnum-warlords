@@ -34,8 +34,9 @@ npm run preview   # serve o build de produção localmente, para testar
 - **Warzone** (`/`, tela inicial do app): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
-  invadidos), gemas por reino e um log dos eventos recentes (capturas,
-  gemas, relíquias, pedidos ao dragão), atualizados a cada 2 minutos.
+  invadidos), gemas por reino, os últimos 5 pedidos ao dragão em destaque e
+  um log dos eventos recentes (capturas, gemas, relíquias, pedidos ao
+  dragão), atualizados a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +

@@ -6,18 +6,29 @@ import styles from "./EventsLogSection.module.css";
 interface Props {
 	events: HumanizedEvent[];
 	now: number;
+	title?: string;
+	countLabel?: string;
+	emptyMessage?: string;
 }
 
-export function EventsLogSection({ events, now }: Props) {
+export function EventsLogSection({
+	events,
+	now,
+	title = "Eventos da WZ",
+	countLabel = "eventos recentes",
+	emptyMessage = "Nenhum evento recente.",
+}: Props) {
 	return (
 		<section className={styles.section}>
 			<div className={styles.heading}>
-				<h2>Eventos da WZ</h2>
-				<span className={styles.count}>{events.length} eventos recentes</span>
+				<h2>{title}</h2>
+				<span className={styles.count}>
+					{events.length} {countLabel}
+				</span>
 			</div>
 			<div className={`card ${styles.log}`}>
 				{events.length === 0 ? (
-					<p className={styles.empty}>Nenhum evento recente.</p>
+					<p className={styles.empty}>{emptyMessage}</p>
 				) : (
 					<ul className={styles.list}>
 						{events.map((event) => (
