@@ -34,10 +34,7 @@ npm run preview   # serve o build de produção localmente, para testar
 - **Warzone** (`/`, tela inicial do app): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
-  invadidos) e um mapa de calor sobreposto mostrando quais fortes foram mais
-  disputados nas últimas 24h (brilho na cor de quem controla agora, maior
-  quanto mais vezes o forte mudou de mãos), gemas por reino, os últimos 5
-  pedidos ao dragão em destaque
+  invadidos), gemas por reino, os últimos 5 pedidos ao dragão em destaque
   (buscados do dump de eventos de 10 dias do CoRT, já que pedidos ao dragão
   são raros o bastante pra não aparecerem sempre no log recente de baixo) e
   um log dos eventos recentes (capturas, gemas, relíquias, pedidos ao
@@ -48,10 +45,14 @@ npm run preview   # serve o build de produção localmente, para testar
   dragão); semana/mês/3 meses usam o `stats.json` do CoRT, que já vem
   pré-agregado por período (o log bruto de eventos não cobre mais que uns
   10 dias, então essas janelas maiores não dariam pra calcular a partir
-  dele); e um gráfico de curva (linha) com o total de fortes capturados
+  dele); um gráfico de curva (linha) com o total de fortes capturados
   a cada 15/30/60 minutos ao longo das últimas 24h — pra ver os horários
   de pico de atividade da guerra, com cursor/toque mostrando o valor exato
-  de cada ponto. Tudo atualizado a cada 2 minutos.
+  de cada ponto; e um mapa de calor dedicado (no mesmo mapa-base, logo
+  abaixo da curva) com um brilho em cada forte disputado nas últimas 24h —
+  tom da cor do reino que o controla agora (Ignis vermelho, Alsius azul,
+  Syrtis verde), escuro pra pouca atividade e claro pra muita, com legenda
+  de escala pra cada reino. Tudo atualizado a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +
