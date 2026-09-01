@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortActivityChart, type FortActivityRange } from "../features/wz/FortActivityChart";
+import { FortActivityHeatmap } from "../features/wz/FortActivityHeatmap";
 import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
@@ -74,7 +75,7 @@ export function WzStatusPage() {
 
 	return (
 		<div className={styles.wrap}>
-			<WzMap forts={forts} activityByFort={fortActivityByFort} />
+			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
 			{wishes.length > 0 && (
@@ -83,6 +84,7 @@ export function WzStatusPage() {
 			<EventsLogSection events={events} now={now} />
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
+			<FortActivityHeatmap forts={forts} activityByFort={fortActivityByFort} />
 		</div>
 	);
 }
