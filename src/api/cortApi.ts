@@ -9,7 +9,7 @@
 // friendly "live data unavailable" state rather than crash.
 
 import type { BossSpawnData } from "../types/bosses";
-import type { WzEventsDumpEntry, WzStatusData } from "../types/wz";
+import type { WzEventsDumpEntry, WzStatsDump, WzStatusData } from "../types/wz";
 
 const API_BASE = "https://cort.ovh/api";
 
@@ -24,7 +24,7 @@ export const cortApi = {
 	battlezone: () => getJSON<unknown>(`${API_BASE}/bin/bz/bz.php`),
 	warzoneStatus: () => getJSON<WzStatusData>(`${API_BASE}/var/wstatus.json`),
 	warzoneEvents: () => getJSON<WzEventsDumpEntry[]>(`${API_BASE}/var/events.json`),
-	warStats: () => getJSON<unknown>(`${API_BASE}/var/stats.json`),
+	warStats: () => getJSON<WzStatsDump>(`${API_BASE}/var/stats.json`),
 	maintenance: () => fetch(`${API_BASE}/var/maintenance.txt`, { signal: AbortSignal.timeout(6000) }).then((r) => (r.ok ? r.text() : "")),
 };
 

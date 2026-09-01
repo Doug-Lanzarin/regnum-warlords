@@ -1,27 +1,69 @@
+import { useState } from "react";
 import { REALM_COLOR } from "../../data/realms";
 import type { RealmActivityCount } from "./wzEventsEngine";
 import styles from "./FortActivityChart.module.css";
 
+export type FortActivityRange = "24h" | "7d" | "30d" | "90d";
+
+const RANGE_ORDER: FortActivityRange[] = ["24h", "7d", "30d", "90d"];
+
+const RANGE_TAB_LABEL: Record<FortActivityRange, string> = {
+	"24h": "24h",
+	"7d": "Semana",
+	"30d": "Mês",
+	"90d": "3 meses",
+};
+
+const RANGE_PHRASE: Record<FortActivityRange, string> = {
+	"24h": "nas últimas 24h",
+	"7d": "na última semana",
+	"30d": "no último mês",
+	"90d": "nos últimos 3 meses",
+};
+
 interface Props {
-	activity: RealmActivityCount[];
+	/** `null` for a range means its data hasn't loaded yet (or failed). */
+	rangeData: Record<FortActivityRange, RealmActivityCount[] | null>;
 }
 
-/** Horizontal bar per realm, most active first — how many forts each realm
- *  captured/recaptured in the last 24h, so it's obvious at a glance who's
- *  pushing hardest right now. */
-export function FortActivityChart({ activity }: Props) {
-	const total = activity.reduce((sum, a) => sum + a.count, 0);
-	const max = Math.max(...activity.map((a) => a.count), 1);
+/** Same chart, four time windows — a tab row switches which one is shown.
+ *  Horizontal bar per realm, most active first, so it's obvious at a
+ *  glance who's pushing hardest in the selected period. */
+export function FortActivityChart({ rangeData }: Props) {
+	const [range, setRange] = useState<FortActivityRange>("24h");
+	const activity = rangeData[range];
+	const total = activity?.reduce((sum, a) => sum + a.count, 0) ?? 0;
+	const max = Math.max(...(activity ?? []).map((a) => a.count), 1);
 
 	return (
 		<section className={styles.section}>
 			<div className={styles.heading}>
-				<h2>Atividade nas últimas 24h</h2>
-				<span className={styles.count}>{total} fortes mudaram de mãos</span>
+				<h2>Atividade dos reinos</h2>
+				<span className={styles.count}>
+					{activity ? `${total} fortes mudaram de mãos ${RANGE_PHRASE[range]}` : "carregando…"}
+				</span>
 			</div>
+
+			<div className={styles.tabs} role="tablist" aria-label="Período">
+				{RANGE_ORDER.map((r) => (
+					<button
+						key={r}
+						type="button"
+						role="tab"
+						aria-selected={range === r}
+						className={`${styles.tab} ${range === r ? styles.tabActive : ""}`}
+						onClick={() => setRange(r)}
+					>
+						{RANGE_TAB_LABEL[r]}
+					</button>
+				))}
+			</div>
+
 			<div className={`card ${styles.card}`}>
-				{total === 0 ? (
-					<p className={styles.empty}>Nenhum forte capturado nas últimas 24h.</p>
+				{!activity ? (
+					<p className={styles.empty}>Carregando dados…</p>
+				) : total === 0 ? (
+					<p className={styles.empty}>Nenhum forte capturado {RANGE_PHRASE[range]}.</p>
 				) : (
 					<ul className={styles.list}>
 						{activity.map(({ realm, count }, index) => (
@@ -29,7 +71,7 @@ export function FortActivityChart({ activity }: Props) {
 								key={realm}
 								className={styles.row}
 								tabIndex={0}
-								aria-label={`${realm}: ${count} forte${count === 1 ? "" : "s"} nas últimas 24h`}
+								aria-label={`${realm}: ${count} forte${count === 1 ? "" : "s"} ${RANGE_PHRASE[range]}`}
 							>
 								<span className={styles.realmLabel}>
 									<span
@@ -47,7 +89,7 @@ export function FortActivityChart({ activity }: Props) {
 								</div>
 								<span className={styles.value}>{count}</span>
 								{index === 0 && count > 0 && (
-									<span className={styles.leaderTag} title="Reino mais ativo nas últimas 24h" aria-hidden>
+									<span className={styles.leaderTag} title={`Reino mais ativo ${RANGE_PHRASE[range]}`} aria-hidden>
 										🔥
 									</span>
 								)}
