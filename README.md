@@ -50,9 +50,12 @@ npm run preview   # serve o build de produção localmente, para testar
   de pico de atividade da guerra, com cursor/toque mostrando o valor exato
   de cada ponto; e um mapa de calor dedicado (no mesmo mapa-base, logo
   abaixo da curva) com um brilho em cada forte disputado nas últimas 24h —
-  tom da cor do reino que o controla agora (Ignis vermelho, Alsius azul,
-  Syrtis verde), escuro pra pouca atividade e claro pra muita, com legenda
-  de escala pra cada reino. Tudo atualizado a cada 2 minutos.
+  tom da cor do(s) reino(s) que realmente capturaram aquele forte no
+  período (Ignis vermelho, Alsius azul, Syrtis verde; um forte disputado
+  por mais de um reino aparece com a cor misturada, ponderada por quantas
+  vezes cada um capturou — não só a cor de quem está com ele agora),
+  escuro pra pouca atividade e claro pra muita, com legenda de escala pra
+  cada reino. Tudo atualizado a cada 2 minutos.
 - **Épicos** (`/bosses`): contagem regressiva dos bosses de mundo, dados ao
   vivo de `cort.ovh`.
 - **Notificações** (`/notificacoes`): timeline pública de avisos (título +

@@ -6,8 +6,8 @@ import styles from "./FortActivityHeatmap.module.css";
 
 interface Props {
 	forts: FortStatus[];
-	/** Fort name (cleaned) → capture count in the last 24h. */
-	activityByFort: Record<string, number>;
+	/** Fort name (cleaned) → per-realm capture count in the last 24h. */
+	activityByFort: Record<string, Partial<Record<Realm, number>>>;
 }
 
 const BLOB_RADIUS = 30;
@@ -24,18 +24,50 @@ const HEAT_RAMP: Record<Realm, { dark: string; light: string }> = {
 	Syrtis: { dark: "#0f2a1a", light: "#4ade80" },
 };
 
-function heatColor(realm: Realm, ratio: number): string {
-	const pct = Math.round(Math.min(1, Math.max(0, ratio)) * 100);
-	const { dark, light } = HEAT_RAMP[realm];
-	return `color-mix(in srgb, ${light} ${pct}%, ${dark})`;
+type Rgb = [number, number, number];
+
+function hexToRgb(hex: string): Rgb {
+	const n = parseInt(hex.slice(1), 16);
+	return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+	return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+
+/** A fort is often fought over by more than one realm in a day — coloring
+ *  it only by whoever holds it *right now* would hide that. This blends
+ *  each contributing realm's dark/light endpoints, weighted by its share
+ *  of that fort's captures, then interpolates the blend by intensity —
+ *  a fort split 3 ways glows a genuine mix of all 3 realm colors. */
+function blendedHeatColor(breakdown: Partial<Record<Realm, number>>, total: number, ratio: number): string {
+	let dark: Rgb = [0, 0, 0];
+	let light: Rgb = [0, 0, 0];
+	for (const realm of REALMS) {
+		const count = breakdown[realm] ?? 0;
+		if (count === 0) continue;
+		const weight = count / total;
+		const ramp = HEAT_RAMP[realm];
+		const darkRgb = hexToRgb(ramp.dark);
+		const lightRgb = hexToRgb(ramp.light);
+		dark = [dark[0] + darkRgb[0] * weight, dark[1] + darkRgb[1] * weight, dark[2] + darkRgb[2] * weight];
+		light = [light[0] + lightRgb[0] * weight, light[1] + lightRgb[1] * weight, light[2] + lightRgb[2] * weight];
+	}
+	const [r, g, b] = mixRgb(dark, light, ratio);
+	return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
 /** A dedicated heatmap on the same base map/positions as the status map
- *  above — one soft blob per fort, shaded dark→light within its
- *  controlling realm's own color family by how many times it changed
- *  hands in the last 24h. Quiet forts stay dark; contested ones glow. */
+ *  above — one soft blob per fort, shaded dark→light by how many times it
+ *  changed hands in the last 24h, blended across every realm that actually
+ *  captured it (not just whoever holds it now). Quiet forts stay dark;
+ *  contested ones glow, mixed if more than one realm fought over them. */
 export function FortActivityHeatmap({ forts, activityByFort }: Props) {
-	const max = Math.max(1, ...Object.values(activityByFort));
+	const totals = forts.map((fort) => {
+		const breakdown = activityByFort[cleanFortName(fort.name)] ?? {};
+		return REALMS.reduce((sum, realm) => sum + (breakdown[realm] ?? 0), 0);
+	});
+	const max = Math.max(1, ...totals);
 
 	return (
 		<section className={styles.section}>
@@ -65,17 +97,19 @@ export function FortActivityHeatmap({ forts, activityByFort }: Props) {
 					/>
 					{forts.map((fort, i) => {
 						const pos = FORT_MAP_POSITIONS[i];
-						if (!pos) return null;
+						const total = totals[i];
+						if (!pos || total === 0) return null;
 						const label = cleanFortName(fort.name);
-						const count = activityByFort[label] ?? 0;
-						const ratio = count > 0 ? Math.sqrt(count / max) : 0;
+						const breakdown = activityByFort[label] ?? {};
+						const ratio = Math.sqrt(total / max);
 						const cx = pos.x + 16;
 						const cy = pos.y + 16;
-						const color = heatColor(fort.owner, ratio);
+						const color = blendedHeatColor(breakdown, total, ratio);
+						const breakdownText = REALMS.filter((r) => breakdown[r]).map((r) => `${r} ${breakdown[r]}`).join(", ");
 						return (
 							<g key={fort.name}>
 								<title>
-									{label} — {fort.owner} · {count} ação{count === 1 ? "" : "ões"} nas últimas 24h
+									{label} · {total} {total === 1 ? "ação" : "ações"} nas últimas 24h ({breakdownText})
 								</title>
 								<circle cx={cx} cy={cy} r={BLOB_RADIUS} fill={color} filter="url(#heatmap-blur)" />
 								<circle cx={cx} cy={cy} r={CORE_RADIUS} fill={color} className={styles.core} />
@@ -98,6 +132,10 @@ export function FortActivityHeatmap({ forts, activityByFort }: Props) {
 						<span>menos ativo</span>
 						<span>mais ativo</span>
 					</div>
+					<p className={styles.legendNote}>
+						Fortes disputados por mais de um reino aparecem com a cor misturada — passe o dedo/mouse pra ver o
+						detalhe de cada reino.
+					</p>
 				</div>
 			</div>
 		</section>

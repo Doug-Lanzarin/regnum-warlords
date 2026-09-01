@@ -13,7 +13,7 @@ import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine
 import {
 	computeDragonWishes,
 	computeEventLog,
-	computeFortActivityByFortName,
+	computeFortActivityBreakdown,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	type RealmActivityCount,
@@ -31,7 +31,7 @@ export function WzStatusPage() {
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 	const wishes = useMemo(() => computeDragonWishes(eventsDump), [eventsDump]);
 	const fortActivityByFort = useMemo(
-		() => computeFortActivityByFortName(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
+		() => computeFortActivityBreakdown(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
 		[eventsDump, now],
 	);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
