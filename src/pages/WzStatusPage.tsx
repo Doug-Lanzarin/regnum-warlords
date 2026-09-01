@@ -2,18 +2,19 @@ import { useMemo } from "react";
 import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
+import { useDragonWishes } from "../features/wz/useDragonWishes";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine";
-import { computeDragonWishes, computeEventLog } from "../features/wz/wzEventsEngine";
+import { computeEventLog } from "../features/wz/wzEventsEngine";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
 export function WzStatusPage() {
 	const { data, loading, error, now, refresh } = useWzStatus();
+	const { wishes } = useDragonWishes();
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
-	const wishes = useMemo(() => (data ? computeDragonWishes(data) : []), [data]);
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 
 	if (loading && !data) {
@@ -50,13 +51,9 @@ export function WzStatusPage() {
 			<WzMap forts={forts} />
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
-			<EventsLogSection
-				events={wishes}
-				now={now}
-				title="Pedidos ao Dragão"
-				countLabel="pedidos recentes"
-				emptyMessage="Nenhum pedido ao dragão recente."
-			/>
+			{wishes.length > 0 && (
+				<EventsLogSection events={wishes} now={now} title="Pedidos ao Dragão" countLabel="pedidos recentes" />
+			)}
 			<EventsLogSection events={events} now={now} />
 		</div>
 	);

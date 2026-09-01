@@ -35,3 +35,9 @@ export interface WzStatusData {
 	events_log: WzEvent[];
 	generated: string;
 }
+
+/** Raw shape of https://cort.ovh/api/var/events.json — a much longer rolling
+ *  dump (~10 days) than `WzStatusData.events_log`'s ~100 most recent
+ *  entries. Its first element is a `{ generated }` timestamp header, not an
+ *  event. */
+export type WzEventsDumpEntry = WzEvent | { generated: number };
