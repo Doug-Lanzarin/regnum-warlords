@@ -3,9 +3,9 @@ import { BossesTabIcon, NotificationsTabIcon, TrainerTabIcon, WzTabIcon } from "
 import styles from "./BottomTabBar.module.css";
 
 const TABS = [
-	{ to: "/wz", label: "Warzone", Icon: WzTabIcon, end: false },
+	{ to: "/", label: "Warzone", Icon: WzTabIcon, end: true },
 	{ to: "/bosses", label: "Épicos", Icon: BossesTabIcon, end: false },
-	{ to: "/", label: "Treinador", Icon: TrainerTabIcon, end: true },
+	{ to: "/trainer", label: "Treinador", Icon: TrainerTabIcon, end: false },
 	{ to: "/notificacoes", label: "Notificações", Icon: NotificationsTabIcon, end: false },
 ];
 
