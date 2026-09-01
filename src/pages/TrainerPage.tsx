@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTrainerBuild } from "../features/trainer/useTrainerBuild";
 import { BuildHeader } from "../features/trainer/BuildHeader";
-import { ClassIntro } from "../features/trainer/ClassIntro";
 import { StatsBar } from "../features/trainer/StatsBar";
 import { SpellSearch } from "../features/trainer/SpellSearch";
 import { DisciplineColumn } from "../features/trainer/DisciplineColumn";
@@ -65,19 +64,11 @@ export function TrainerPage() {
 		);
 	}
 
-	if (!build) return null;
+	if (!build || !build.clas) return null;
 
 	function handleVersionChange(version: string) {
 		if (!build) return;
 		loadBuild({ ...build, datasetVersion: version });
-	}
-
-	if (!build.clas) {
-		return (
-			<div className={styles.wrap}>
-				<ClassIntro datasetVersion={build.datasetVersion} onClassChange={setClass} onVersionChange={handleVersionChange} />
-			</div>
-		);
 	}
 
 	function renderGroup(title: string, names: string[]) {
