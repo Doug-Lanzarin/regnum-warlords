@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortActivityChart, type FortActivityRange } from "../features/wz/FortActivityChart";
-import { FortActivityHeatmap } from "../features/wz/FortActivityHeatmap";
 import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
@@ -13,7 +12,6 @@ import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine
 import {
 	computeDragonWishes,
 	computeEventLog,
-	computeFortActivityBreakdown,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	type RealmActivityCount,
@@ -30,10 +28,6 @@ export function WzStatusPage() {
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const events = useMemo(() => (data ? computeEventLog(data) : []), [data]);
 	const wishes = useMemo(() => computeDragonWishes(eventsDump), [eventsDump]);
-	const fortActivityByFort = useMemo(
-		() => computeFortActivityBreakdown(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
-		[eventsDump, now],
-	);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
 			"24h": computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
@@ -84,7 +78,6 @@ export function WzStatusPage() {
 			<EventsLogSection events={events} now={now} />
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
-			<FortActivityHeatmap forts={forts} activityByFort={fortActivityByFort} />
 		</div>
 	);
 }
