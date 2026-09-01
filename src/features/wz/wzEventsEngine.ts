@@ -151,3 +151,37 @@ export function computeFortActivityByRealm(events: WzEvent[], windowMs: number, 
 export function computeFortActivityFromStats(report: WzStatsReport): RealmActivityCount[] {
 	return REALMS.map((realm) => ({ realm, count: report[realm]?.forts.total ?? 0 })).sort((a, b) => b.count - a.count);
 }
+
+export interface ActivityBucket {
+	/** Bucket start, unix ms. */
+	time: number;
+	count: number;
+}
+
+/** Fort-capture counts (all realms combined) bucketed into fixed
+ *  `bucketMs`-wide slices over the trailing `windowMs` — the "how active
+ *  is the war throughout the day" curve. Always returns exactly
+ *  `windowMs / bucketMs` buckets, oldest first, zero-filled where nothing
+ *  happened, so the line has a steady cadence regardless of how sparse the
+ *  data is in any given slice. */
+export function computeFortActivityTimeline(
+	events: WzEvent[],
+	windowMs: number,
+	bucketMs: number,
+	now: number,
+): ActivityBucket[] {
+	const bucketCount = Math.round(windowMs / bucketMs);
+	const start = now - bucketCount * bucketMs;
+	const buckets: ActivityBucket[] = Array.from({ length: bucketCount }, (_, i) => ({
+		time: start + i * bucketMs,
+		count: 0,
+	}));
+	for (const event of events) {
+		if (event.type !== "fort") continue;
+		const eventMs = event.date * 1000;
+		if (eventMs < start || eventMs > now) continue;
+		const idx = Math.min(bucketCount - 1, Math.floor((eventMs - start) / bucketMs));
+		buckets[idx].count += 1;
+	}
+	return buckets;
+}
