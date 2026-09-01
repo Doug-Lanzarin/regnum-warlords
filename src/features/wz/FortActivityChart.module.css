@@ -4,13 +4,22 @@
 	gap: var(--space-3);
 }
 
-.heading {
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	padding-left: 2px;
+}
+
+.titleGroup {
 	display: flex;
 	align-items: baseline;
 	gap: var(--space-2);
-	padding-left: 2px;
+	flex-wrap: wrap;
 }
-.heading h2 {
+.titleGroup h2 {
 	font-size: 1.05rem;
 }
 
@@ -19,11 +28,26 @@
 	color: var(--faded);
 }
 
+.tabsGroup {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.tabsLabel {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--faded);
+}
+
 .tabs {
 	display: flex;
-	gap: 4px;
+	gap: 2px;
 	padding: 3px;
 	background: var(--forms);
+	border: 1px solid var(--border);
 	border-radius: var(--radius-full);
 	width: fit-content;
 }
@@ -40,9 +64,25 @@
 	color: var(--foreground);
 }
 .tabActive {
-	background: var(--card-background);
-	color: var(--links);
+	background: var(--links);
+	color: #0a0a12;
 	box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 560px) {
+	.tabsGroup {
+		width: 100%;
+		justify-content: space-between;
+	}
+	.tabs {
+		flex: 1;
+		justify-content: space-between;
+	}
+	.tab {
+		flex: 1;
+		padding: 6px 8px;
+		text-align: center;
+	}
 }
 
 .card {
@@ -91,12 +131,6 @@
 	background: var(--realm-color);
 	flex-shrink: 0;
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--realm-color) 25%, transparent);
-}
-
-.leaderTag {
-	flex-shrink: 0;
-	font-size: 0.85rem;
-	line-height: 1;
 }
 
 .track {
