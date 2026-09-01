@@ -25,13 +25,13 @@ npm run preview   # serve o build de produção localmente, para testar
 
 ## O que já está pronto
 
-- **Treinador** (`/`): calculadora completa de build — escolha de classe (as 6
+- **Treinador** (`/trainer`): calculadora completa de build — escolha de classe (as 6
   classes avançadas: Knight, Barbarian, Conjurer, Warlock, Hunter, Marksman),
   nível (10–60, incluindo o Cristal Necro no 60), disciplinas com custo em
   pontos de disciplina, habilidades com rank (0–5) em pontos de poder,
   detalhes de cada habilidade (mana, recarga, dano/buffs por rank) e
   compartilhamento de build por link.
-- **Warzone** (`/wz`): dados ao vivo de `cort.ovh` — mapa da Zona de
+- **Warzone** (`/`, tela inicial do app): dados ao vivo de `cort.ovh` — mapa da Zona de
   Guerra com os 12 fortes posicionados (ícone por tipo — forte, castelo,
   muralha — e cor do reino que controla cada um, com destaque para fortes
   invadidos), gemas por reino e um log dos eventos recentes (capturas,
