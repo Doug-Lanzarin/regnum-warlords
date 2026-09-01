@@ -5,25 +5,29 @@
  */
 
 :root {
-	--background: #0d1024;
-	--background-soft: #161a38;
-	--card-background: #1c2044;
-	--card-background-alt: #232852;
-	--menu-background: #191d3e;
-	--tooltip-background: #262b52;
-	--accent: #4a4f7a;
-	--accent-soft: rgba(156, 205, 249, 0.12);
-	--foreground: #f4f5fb;
-	--forms: #2b2f57;
-	--red: #ff8a92;
-	--blue: #9ccdf9;
-	--green: #7de384;
-	--purple: #bd93ff;
-	--faded: #a3a7c9;
-	--links: #8fd0ff;
-	--link-hover: #c9b3ff;
-	--border: rgba(255, 255, 255, 0.09);
-	--focus-ring: #8fd0ff;
+	/* Muted "hunter green" palette — dark, near-black greens with a soft
+	   mint accent, kept subdued on purpose (nothing neon/saturated) and
+	   independent from the realm identity colors in data/realms.ts, which
+	   stay exactly as they were. */
+	--background: #0d1310;
+	--background-soft: #131c17;
+	--card-background: #182420;
+	--card-background-alt: #1f2d27;
+	--menu-background: #16211c;
+	--tooltip-background: #1c2924;
+	--accent: #2c4237;
+	--accent-soft: rgba(63, 174, 124, 0.14);
+	--foreground: #eaf3ee;
+	--forms: #223229;
+	--red: #f2867e;
+	--blue: #8ec9e0;
+	--green: #5fd98a;
+	--purple: #b39ddb;
+	--faded: #9db3a7;
+	--links: #3fae7c;
+	--link-hover: #57c793;
+	--border: rgba(180, 255, 200, 0.1);
+	--focus-ring: #3fae7c;
 
 	--font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 	--font-display: "Sora", "Inter", "Segoe UI", system-ui, sans-serif;
