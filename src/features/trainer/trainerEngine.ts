@@ -8,6 +8,8 @@ import {
 import type {
 	AdvancedClass,
 	DisciplineState,
+	Spell,
+	SpellValueEntry,
 	TrainerBuild,
 	TrainerData,
 	TrainerTotals,
@@ -74,15 +76,37 @@ export function charLevelRequiredFor(trainerData: TrainerData, disciplineLevel: 
 	return trainerData.required.level[disciplineLevel - 1] ?? Infinity;
 }
 
-/** Max rank obtainable for a spell at the discipline's current level. */
+/** War Mastery ("WM") disciplines' spells don't scale with rank at all in
+ *  the data — no array-valued mana/buff/debuff/damage/heal anywhere, just a
+ *  single flat effect. They only need to be unlocked (rank 0→1) once the
+ *  discipline is leveled up enough, not ranked with power points like every
+ *  other spell in the game. */
+export function isSingleTierSpell(spell: Spell): boolean {
+	if (Array.isArray(spell.mana)) return false;
+	const keys = ["buffs", "debuffs", "damage", "heal"] as const;
+	for (const key of keys) {
+		const entries = spell[key] as SpellValueEntry[] | undefined;
+		if (!Array.isArray(entries)) continue;
+		for (const entry of entries) {
+			if (Array.isArray(entry.value)) return false;
+		}
+	}
+	return true;
+}
+
+/** Max rank obtainable for a spell at the discipline's current level.
+ *  Single-tier spells (see `isSingleTierSpell`) cap at 1 regardless of
+ *  discipline level, since there's nothing beyond "unlocked" for them. */
 export function maxSpellRank(
 	trainerData: TrainerData,
 	disciplineLevel: number,
 	isFirstSpellOfTree: boolean,
+	spell?: Spell,
 ): number {
 	let m = trainerData.required.power[disciplineLevel - 1] ?? 0;
 	if (disciplineLevel === MIN_DISCIPLINE_LEVEL && isFirstSpellOfTree) m += 1;
-	return Math.min(m, MAX_SPELL_RANK);
+	const cap = spell && isSingleTierSpell(spell) ? 1 : MAX_SPELL_RANK;
+	return Math.min(m, cap);
 }
 
 export function emptyDisciplineState(spellCount: number): DisciplineState {
@@ -112,9 +136,14 @@ export function computeTotalsForBuild(trainerData: TrainerData, build: TrainerBu
 	const { dpointsTotal, ppointsTotal } = computeTotals(trainerData, build.clas, build.level, build.necroGem);
 	let dpointsSpent = 0;
 	let ppointsSpent = 0;
-	for (const state of Object.values(build.disciplines)) {
+	for (const [name, state] of Object.entries(build.disciplines)) {
 		dpointsSpent += disciplineCost(trainerData, MIN_DISCIPLINE_LEVEL, state.level);
-		for (const rank of state.spellRanks) ppointsSpent += rank;
+		const spells = trainerData.disciplines[name]?.spells ?? [];
+		state.spellRanks.forEach((rank, idx) => {
+			const spell = spells[idx];
+			if (spell && isSingleTierSpell(spell)) return; // unlocking is free — see isSingleTierSpell
+			ppointsSpent += rank;
+		});
 	}
 	return {
 		dpointsTotal,
@@ -149,8 +178,9 @@ export function canSetDisciplineLevel(
 		// lowering: make sure no spell rank would exceed the new cap
 		const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
 		const isFirst = trees[0] === disciplineName;
-		const newCap = maxSpellRank(trainerData, newLevel, isFirst);
-		if (state.spellRanks.some((r, idx) => r > (idx === 0 && isFirst ? newCap : trainerData.required.power[newLevel - 1] ?? 0))) {
+		const spells = trainerData.disciplines[disciplineName]?.spells ?? [];
+		const exceedsCap = state.spellRanks.some((r, idx) => r > maxSpellRank(trainerData, newLevel, isFirst && idx === 0, spells[idx]));
+		if (exceedsCap) {
 			return { ok: false, reason: "Reduza antes as habilidades acima do novo limite." };
 		}
 		return { ok: true };
@@ -175,13 +205,14 @@ export function canSetSpellRank(
 	if (newRank < 0) return { ok: false, reason: "Fora do intervalo." };
 	const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
 	const isFirstTree = trees[0] === disciplineName;
-	const cap = maxSpellRank(trainerData, state.level, isFirstTree && spellIndex === 0);
+	const spell = trainerData.disciplines[disciplineName]?.spells[spellIndex];
+	const cap = maxSpellRank(trainerData, state.level, isFirstTree && spellIndex === 0, spell);
 	if (newRank > cap) {
 		return { ok: false, reason: `Máximo ${cap} nesta habilidade com o nível atual da disciplina.` };
 	}
 	const current = state.spellRanks[spellIndex] ?? 0;
 	const diff = newRank - current;
-	if (diff > 0) {
+	if (diff > 0 && !(spell && isSingleTierSpell(spell))) {
 		const totals = computeTotalsForBuild(trainerData, build);
 		if (diff > totals.ppointsLeft) {
 			return { ok: false, reason: "Pontos de poder insuficientes." };
@@ -206,8 +237,9 @@ export function clampBuildToLevel(trainerData: TrainerData, build: TrainerBuild)
 		const maxAllowed = maxDisciplineLevelForCharLevel(trainerData, build.level);
 		const level = Math.min(state.level, maxAllowed);
 		const isFirst = trees[0] === name;
+		const spells = trainerData.disciplines[name]?.spells ?? [];
 		const spellRanks = state.spellRanks.map((rank, idx) =>
-			Math.min(rank, maxSpellRank(trainerData, level, isFirst && idx === 0)),
+			Math.min(rank, maxSpellRank(trainerData, level, isFirst && idx === 0, spells[idx])),
 		);
 		disciplines[name] = { level, spellRanks };
 	}

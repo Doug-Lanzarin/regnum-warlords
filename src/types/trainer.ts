@@ -14,20 +14,25 @@ export interface SpellValueEntry {
 	es?: string;
 	de?: string;
 	fr?: string;
-	value: string[];
+	/** An array scales with the spell's rank (one entry per rank); a bare
+	 *  string/boolean means the spell has no rank scaling at all — see
+	 *  `isSingleTierSpell` in trainerEngine.ts (War Mastery disciplines). */
+	value: string[] | string | boolean;
 }
 
 export interface Spell {
 	name: LangText;
 	description: LangText;
-	mana?: number[];
+	/** Array = mana cost per rank; a bare number means the spell doesn't
+	 *  scale with rank (see `isSingleTierSpell`). */
+	mana?: number[] | number;
 	type: string;
 	cast: number;
 	gcd: string;
 	cooldown: number;
 	range?: number;
 	area?: number;
-	duration?: number[];
+	duration?: number[] | number;
 	buffs?: SpellValueEntry[];
 	debuffs?: SpellValueEntry[];
 	damage?: SpellValueEntry[];

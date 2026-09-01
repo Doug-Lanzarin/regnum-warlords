@@ -2,7 +2,7 @@ import { disciplineIconUrl } from "../../api/trainerData";
 import { MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../../data/trainerConstants";
 import { DISCIPLINE_NAME_PT } from "../../data/trainerTranslationsPt";
 import type { DisciplineState, TrainerData } from "../../types/trainer";
-import { charLevelRequiredFor, maxSpellRank } from "./trainerEngine";
+import { charLevelRequiredFor, isSingleTierSpell, maxSpellRank } from "./trainerEngine";
 import { spellName } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import { SpellRow } from "./SpellRow";
@@ -44,7 +44,12 @@ export function DisciplineColumn({
 	const nextRequiredLevel = charLevelRequiredFor(trainerData, nextLevel);
 	const canRaise = state.level < MAX_DISCIPLINE_LEVEL && nextRequiredLevel <= charLevel;
 	const levelPct = (state.level / MAX_DISCIPLINE_LEVEL) * 100;
-	const pointsInvested = state.spellRanks.reduce((a, b) => a + b, 0);
+	// Excludes single-tier (War Mastery) spells — unlocking those doesn't
+	// spend power points, so they shouldn't count as "invested" here either.
+	const pointsInvested = discipline.spells.reduce((sum, spell, idx) => {
+		if (isSingleTierSpell(spell)) return sum;
+		return sum + (state.spellRanks[idx] ?? 0);
+	}, 0);
 
 	const normalizedFilter = filter.trim().toLowerCase();
 	const disciplineMatches = !normalizedFilter || disciplineName.toLowerCase().includes(normalizedFilter);
@@ -102,7 +107,7 @@ export function DisciplineColumn({
 
 			<div className={styles.spells}>
 				{visibleSpells.map(({ spell, idx }) => {
-					const cap = maxSpellRank(trainerData, state.level, isFirstDiscipline && idx === 0);
+					const cap = maxSpellRank(trainerData, state.level, isFirstDiscipline && idx === 0, spell);
 					return (
 						<SpellRow
 							key={spell.name.en + idx}

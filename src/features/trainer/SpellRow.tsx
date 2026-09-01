@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SPELL_GCD_PT, SPELL_TYPE_PT } from "../../data/trainerTranslationsPt";
 import type { Spell } from "../../types/trainer";
+import { isSingleTierSpell } from "./trainerEngine";
 import { spellDescription, spellEffectRows, spellName, spellScalarRows } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import styles from "./SpellRow.module.css";
@@ -23,6 +24,7 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 	const effectRows = spellEffectRows(spell);
 	const activeCol = rank > 0 ? rank - 1 : 0;
 	const maxed = maxRank > 0 && rank >= maxRank;
+	const singleTier = isSingleTierSpell(spell);
 
 	return (
 		<div
@@ -40,6 +42,11 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 					›
 				</span>
 				<span className={styles.spellName}>{spellName(spell)}</span>
+				{singleTier && (
+					<span className={styles.freeTag} title="Não consome pontos de poder — só depende do nível da disciplina">
+						grátis
+					</span>
+				)}
 				{maxed && <span className={styles.maxedTag}>máx</span>}
 			</button>
 
