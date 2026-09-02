@@ -1,10 +1,13 @@
+import type { Lang } from "../../i18n/languages";
+import { translate } from "../../i18n/translate";
+
 export { formatDateTime, formatRelativePast } from "../../utils/time";
 
 /** Formats a millisecond duration as a compact countdown, showing only the
  *  precision that matters at that distance (no jittery seconds ticker for
  *  something 2 days away). */
-export function formatCountdown(ms: number): string {
-	if (ms <= 0) return "Pode já ter reaparecido";
+export function formatCountdown(ms: number, lang: Lang): string {
+	if (ms <= 0) return translate(lang, "bosses.countdownMayHaveReappeared");
 	const totalSeconds = Math.floor(ms / 1000);
 	const days = Math.floor(totalSeconds / 86400);
 	const hours = Math.floor((totalSeconds % 86400) / 3600);

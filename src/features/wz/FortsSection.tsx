@@ -1,5 +1,7 @@
 import { formatFortLabel } from "../../data/fortKind";
 import { REALMS, REALM_COLOR, type Realm } from "../../data/realms";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import { formatRelativePast } from "../../utils/time";
 import type { FortStatus } from "./wzEngine";
 import styles from "./FortsSection.module.css";
@@ -10,11 +12,13 @@ interface Props {
 }
 
 export function FortsSection({ forts, now }: Props) {
+	const { lang } = useLanguage();
+	const t = useT();
 	return (
 		<section className={styles.section}>
 			<div className={styles.heading}>
-				<h2>Fortes</h2>
-				<span className={styles.count}>{forts.length} fortes</span>
+				<h2>{t("wz.fortsTitle")}</h2>
+				<span className={styles.count}>{t("wz.fortsCount", { count: forts.length })}</span>
 			</div>
 			<div className={styles.grid}>
 				{REALMS.map((realm) => {
@@ -25,15 +29,13 @@ export function FortsSection({ forts, now }: Props) {
 							<div className={styles.columnHeader}>
 								<span className={styles.realmDot} aria-hidden />
 								<h3 className={styles.realmName}>{realm}</h3>
-								<span className={styles.held}>
-									{held}/{realmForts.length} sob controle
-								</span>
+								<span className={styles.held}>{t("wz.fortsHeld", { held, total: realmForts.length })}</span>
 							</div>
 							<ul className={styles.list}>
 								{realmForts.map((fort) => (
 									<li key={fort.name} className={`${styles.row} ${fort.captured ? styles.rowCaptured : ""}`}>
 										<div className={styles.rowMain}>
-											<span className={styles.fortName}>{formatFortLabel(fort.name)}</span>
+											<span className={styles.fortName}>{formatFortLabel(fort.name, lang)}</span>
 											<span
 												className={styles.ownerBadge}
 												style={{ "--owner-color": REALM_COLOR[fort.owner as Realm] } as React.CSSProperties}
@@ -43,7 +45,8 @@ export function FortsSection({ forts, now }: Props) {
 										</div>
 										{fort.captured && (
 											<span className={styles.capturedNote}>
-												Invadido{fort.since ? ` ${formatRelativePast(now - fort.since * 1000)}` : ""}
+												{t("wz.fortInvadedNote")}
+												{fort.since ? ` ${formatRelativePast(now - fort.since * 1000, lang)}` : ""}
 											</span>
 										)}
 									</li>

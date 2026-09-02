@@ -7,9 +7,11 @@ import { DisciplineColumn } from "../features/trainer/DisciplineColumn";
 import { decodeBuild } from "../features/trainer/shareLink";
 import { getTreeGroups, isFirstDiscipline } from "../features/trainer/trainerEngine";
 import { CLASS_LABELS } from "../data/trainerConstants";
+import { useT } from "../i18n/useT";
 import styles from "./TrainerPage.module.css";
 
 export function TrainerPage() {
+	const t = useT();
 	const {
 		trainerData,
 		dataSource,
@@ -50,7 +52,7 @@ export function TrainerPage() {
 		return (
 			<div className={`card ${styles.centerMessage}`}>
 				<span className={styles.spinner} aria-hidden />
-				Carregando dados do trainer…
+				{t("trainer.loading")}
 			</div>
 		);
 	}
@@ -58,7 +60,7 @@ export function TrainerPage() {
 	if (error || !trainerData) {
 		return (
 			<div className={`card ${styles.centerMessage}`}>
-				<p>Não foi possível carregar os dados do trainer.</p>
+				<p>{t("trainer.loadError")}</p>
 				<p style={{ color: "var(--faded)" }}>{error}</p>
 			</div>
 		);
@@ -77,7 +79,7 @@ export function TrainerPage() {
 			<section className={styles.section}>
 				<div className={styles.sectionHeading}>
 					<h2>{title}</h2>
-					<span className={styles.sectionCount}>{names.length} disciplinas</span>
+					<span className={styles.sectionCount}>{t("trainer.disciplinesCount", { count: names.length })}</span>
 				</div>
 				<div className={styles.grid}>
 					{names.map((name) => (
@@ -111,13 +113,13 @@ export function TrainerPage() {
 			<div className={styles.searchRow}>
 				<SpellSearch value={filter} onChange={setFilter} />
 				<span className={styles.classLabel}>
-					Build de <strong>{CLASS_LABELS[build.clas]}</strong> · nível {build.level}
-					{build.necroGem ? " + Cristal Necro" : ""}
+					{t("trainer.buildOf", { class: CLASS_LABELS[build.clas], level: build.level })}
+					{build.necroGem ? t("trainer.necroCrystalSuffix") : ""}
 				</span>
 			</div>
 
-			{renderGroup("Habilidades gerais", groups.general)}
-			{renderGroup(`Especialização: ${CLASS_LABELS[build.clas]}`, groups.specialization)}
+			{renderGroup(t("trainer.generalSkills"), groups.general)}
+			{renderGroup(t("trainer.specialization", { class: CLASS_LABELS[build.clas] }), groups.specialization)}
 		</div>
 	);
 }

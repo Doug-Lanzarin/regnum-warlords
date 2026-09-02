@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { SPELL_GCD_PT, SPELL_TYPE_PT } from "../../data/trainerTranslationsPt";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import type { Spell } from "../../types/trainer";
 import { isSingleTierSpell } from "./trainerEngine";
-import { spellDescription, spellEffectRows, spellName, spellScalarRows } from "./spellFormat";
+import { spellDescription, spellEffectRows, spellGcdLabel, spellName, spellScalarRows, spellTypeLabel } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import styles from "./SpellRow.module.css";
 
@@ -19,9 +20,12 @@ interface Props {
 }
 
 export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, onChange }: Props) {
+	const { lang } = useLanguage();
+	const t = useT();
 	const [open, setOpen] = useState(false);
-	const scalarRows = spellScalarRows(spell);
-	const effectRows = spellEffectRows(spell);
+	const name = spellName(spell, lang);
+	const scalarRows = spellScalarRows(spell, lang);
+	const effectRows = spellEffectRows(spell, lang);
 	const activeCol = rank > 0 ? rank - 1 : 0;
 	const maxed = maxRank > 0 && rank >= maxRank;
 	const singleTier = isSingleTierSpell(spell);
@@ -34,20 +38,20 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 				type="button"
 				className={styles.infoBtn}
 				aria-expanded={open}
-				aria-label={`${open ? "Ocultar" : "Ver"} detalhes de ${spellName(spell)}`}
+				aria-label={t("trainer.spellDetailsAriaLabel", { action: open ? t("trainer.hide") : t("trainer.view"), spell: name })}
 				onClick={() => setOpen((o) => !o)}
 			>
 				<SkillIcon spriteUrl={spriteUrl} frame={spellIndex + 1} size={22} className={styles.icon} dim={rank === 0} />
 				<span className={styles.chevron} aria-hidden data-open={open}>
 					›
 				</span>
-				<span className={styles.spellName}>{spellName(spell)}</span>
+				<span className={styles.spellName}>{name}</span>
 				{singleTier && (
-					<span className={styles.freeTag} title="Não consome pontos de poder — só depende do nível da disciplina">
-						grátis
+					<span className={styles.freeTag} title={t("trainer.freeTooltip")}>
+						{t("trainer.free")}
 					</span>
 				)}
-				{maxed && <span className={styles.maxedTag}>máx</span>}
+				{maxed && <span className={styles.maxedTag}>{t("trainer.maxed")}</span>}
 			</button>
 
 			<div className={styles.controlLine}>
@@ -63,7 +67,7 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 						className={styles.stepBtn}
 						disabled={locked || rank <= 0}
 						onClick={() => onChange(rank - 1)}
-						aria-label={`Diminuir rank de ${spellName(spell)}`}
+						aria-label={t("trainer.decreaseRank", { spell: name })}
 					>
 						−
 					</button>
@@ -75,7 +79,7 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 						className={styles.stepBtn}
 						disabled={locked || rank >= maxRank}
 						onClick={() => onChange(rank + 1)}
-						aria-label={`Aumentar rank de ${spellName(spell)}`}
+						aria-label={t("trainer.increaseRank", { spell: name })}
 					>
 						+
 					</button>
@@ -84,27 +88,27 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 
 			{open && (
 				<div className={styles.details}>
-					<p className={styles.description}>{spellDescription(spell)}</p>
+					<p className={styles.description}>{spellDescription(spell, lang)}</p>
 					<dl className={styles.metaGrid}>
 						<div>
-							<dt>Tipo</dt>
-							<dd>{SPELL_TYPE_PT[spell.type] ?? spell.type}</dd>
+							<dt>{t("trainer.type")}</dt>
+							<dd>{spellTypeLabel(spell.type, lang)}</dd>
 						</div>
 						<div>
-							<dt>Invocação</dt>
+							<dt>{t("trainer.cast")}</dt>
 							<dd>{spell.cast}s</dd>
 						</div>
 						<div>
-							<dt>Recarga</dt>
+							<dt>{t("trainer.cooldown")}</dt>
 							<dd>{spell.cooldown}s</dd>
 						</div>
 						<div>
-							<dt>Recarga global</dt>
-							<dd>{SPELL_GCD_PT[spell.gcd] ?? spell.gcd}</dd>
+							<dt>{t("trainer.globalCooldown")}</dt>
+							<dd>{spellGcdLabel(spell.gcd, lang)}</dd>
 						</div>
 						{typeof spell.range === "number" && spell.range > 0 && (
 							<div>
-								<dt>Alcance</dt>
+								<dt>{t("trainer.range")}</dt>
 								<dd>{spell.range}</dd>
 							</div>
 						)}

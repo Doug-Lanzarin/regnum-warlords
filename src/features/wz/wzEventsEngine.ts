@@ -1,4 +1,6 @@
 import { REALMS, type Realm } from "../../data/realms";
+import type { Lang } from "../../i18n/languages";
+import { translate } from "../../i18n/translate";
 import type { WzEvent, WzStatsReport, WzStatusData } from "../../types/wz";
 
 export interface EventSegment {
@@ -28,9 +30,9 @@ function isGreatWall(name: string): boolean {
 
 /** Ported from CoRT's `HumaniseEvents.humanise_events()` in wztools.js —
  *  same event shapes (fort/gem capture & recapture, relic altar/transit,
- *  dragon wishes), translated to pt-BR and returned as colorable segments
- *  instead of an HTML string. */
-export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | null {
+ *  dragon wishes), localized via the i18n dictionary and returned as
+ *  colorable segments instead of an HTML string. */
+export function humanizeEvent(event: WzEvent, index: number, lang: Lang): HumanizedEvent | null {
 	const key = `${event.date}-${event.type}-${event.name}-${index}`;
 	const owner = (event.owner || null) as Realm | null;
 
@@ -44,7 +46,7 @@ export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | n
 						key,
 						date: event.date,
 						emoji: "🛡️",
-						segments: [{ text: event.owner, realm: owner }, { text: " reconquistou a Grande Muralha" }],
+						segments: [{ text: event.owner, realm: owner }, { text: translate(lang, "wz.eventGreatWallRecovered") }],
 					}
 				: {
 						key,
@@ -52,20 +54,20 @@ export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | n
 						emoji: "🦍",
 						segments: [
 							{ text: event.owner, realm: owner },
-							{ text: " invadiu a Grande Muralha de " },
+							{ text: translate(lang, "wz.eventGreatWallInvadedPrefix") },
 							{ text: event.location, realm: location },
 						],
 					};
 		}
 
-		const target = event.type === "fort" ? cleanFortName(event.name) : `Gema #${event.name}`;
+		const target = event.type === "fort" ? cleanFortName(event.name) : translate(lang, "wz.eventGemLabel", { name: event.name });
 		return {
 			key,
 			date: event.date,
 			emoji: event.type === "gem" ? "💎" : "",
 			segments: [
 				{ text: event.owner, realm: owner },
-				{ text: recovered ? " recuperou " : " capturou " },
+				{ text: translate(lang, recovered ? "wz.eventFortRecovered" : "wz.eventFortCaptured") },
 				{ text: target, realm: location },
 			],
 		};
@@ -78,9 +80,9 @@ export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | n
 			date: event.date,
 			emoji: altar ? "🏛️" : "🏃",
 			segments: [
-				{ text: "A relíquia " },
+				{ text: translate(lang, "wz.eventRelicPrefix") },
 				{ text: event.name, realm: owner },
-				{ text: altar ? " voltou para o altar" : " está em trânsito" },
+				{ text: translate(lang, altar ? "wz.eventRelicAltar" : "wz.eventRelicTransit") },
 			],
 		};
 	}
@@ -92,17 +94,17 @@ export function humanizeEvent(event: WzEvent, index: number): HumanizedEvent | n
 			date: event.date,
 			emoji: "🐉",
 			isWish: true,
-			segments: [{ text: event.location, realm: location }, { text: " fez um pedido ao dragão!" }],
+			segments: [{ text: event.location, realm: location }, { text: translate(lang, "wz.eventWishSuffix") }],
 		};
 	}
 
 	return null;
 }
 
-export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent[] {
+export function computeEventLog(data: WzStatusData, lang: Lang, limit = 100): HumanizedEvent[] {
 	const events: HumanizedEvent[] = [];
 	for (let i = 0; i < data.events_log.length && events.length < limit; i++) {
-		const humanized = humanizeEvent(data.events_log[i], i);
+		const humanized = humanizeEvent(data.events_log[i], i, lang);
 		if (humanized) events.push(humanized);
 	}
 	return events;
@@ -113,12 +115,12 @@ export function computeEventLog(data: WzStatusData, limit = 100): HumanizedEvent
  *  wishes are rare enough to not reliably show up in the ~100-entry rolling
  *  window of `WzStatusData.events_log` — callers should pass the larger
  *  events.json dump instead (see `useEventsDump`). */
-export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEvent[] {
+export function computeDragonWishes(events: WzEvent[], lang: Lang, limit = 5): HumanizedEvent[] {
 	const wishes: HumanizedEvent[] = [];
 	for (let i = 0; i < events.length && wishes.length < limit; i++) {
 		const event = events[i];
 		if (event.type !== "wish") continue;
-		const humanized = humanizeEvent(event, i);
+		const humanized = humanizeEvent(event, i, lang);
 		if (humanized) wishes.push(humanized);
 	}
 	return wishes;
@@ -129,13 +131,13 @@ export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEven
  *  suffix — or an already-clean name), newest first. Meant for a per-fort
  *  drill-down (e.g. clicking that fort on the map), as opposed to
  *  `computeEventLog`'s all-forts feed. */
-export function computeFortHistory(events: WzEvent[], fortName: string, limit = 15): HumanizedEvent[] {
+export function computeFortHistory(events: WzEvent[], fortName: string, lang: Lang, limit = 15): HumanizedEvent[] {
 	const target = cleanFortName(fortName);
 	const history: HumanizedEvent[] = [];
 	for (let i = 0; i < events.length && history.length < limit; i++) {
 		const event = events[i];
 		if (event.type !== "fort" || event.name !== target) continue;
-		const humanized = humanizeEvent(event, i);
+		const humanized = humanizeEvent(event, i, lang);
 		if (humanized) history.push(humanized);
 	}
 	return history;

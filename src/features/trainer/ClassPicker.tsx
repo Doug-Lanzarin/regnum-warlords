@@ -1,11 +1,13 @@
 import { CLASS_LABELS } from "../../data/trainerConstants";
+import { useT } from "../../i18n/useT";
+import type { TranslationKey } from "../../i18n/translate";
 import type { AdvancedClass } from "../../types/trainer";
 import styles from "./ClassPicker.module.css";
 
-const GROUPS: { archetype: string; classes: AdvancedClass[]; hue: string }[] = [
-	{ archetype: "Guerreiro", classes: ["knight", "barbarian"], hue: "var(--red)" },
-	{ archetype: "Mago", classes: ["conjurer", "warlock"], hue: "var(--purple)" },
-	{ archetype: "Arqueiro", classes: ["hunter", "marksman"], hue: "var(--green)" },
+const GROUPS: { archetypeKey: TranslationKey; classes: AdvancedClass[]; hue: string }[] = [
+	{ archetypeKey: "trainer.archetypeWarrior", classes: ["knight", "barbarian"], hue: "var(--red)" },
+	{ archetypeKey: "trainer.archetypeMage", classes: ["conjurer", "warlock"], hue: "var(--purple)" },
+	{ archetypeKey: "trainer.archetypeArcher", classes: ["hunter", "marksman"], hue: "var(--green)" },
 ];
 
 interface Props {
@@ -14,11 +16,12 @@ interface Props {
 }
 
 export function ClassPicker({ value, onChange }: Props) {
+	const t = useT();
 	return (
-		<div className={styles.wrap} role="radiogroup" aria-label="Classe">
+		<div className={styles.wrap} role="radiogroup" aria-label={t("trainer.classAriaLabel")}>
 			{GROUPS.map((group) => (
-				<div className={styles.group} key={group.archetype}>
-					<span className={styles.groupLabel}>{group.archetype}</span>
+				<div className={styles.group} key={group.archetypeKey}>
+					<span className={styles.groupLabel}>{t(group.archetypeKey)}</span>
 					<div className={styles.options}>
 						{group.classes.map((c) => {
 							const selected = value === c;

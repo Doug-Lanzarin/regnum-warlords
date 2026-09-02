@@ -1,4 +1,5 @@
 import { REALMS, REALM_COLOR } from "../../data/realms";
+import { useT } from "../../i18n/useT";
 import type { GemStatus } from "./wzEngine";
 import { GemIcon, realmOrNeutralColor } from "./wzIcons";
 import styles from "./GemsSection.module.css";
@@ -8,11 +9,12 @@ interface Props {
 }
 
 export function GemsSection({ gems }: Props) {
+	const t = useT();
 	return (
 		<section className={styles.section}>
 			<div className={styles.heading}>
-				<h2>Gemas</h2>
-				<span className={styles.count}>{gems.length} gemas</span>
+				<h2>{t("wz.gemsTitle")}</h2>
+				<span className={styles.count}>{t("wz.gemsCount", { count: gems.length })}</span>
 			</div>
 			<div className={styles.grid}>
 				{REALMS.map((realm) => {
@@ -23,16 +25,18 @@ export function GemsSection({ gems }: Props) {
 							<div className={styles.columnHeader}>
 								<span className={styles.realmDot} aria-hidden />
 								<h3 className={styles.realmName}>{realm}</h3>
-								<span className={styles.held}>
-									{claimed}/{realmGems.length} reivindicadas
-								</span>
+								<span className={styles.held}>{t("wz.gemsClaimed", { claimed, total: realmGems.length })}</span>
 							</div>
 							<ul className={styles.list}>
 								{realmGems.map((gem) => (
 									<li
 										key={gem.index}
 										className={styles.gemDot}
-										title={gem.owner ? `Gema ${gem.index + 1}: ${gem.owner}` : `Gema ${gem.index + 1}: sem dono`}
+										title={
+											gem.owner
+												? t("wz.gemTooltipOwned", { n: gem.index + 1, owner: gem.owner })
+												: t("wz.gemTooltipUnowned", { n: gem.index + 1 })
+										}
 									>
 										<GemIcon color={realmOrNeutralColor(gem.owner, REALM_COLOR)} />
 									</li>

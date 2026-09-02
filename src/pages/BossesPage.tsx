@@ -1,16 +1,18 @@
 import { BossCard } from "../features/bosses/BossCard";
 import { useBossTimers } from "../features/bosses/useBossTimers";
 import { BOSS_ORDER } from "../data/bossConstants";
+import { useT } from "../i18n/useT";
 import styles from "./BossesPage.module.css";
 
 export function BossesPage() {
+	const t = useT();
 	const { data, loading, error, now, refresh } = useBossTimers();
 
 	if (loading && !data) {
 		return (
 			<div className={`card ${styles.centerMessage}`}>
 				<span className={styles.spinner} aria-hidden />
-				Carregando horários dos chefes…
+				{t("bosses.loading")}
 			</div>
 		);
 	}
@@ -18,15 +20,15 @@ export function BossesPage() {
 	if (error && !data) {
 		return (
 			<div className={`card ${styles.centerMessage}`}>
-				<span className="badge">Dados ao vivo indisponíveis</span>
-				<h1 className={styles.errorTitle}>Não foi possível carregar os chefes</h1>
+				<span className="badge">{t("common.liveDataUnavailable")}</span>
+				<h1 className={styles.errorTitle}>{t("bosses.errorTitle")}</h1>
 				<p>{error}</p>
 				<div className={styles.actions}>
 					<button className="btn btn-primary" onClick={refresh}>
-						Tentar novamente
+						{t("common.tryAgain")}
 					</button>
 					<a className="btn btn-ghost" href="https://cort.ovh/bosses.html" target="_blank" rel="noreferrer">
-						Abrir no CoRT ↗
+						{t("common.openInCort")}
 					</a>
 				</div>
 			</div>

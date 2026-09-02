@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n/useT";
 import styles from "./NotificationForm.module.css";
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function NotificationForm({ busy, onSubmit }: Props) {
+	const t = useT();
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 
@@ -23,30 +25,30 @@ export function NotificationForm({ busy, onSubmit }: Props) {
 	return (
 		<form className={styles.form} onSubmit={handleSubmit}>
 			<label className={styles.field}>
-				<span>Título</span>
+				<span>{t("notificationForm.titleLabel")}</span>
 				<input
 					className="text-input"
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
 					maxLength={200}
-					placeholder="Ex: Nova atualização disponível"
+					placeholder={t("notificationForm.titlePlaceholder")}
 					required
 				/>
 			</label>
 			<label className={styles.field}>
-				<span>Descrição</span>
+				<span>{t("notificationForm.descriptionLabel")}</span>
 				<textarea
 					className={`text-input ${styles.textarea}`}
 					value={description}
 					onChange={(e) => setDescription(e.target.value)}
 					maxLength={4000}
 					rows={3}
-					placeholder="Detalhes da notificação…"
+					placeholder={t("notificationForm.descriptionPlaceholder")}
 					required
 				/>
 			</label>
 			<button type="submit" className="btn btn-primary" disabled={busy}>
-				{busy ? "Publicando…" : "Publicar notificação"}
+				{busy ? t("notificationForm.publishing") : t("notificationForm.publish")}
 			</button>
 		</form>
 	);

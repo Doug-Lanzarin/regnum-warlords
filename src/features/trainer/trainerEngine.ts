@@ -5,6 +5,8 @@ import {
 	MIN_DISCIPLINE_LEVEL,
 	NECRO_GEM_BONUS_POWER_POINTS,
 } from "../../data/trainerConstants";
+import type { Lang } from "../../i18n/languages";
+import { translate } from "../../i18n/translate";
 import type {
 	AdvancedClass,
 	DisciplineState,
@@ -165,15 +167,16 @@ export function canSetDisciplineLevel(
 	build: TrainerBuild,
 	disciplineName: string,
 	newLevel: number,
+	lang: Lang,
 ): DisciplineChangeCheck {
 	if (newLevel < MIN_DISCIPLINE_LEVEL || newLevel > MAX_DISCIPLINE_LEVEL) {
-		return { ok: false, reason: "Fora do intervalo permitido." };
+		return { ok: false, reason: translate(lang, "trainer.errOutOfRangePermitted") };
 	}
 	if (charLevelRequiredFor(trainerData, newLevel) > build.level) {
-		return { ok: false, reason: `Requer personagem nível ${charLevelRequiredFor(trainerData, newLevel)}.` };
+		return { ok: false, reason: translate(lang, "trainer.errRequiresCharLevel", { level: charLevelRequiredFor(trainerData, newLevel) }) };
 	}
 	const state = build.disciplines[disciplineName];
-	if (!state) return { ok: false, reason: "Disciplina inválida." };
+	if (!state) return { ok: false, reason: translate(lang, "trainer.errInvalidDiscipline") };
 	if (newLevel < state.level) {
 		// lowering: make sure no spell rank would exceed the new cap
 		const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
@@ -181,14 +184,14 @@ export function canSetDisciplineLevel(
 		const spells = trainerData.disciplines[disciplineName]?.spells ?? [];
 		const exceedsCap = state.spellRanks.some((r, idx) => r > maxSpellRank(trainerData, newLevel, isFirst && idx === 0, spells[idx]));
 		if (exceedsCap) {
-			return { ok: false, reason: "Reduza antes as habilidades acima do novo limite." };
+			return { ok: false, reason: translate(lang, "trainer.errLowerSkillsFirst") };
 		}
 		return { ok: true };
 	}
 	const cost = disciplineCost(trainerData, state.level, newLevel);
 	const totals = computeTotalsForBuild(trainerData, build);
 	if (cost > totals.dpointsLeft) {
-		return { ok: false, reason: "Pontos de disciplina insuficientes." };
+		return { ok: false, reason: translate(lang, "trainer.errInsufficientDisciplinePoints") };
 	}
 	return { ok: true };
 }
@@ -199,23 +202,24 @@ export function canSetSpellRank(
 	disciplineName: string,
 	spellIndex: number,
 	newRank: number,
+	lang: Lang,
 ): DisciplineChangeCheck {
 	const state = build.disciplines[disciplineName];
-	if (!state) return { ok: false, reason: "Disciplina inválida." };
-	if (newRank < 0) return { ok: false, reason: "Fora do intervalo." };
+	if (!state) return { ok: false, reason: translate(lang, "trainer.errInvalidDiscipline") };
+	if (newRank < 0) return { ok: false, reason: translate(lang, "trainer.errOutOfRange") };
 	const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
 	const isFirstTree = trees[0] === disciplineName;
 	const spell = trainerData.disciplines[disciplineName]?.spells[spellIndex];
 	const cap = maxSpellRank(trainerData, state.level, isFirstTree && spellIndex === 0, spell);
 	if (newRank > cap) {
-		return { ok: false, reason: `Máximo ${cap} nesta habilidade com o nível atual da disciplina.` };
+		return { ok: false, reason: translate(lang, "trainer.errMaxRank", { cap }) };
 	}
 	const current = state.spellRanks[spellIndex] ?? 0;
 	const diff = newRank - current;
 	if (diff > 0 && !(spell && isSingleTierSpell(spell))) {
 		const totals = computeTotalsForBuild(trainerData, build);
 		if (diff > totals.ppointsLeft) {
-			return { ok: false, reason: "Pontos de poder insuficientes." };
+			return { ok: false, reason: translate(lang, "trainer.errInsufficientPowerPoints") };
 		}
 	}
 	return { ok: true };

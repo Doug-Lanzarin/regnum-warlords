@@ -3,14 +3,16 @@
 // on a free external pinger like cron-job.org hitting this endpoint every
 // minute with the shared secret below. See README.md's push section.
 
-import { BOSS_INFO } from "../../src/data/bossConstants";
+import { bossName } from "../../src/data/bossConstants";
+import { formatFortLabel } from "../../src/data/fortKind";
 import type { Realm } from "../../src/data/realms";
+import { translate } from "../../src/i18n/translate";
 import type { AlertSettings } from "../../src/types/alertSettings";
 import type { BossSpawnData } from "../../src/types/bosses";
 import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine";
 import type { WzStatusData } from "../../src/types/wz";
 import { detectBossEvents, type BossEvent } from "../_push/boss";
-import { diffState, type CategoryEvents } from "../_push/diff";
+import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff";
 import { sendPush, type PushNotificationPayload } from "../_push/push";
 import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage";
 
@@ -37,6 +39,17 @@ function isAuthorized(req: VercelLikeRequest): boolean {
 	return bearer === expected || queryToken === expected;
 }
 
+const LOCALE_FOR_LANG: Record<AlertSettings["lang"], string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
+
+/** Resolves an event's display name in the subscriber's language — forts
+ *  go through `formatFortLabel` (suffix-strip + Great Wall translation),
+ *  gems build "{n}"-style labels from their index. See `diff.ts`'s
+ *  `CategoryEvent` doc comment for why this can't be baked in earlier. */
+function eventDisplayName(e: CategoryEvent, lang: AlertSettings["lang"]): string {
+	if (e.gemIndex !== undefined) return translate(lang, "alerts.gemLabel", { n: e.gemIndex + 1 });
+	return formatFortLabel(e.name, lang);
+}
+
 function buildMessagesFor(
 	settings: AlertSettings,
 	eventsByRealm: Record<Realm, CategoryEvents>,
@@ -44,66 +57,73 @@ function buildMessagesFor(
 ): PushNotificationPayload[] {
 	const messages: PushNotificationPayload[] = [];
 	const myRealm = settings.myRealm;
+	const lang = settings.lang ?? "pt";
 
 	if (myRealm) {
 		const events = eventsByRealm[myRealm];
 		if (settings.fortLostAlerts) {
 			for (const e of events.fortLost ?? []) {
-				messages.push({ title: `${myRealm} perdeu ${e.name} para ${e.otherRealm}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgLost", { realm: myRealm, name: eventDisplayName(e, lang), otherRealm: e.otherRealm ?? "" }), body: "", url: "/" });
 			}
 		}
 		if (settings.wallLostAlerts) {
 			for (const e of events.wallLost ?? []) {
-				messages.push({ title: `${myRealm} perdeu ${e.name} para ${e.otherRealm}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgLost", { realm: myRealm, name: eventDisplayName(e, lang), otherRealm: e.otherRealm ?? "" }), body: "", url: "/" });
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			for (const e of events.fortCaptured ?? []) {
-				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgCaptured", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			for (const e of events.wallCaptured ?? []) {
-				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgCaptured", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 		if (settings.gemLostAlerts) {
 			for (const e of events.gemLost ?? []) {
-				const title = e.otherRealm ? `${myRealm} perdeu ${e.name} para ${e.otherRealm}` : `${myRealm} perdeu ${e.name}`;
+				const name = eventDisplayName(e, lang);
+				const title = e.otherRealm
+					? translate(lang, "alerts.msgLost", { realm: myRealm, name, otherRealm: e.otherRealm })
+					: translate(lang, "alerts.msgLostNoOwner", { realm: myRealm, name });
 				messages.push({ title, body: "", url: "/" });
 			}
 		}
 		if (settings.gemCapturedAlerts) {
 			for (const e of events.gemCaptured ?? []) {
-				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgCaptured", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 		if (settings.fortRecoveredAlerts) {
 			for (const e of events.fortRecovered ?? []) {
-				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgRecovered", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 		if (settings.wallRecoveredAlerts) {
 			for (const e of events.wallRecovered ?? []) {
-				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgRecovered", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 		if (settings.gemRecoveredAlerts) {
 			for (const e of events.gemRecovered ?? []) {
-				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+				messages.push({ title: translate(lang, "alerts.msgRecovered", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
 	}
 
 	for (const be of bossEvents) {
 		if (!settings.bossAlertMinutes.includes(be.minutes)) continue;
-		const info = BOSS_INFO[be.bossKey];
-		const spawnClock = new Date(be.spawnSeconds * 1000).toLocaleTimeString("pt-BR", {
+		const spawnClock = new Date(be.spawnSeconds * 1000).toLocaleTimeString(LOCALE_FOR_LANG[lang], {
 			hour: "2-digit",
 			minute: "2-digit",
 			timeZone: "America/Sao_Paulo",
 		});
-		messages.push({ title: `${info.name} nasce em ${be.minutes} min`, body: `Spawn previsto às ${spawnClock}.`, url: "/bosses" });
+		messages.push({
+			title: translate(lang, "alerts.bossSpawnTitle", { boss: bossName(be.bossKey, lang), minutes: be.minutes }),
+			body: translate(lang, "alerts.bossSpawnBody", { time: spawnClock }),
+			url: "/bosses",
+		});
 	}
 
 	return messages;

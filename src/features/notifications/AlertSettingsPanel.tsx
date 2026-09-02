@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { REALMS, type Realm } from "../../data/realms";
+import { useT } from "../../i18n/useT";
 import { useAlertSettings } from "../alerts/AlertSettingsContext";
 import type { BooleanAlertKey } from "../alerts/alertSettings";
 import {
@@ -11,31 +12,32 @@ import {
 	unsubscribeFromPush,
 	type NotificationSupport,
 } from "../alerts/notify";
+import type { TranslationKey } from "../../i18n/translate";
 import styles from "./AlertSettingsPanel.module.css";
 
-const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; label: string }[] = [
-	{ key: "fortCapturedAlerts", label: "Forte tomado" },
-	{ key: "fortLostAlerts", label: "Forte perdido" },
-	{ key: "fortRecoveredAlerts", label: "Forte recuperado" },
-	{ key: "wallCapturedAlerts", label: "Muralha capturada" },
-	{ key: "wallLostAlerts", label: "Muralha perdida" },
-	{ key: "wallRecoveredAlerts", label: "Muralha recuperada" },
-	{ key: "gemCapturedAlerts", label: "Gem capturada" },
-	{ key: "gemLostAlerts", label: "Gem perdida" },
-	{ key: "gemRecoveredAlerts", label: "Gem recuperada" },
+const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; labelKey: TranslationKey }[] = [
+	{ key: "fortCapturedAlerts", labelKey: "alerts.optFortCaptured" },
+	{ key: "fortLostAlerts", labelKey: "alerts.optFortLost" },
+	{ key: "fortRecoveredAlerts", labelKey: "alerts.optFortRecovered" },
+	{ key: "wallCapturedAlerts", labelKey: "alerts.optWallCaptured" },
+	{ key: "wallLostAlerts", labelKey: "alerts.optWallLost" },
+	{ key: "wallRecoveredAlerts", labelKey: "alerts.optWallRecovered" },
+	{ key: "gemCapturedAlerts", labelKey: "alerts.optGemCaptured" },
+	{ key: "gemLostAlerts", labelKey: "alerts.optGemLost" },
+	{ key: "gemRecoveredAlerts", labelKey: "alerts.optGemRecovered" },
 ];
 
-const BOSS_ALERT_OPTIONS: { minutes: number; label: string }[] = [
-	{ minutes: 60, label: "1 hora antes" },
-	{ minutes: 30, label: "30 minutos antes" },
-	{ minutes: 15, label: "15 minutos antes" },
+const BOSS_ALERT_OPTIONS: { minutes: number; labelKey: TranslationKey }[] = [
+	{ minutes: 60, labelKey: "alerts.boss60" },
+	{ minutes: 30, labelKey: "alerts.boss30" },
+	{ minutes: 15, labelKey: "alerts.boss15" },
 ];
 
-const PERMISSION_LABEL: Record<NotificationSupport, string> = {
-	granted: "Ativadas neste navegador",
-	denied: "Bloqueadas — habilite nas configurações do site/navegador",
-	default: "Ainda não ativadas",
-	unsupported: "Não suportadas neste navegador",
+const PERMISSION_LABEL_KEY: Record<NotificationSupport, TranslationKey> = {
+	granted: "alerts.permissionGranted",
+	denied: "alerts.permissionDenied",
+	default: "alerts.permissionDefault",
+	unsupported: "alerts.permissionUnsupported",
 };
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
@@ -44,6 +46,7 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undef
  *  Notifications tab alongside the admin-curated timeline, but writes to
  *  `AlertSettingsContext` (localStorage) instead of the notifications API. */
 export function AlertSettingsPanel() {
+	const t = useT();
 	const { settings, setMyRealm, setFlag, toggleBossAlertMinute } = useAlertSettings();
 	const [permission, setPermission] = useState<NotificationSupport>(() => notificationSupport());
 	const [pushActive, setPushActive] = useState(false);
@@ -77,26 +80,23 @@ export function AlertSettingsPanel() {
 
 	return (
 		<section className={`card ${styles.panel}`}>
-			<h2 className={styles.title}>Alertas</h2>
-			<p className={styles.subtitle}>
-				Avisos locais neste dispositivo, sem cadastro — funcionam enquanto o app estiver aberto (aba ativa ou
-				minimizada), e também com o app fechado se a notificação do navegador estiver ativada.
-			</p>
+			<h2 className={styles.title}>{t("alerts.panelTitle")}</h2>
+			<p className={styles.subtitle}>{t("alerts.panelSubtitle")}</p>
 
 			<div className={styles.permissionRow}>
 				{permission !== "granted" && permission !== "unsupported" && (
 					<button type="button" className="btn btn-primary" onClick={handleEnableNotifications} disabled={pushBusy}>
-						Ativar notificações do navegador
+						{t("alerts.enableBrowserNotifications")}
 					</button>
 				)}
-				<p className={styles.permissionStatus}>{PERMISSION_LABEL[permission]}</p>
+				<p className={styles.permissionStatus}>{t(PERMISSION_LABEL_KEY[permission])}</p>
 			</div>
 
 			{permission === "granted" && canOfferPush && (
 				<div className={styles.permissionRow}>
 					{pushActive ? (
 						<button type="button" className="btn btn-ghost" onClick={handleDisablePush} disabled={pushBusy}>
-							Desativar avisos com o app fechado
+							{t("alerts.disablePushClosed")}
 						</button>
 					) : (
 						<button
@@ -110,18 +110,16 @@ export function AlertSettingsPanel() {
 								setPushBusy(false);
 							}}
 						>
-							Ativar avisos com o app fechado
+							{t("alerts.enablePushClosed")}
 						</button>
 					)}
-					<p className={styles.permissionStatus}>
-						{pushActive ? "App fechado: você recebe avisos mesmo assim" : "App fechado: sem avisos por enquanto"}
-					</p>
+					<p className={styles.permissionStatus}>{pushActive ? t("alerts.pushActiveStatus") : t("alerts.pushInactiveStatus")}</p>
 				</div>
 			)}
 
 			<div className={styles.group}>
 				<label className={styles.groupLabel} htmlFor="my-realm-select">
-					Meu reino
+					{t("alerts.myRealmLabel")}
 				</label>
 				<select
 					id="my-realm-select"
@@ -129,7 +127,7 @@ export function AlertSettingsPanel() {
 					value={settings.myRealm ?? ""}
 					onChange={(e) => setMyRealm((e.target.value || null) as Realm | null)}
 				>
-					<option value="">Não escolhido</option>
+					<option value="">{t("alerts.notChosen")}</option>
 					{REALMS.map((realm) => (
 						<option key={realm} value={realm}>
 							{realm}
@@ -140,8 +138,8 @@ export function AlertSettingsPanel() {
 
 			<div className={styles.group}>
 				<span className={styles.groupLabel}>
-					Eventos do meu reino
-					{!settings.myRealm && <span className={styles.hint}> (escolha seu reino acima)</span>}
+					{t("alerts.myRealmEventsLabel")}
+					{!settings.myRealm && <span className={styles.hint}>{t("alerts.chooseRealmHint")}</span>}
 				</span>
 				<div className={styles.checkRow}>
 					{EVENT_ALERT_OPTIONS.map((opt) => (
@@ -152,14 +150,14 @@ export function AlertSettingsPanel() {
 								disabled={!settings.myRealm}
 								onChange={(e) => setFlag(opt.key, e.target.checked)}
 							/>
-							<span>{opt.label}</span>
+							<span>{t(opt.labelKey)}</span>
 						</label>
 					))}
 				</div>
 			</div>
 
 			<div className={styles.group}>
-				<span className={styles.groupLabel}>Avisar antes dos épicos nascerem</span>
+				<span className={styles.groupLabel}>{t("alerts.bossWarnLabel")}</span>
 				<div className={styles.checkRow}>
 					{BOSS_ALERT_OPTIONS.map((opt) => (
 						<label key={opt.minutes} className={styles.toggleRow}>
@@ -168,7 +166,7 @@ export function AlertSettingsPanel() {
 								checked={settings.bossAlertMinutes.includes(opt.minutes)}
 								onChange={() => toggleBossAlertMinute(opt.minutes)}
 							/>
-							<span>{opt.label}</span>
+							<span>{t(opt.labelKey)}</span>
 						</label>
 					))}
 				</div>

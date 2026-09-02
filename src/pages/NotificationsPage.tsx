@@ -1,6 +1,7 @@
 import { AlertSettingsPanel } from "../features/notifications/AlertSettingsPanel";
 import { NotificationTimeline } from "../features/notifications/NotificationTimeline";
 import { useNotifications } from "../features/notifications/useNotifications";
+import { useT } from "../i18n/useT";
 import styles from "./NotificationsPage.module.css";
 
 /** Public, read-only timeline, plus the personal alert settings panel
@@ -10,6 +11,7 @@ import styles from "./NotificationsPage.module.css";
  *  the unlisted /warlords/gerenciamento/notificacoes page instead — nothing
  *  here hints that it exists. */
 export function NotificationsPage() {
+	const t = useT();
 	const { notifications, loading, error, now, refresh, remove, busy } = useNotifications();
 
 	return (
@@ -19,15 +21,15 @@ export function NotificationsPage() {
 			{loading && notifications === null ? (
 				<div className={`card ${styles.centerMessage}`}>
 					<span className={styles.spinner} aria-hidden />
-					Carregando notificações…
+					{t("notifications.loading")}
 				</div>
 			) : error && notifications === null ? (
 				<div className={`card ${styles.centerMessage}`}>
-					<span className="badge">Indisponível</span>
-					<h2 className={styles.errorTitle}>Não foi possível carregar os avisos</h2>
+					<span className="badge">{t("common.unavailable")}</span>
+					<h2 className={styles.errorTitle}>{t("notifications.unavailableTitle")}</h2>
 					<p>{error}</p>
 					<button className="btn btn-primary" onClick={refresh}>
-						Tentar novamente
+						{t("common.tryAgain")}
 					</button>
 				</div>
 			) : notifications !== null ? (

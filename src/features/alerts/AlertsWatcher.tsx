@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { BOSS_INFO, BOSS_ORDER } from "../../data/bossConstants";
+import { BOSS_INFO, BOSS_ORDER, bossName } from "../../data/bossConstants";
 import { formatFortLabel } from "../../data/fortKind";
 import { REALM_COLOR } from "../../data/realms";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import { useBossTimers } from "../bosses/useBossTimers";
 import { useWzStatus } from "../wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses } from "../wz/wzEngine";
@@ -31,6 +33,8 @@ function newSince<T>(items: T[], keyOf: (item: T) => string, ref: RefObject<Set<
  *  whichever page-level instances of those hooks may also be mounted. */
 export function AlertsWatcher() {
 	const { settings } = useAlertSettings();
+	const { lang } = useLanguage();
+	const t = useT();
 	const { data: wzData } = useWzStatus();
 	const { data: bossData, now: bossNow } = useBossTimers();
 	const [toasts, setToasts] = useState<AlertToast[]>([]);
@@ -80,43 +84,43 @@ export function AlertsWatcher() {
 		if (settings.fortLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(lost, (f) => f.name, fortLostRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.wallLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(lost, (f) => f.name, wallLostRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(captured, (f) => f.name, fortCapturedRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) === "wall");
 			for (const fort of newSince(captured, (f) => f.name, wallCapturedRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.fortRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(recovered, (f) => f.name, fortRecoveredRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.wallRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(recovered, (f) => f.name, wallRecoveredRef)) {
-				const name = formatFortLabel(fort.name);
-				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
+				const name = formatFortLabel(fort.name, lang);
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
 			}
 		}
 	}, [
@@ -128,6 +132,8 @@ export function AlertsWatcher() {
 		settings.wallCapturedAlerts,
 		settings.fortRecoveredAlerts,
 		settings.wallRecoveredAlerts,
+		lang,
+		t,
 		fireAlert,
 	]);
 
@@ -138,26 +144,28 @@ export function AlertsWatcher() {
 		if (settings.gemLostAlerts) {
 			const lost = gems.filter((g) => g.home === myRealm && g.owner !== myRealm);
 			for (const gem of newSince(lost, (g) => `${g.index}`, gemLostRef)) {
-				const label = `Gema ${gem.index + 1}`;
-				const title = gem.owner ? `${myRealm} perdeu ${label} para ${gem.owner}` : `${myRealm} perdeu ${label}`;
+				const label = t("alerts.gemLabel", { n: gem.index + 1 });
+				const title = gem.owner
+					? t("alerts.msgLost", { realm: myRealm, name: label, otherRealm: gem.owner })
+					: t("alerts.msgLostNoOwner", { realm: myRealm, name: label });
 				fireAlert(title, "", gem.owner ? REALM_COLOR[gem.owner] : undefined);
 			}
 		}
 		if (settings.gemCapturedAlerts) {
 			const captured = gems.filter((g) => g.owner === myRealm && g.home !== myRealm);
 			for (const gem of newSince(captured, (g) => `${g.index}`, gemCapturedRef)) {
-				const label = `Gema ${gem.index + 1}`;
-				fireAlert(`${myRealm} capturou ${label}`, "", REALM_COLOR[myRealm]);
+				const label = t("alerts.gemLabel", { n: gem.index + 1 });
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name: label }), "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.gemRecoveredAlerts) {
 			const recovered = gems.filter((g) => g.home === myRealm && g.owner === myRealm);
 			for (const gem of newSince(recovered, (g) => `${g.index}`, gemRecoveredRef)) {
-				const label = `Gema ${gem.index + 1}`;
-				fireAlert(`${myRealm} recuperou ${label}`, "", REALM_COLOR[myRealm]);
+				const label = t("alerts.gemLabel", { n: gem.index + 1 });
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name: label }), "", REALM_COLOR[myRealm]);
 			}
 		}
-	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, settings.gemRecoveredAlerts, fireAlert]);
+	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, settings.gemRecoveredAlerts, t, fireAlert]);
 
 	// -- boss spawn countdown watch --
 	const alertedSpawnsRef = useRef<Set<string>>(new Set());
@@ -175,12 +183,18 @@ export function AlertsWatcher() {
 				if (bossNow < triggerAt || bossNow >= spawnMs) continue;
 				if (alertedSpawnsRef.current.has(alertKey)) continue;
 				alertedSpawnsRef.current.add(alertKey);
-				const info = BOSS_INFO[key];
-				const spawnClock = new Date(spawnMs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-				fireAlert(`${info.name} nasce em ${minutes} min`, `Spawn previsto às ${spawnClock}.`, info.color);
+				const spawnClock = new Date(spawnMs).toLocaleTimeString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : "en-US", {
+					hour: "2-digit",
+					minute: "2-digit",
+				});
+				fireAlert(
+					t("alerts.bossSpawnTitle", { boss: bossName(key, lang), minutes }),
+					t("alerts.bossSpawnBody", { time: spawnClock }),
+					BOSS_INFO[key].color,
+				);
 			}
 		}
-	}, [bossData, bossNow, settings.bossAlertMinutes, fireAlert]);
+	}, [bossData, bossNow, settings.bossAlertMinutes, lang, t, fireAlert]);
 
 	return <AlertToastStack toasts={toasts} onDismiss={dismissToast} />;
 }

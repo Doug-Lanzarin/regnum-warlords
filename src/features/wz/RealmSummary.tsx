@@ -1,4 +1,5 @@
 import { REALMS, REALM_COLOR, type Realm } from "../../data/realms";
+import { useT } from "../../i18n/useT";
 import styles from "./RealmSummary.module.css";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 /** Quick "who's winning" read: how many of the 12 forts each realm holds
  *  right now, as a stacked bar plus a number per realm. */
 export function RealmSummary({ fortCounts, totalForts }: Props) {
+	const t = useT();
 	const leader = REALMS.reduce((a, b) => (fortCounts[b] > fortCounts[a] ? b : a));
 	const leaderTied = REALMS.filter((r) => fortCounts[r] === fortCounts[leader]).length > 1;
 
@@ -23,7 +25,7 @@ export function RealmSummary({ fortCounts, totalForts }: Props) {
 							key={realm}
 							className={styles.segment}
 							style={{ width: `${pct}%`, background: REALM_COLOR[realm] }}
-							title={`${realm}: ${fortCounts[realm]} fortes`}
+							title={t("wz.realmSummaryTooltip", { realm, count: fortCounts[realm] })}
 						/>
 					);
 				})}
@@ -33,7 +35,7 @@ export function RealmSummary({ fortCounts, totalForts }: Props) {
 					<span key={realm} className={styles.legendItem}>
 						<span className={styles.dot} style={{ background: REALM_COLOR[realm] }} aria-hidden />
 						{realm} <strong>{fortCounts[realm]}</strong>
-						{!leaderTied && realm === leader && <span className={styles.leaderTag}>líder</span>}
+						{!leaderTied && realm === leader && <span className={styles.leaderTag}>{t("wz.realmLeaderTag")}</span>}
 					</span>
 				))}
 			</div>

@@ -1,4 +1,6 @@
 import type { TrainerData } from "../types/trainer";
+import type { Lang } from "../i18n/languages";
+import { translate } from "../i18n/translate";
 
 const LIVE_BASE = "https://cort.ovh/data/trainer";
 const LOCAL_BASE = "/data/trainer";
@@ -13,7 +15,10 @@ const cache = new Map<string, { data: TrainerData; source: "live" | "bundled" }>
  * in /public/data when the network is unavailable or blocked (common on
  * locked-down corporate networks).
  */
-export async function loadTrainerData(version: string): Promise<{ data: TrainerData; source: "live" | "bundled" }> {
+export async function loadTrainerData(
+	version: string,
+	lang: Lang = "pt",
+): Promise<{ data: TrainerData; source: "live" | "bundled" }> {
 	const cached = cache.get(version);
 	if (cached) return cached;
 
@@ -32,7 +37,7 @@ export async function loadTrainerData(version: string): Promise<{ data: TrainerD
 	}
 
 	const res = await fetch(`${LOCAL_BASE}/${version}/trainerdata.json`);
-	if (!res.ok) throw new Error(`Não foi possível carregar os dados do trainer (versão ${version}).`);
+	if (!res.ok) throw new Error(translate(lang, "trainer.loadDataError", { version }));
 	const data = (await res.json()) as TrainerData;
 	const result = { data, source: "bundled" as const };
 	cache.set(version, result);
