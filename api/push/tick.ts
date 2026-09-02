@@ -25,6 +25,7 @@ export interface VercelLikeRequest {
 interface VercelLikeResponse {
 	status(code: number): VercelLikeResponse;
 	json(body: unknown): void;
+	setHeader(name: string, value: string): void;
 }
 
 const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
@@ -130,6 +131,13 @@ export function buildMessagesFor(
 }
 
 export default async function handler(req: VercelLikeRequest, res: VercelLikeResponse) {
+	// This tick's whole point is to reflect the live WZ/boss state on every
+	// hit — a cached response (browsers, most visibly Safari/iOS, will
+	// otherwise happily replay an old GET response for the exact same URL)
+	// makes debugging via a manual visit misleading, showing a stale result
+	// as if nothing had changed.
+	res.setHeader("Cache-Control", "no-store");
+
 	if (!isAuthorized(req)) {
 		res.status(401).json({ error: "Não autorizado." });
 		return;
