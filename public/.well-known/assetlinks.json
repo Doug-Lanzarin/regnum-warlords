@@ -1,0 +1,12 @@
+[
+	{
+		"relation": ["delegate_permission/common.handle_all_urls"],
+		"target": {
+			"namespace": "android_app",
+			"package_name": "app.vercel.regnum_warlords.twa",
+			"sha256_cert_fingerprints": [
+				"98:4D:86:EF:3B:E9:F4:5C:FC:9C:36:C6:6F:AD:9B:53:98:13:95:71:20:22:81:8F:33:72:7F:E5:65:A6:51:08"
+			]
+		}
+	}
+]
