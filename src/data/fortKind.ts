@@ -1,3 +1,6 @@
+import type { Lang } from "../i18n/languages";
+import { translate } from "../i18n/translate";
+
 /** The 3 fort "shapes" the game has — keep (regular fort), castle, and
  *  Great Wall — used both for icon selection (`wzIcons.tsx`) and for
  *  grouping fort/wall alerts separately (`AlertsWatcher` client-side, and
@@ -13,11 +16,13 @@ export function getFortKind(fortName: string): FortKind {
 }
 
 /** Strips the raw feed's trailing "(n)" map-order suffix and translates
- *  "Great Wall of X" to "Muralha de X" — for **display only**. Never use
- *  this to build a key for matching against raw API data (event dumps,
+ *  "Great Wall of X" per the given language — for **display only**. Never
+ *  use this to build a key for matching against raw API data (event dumps,
  *  etc. are still in English) — see `cleanFortName` in `wzEventsEngine.ts`
  *  for that, which intentionally only strips the suffix. */
-export function formatFortLabel(name: string): string {
+export function formatFortLabel(name: string, lang: Lang): string {
 	const clean = name.replace(/\s*\(\d+\)$/, "");
-	return clean.replace(/^Great Wall of (.+)$/, "Muralha de $1");
+	const match = clean.match(/^Great Wall of (.+)$/);
+	if (!match) return clean;
+	return translate(lang, "fort.greatWallOf", { name: match[1] });
 }

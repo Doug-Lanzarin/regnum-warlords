@@ -1,4 +1,5 @@
 import type { AlertSettings } from "../../types/alertSettings";
+import { LANGUAGES } from "../../i18n/languages";
 
 export type { AlertSettings, BooleanAlertKey } from "../../types/alertSettings";
 
@@ -6,6 +7,7 @@ const STORAGE_KEY = "rw_alert_settings";
 
 export const DEFAULT_ALERT_SETTINGS: AlertSettings = {
 	myRealm: null,
+	lang: "pt",
 	fortCapturedAlerts: false,
 	fortLostAlerts: false,
 	fortRecoveredAlerts: false,
@@ -36,6 +38,7 @@ export function readAlertSettings(): AlertSettings {
 		const capturedFallback = parsed.realmInvadingAlerts ?? false;
 		return {
 			myRealm: parsed.myRealm ?? null,
+			lang: (LANGUAGES as readonly string[]).includes(parsed.lang ?? "") ? (parsed.lang as AlertSettings["lang"]) : "pt",
 			fortCapturedAlerts: !!(parsed.fortCapturedAlerts ?? capturedFallback),
 			fortLostAlerts: !!(parsed.fortLostAlerts ?? lostFallback),
 			fortRecoveredAlerts: !!parsed.fortRecoveredAlerts,

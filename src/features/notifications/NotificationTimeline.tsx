@@ -1,4 +1,6 @@
 import type { NotificationEntry } from "../../api/notificationsApi";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import { formatDateTime, formatRelativePast } from "../../utils/time";
 import styles from "./NotificationTimeline.module.css";
 
@@ -11,6 +13,8 @@ interface Props {
 }
 
 export function NotificationTimeline({ notifications, now, editable, busy, onDelete }: Props) {
+	const { lang } = useLanguage();
+	const t = useT();
 	if (notifications.length === 0) return null;
 
 	return (
@@ -29,15 +33,15 @@ export function NotificationTimeline({ notifications, now, editable, busy, onDel
 										className={styles.deleteBtn}
 										disabled={busy}
 										onClick={() => onDelete(entry.id)}
-										aria-label={`Remover notificação "${entry.title}"`}
+										aria-label={t("notifications.removeAriaLabel", { title: entry.title })}
 									>
-										Remover
+										{t("notifications.remove")}
 									</button>
 								)}
 							</div>
 							<p className={styles.description}>{entry.description}</p>
-							<time className={styles.time} dateTime={entry.createdAt} title={formatDateTime(Math.floor(ts / 1000))}>
-								{formatRelativePast(now - ts)}
+							<time className={styles.time} dateTime={entry.createdAt} title={formatDateTime(Math.floor(ts / 1000), lang)}>
+								{formatRelativePast(now - ts, lang)}
 							</time>
 						</div>
 					</li>

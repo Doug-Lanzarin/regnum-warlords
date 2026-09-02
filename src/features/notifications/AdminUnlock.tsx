@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n/useT";
 import styles from "./AdminUnlock.module.css";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function AdminUnlock({ error, onUnlock, onCancel }: Props) {
+	const t = useT();
 	const [password, setPassword] = useState("");
 
 	function handleSubmit(e: React.FormEvent) {
@@ -19,7 +21,7 @@ export function AdminUnlock({ error, onUnlock, onCancel }: Props) {
 	return (
 		<form className={styles.form} onSubmit={handleSubmit}>
 			<label className={styles.field}>
-				<span>Senha de gerenciamento</span>
+				<span>{t("adminUnlock.passwordLabel")}</span>
 				<input
 					className="text-input"
 					type="password"
@@ -33,11 +35,11 @@ export function AdminUnlock({ error, onUnlock, onCancel }: Props) {
 			<div className={styles.actions}>
 				{onCancel && (
 					<button type="button" className="btn btn-ghost" onClick={onCancel}>
-						Cancelar
+						{t("adminUnlock.cancel")}
 					</button>
 				)}
 				<button type="submit" className="btn btn-primary">
-					Entrar
+					{t("adminUnlock.enter")}
 				</button>
 			</div>
 		</form>

@@ -1,6 +1,8 @@
 import { formatFortLabel } from "../../data/fortKind";
 import { REALM_COLOR } from "../../data/realms";
 import { FORT_MAP_POSITIONS, WZ_MAP_IMAGE, WZ_MAP_SIZE } from "../../data/wzMapConstants";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import type { FortStatus } from "./wzEngine";
 import { FORT_ICON_PATHS, getFortKind } from "./wzIcons";
 import styles from "./WzMap.module.css";
@@ -18,16 +20,18 @@ const ICON_SIZE = 32;
  *  canvas-based `wz-map` (same base image and hand-placed coordinates),
  *  redrawn as SVG so each fort can be a hoverable, keyboard-reachable node. */
 export function WzMap({ forts, onSelectFort }: Props) {
+	const { lang } = useLanguage();
+	const t = useT();
 	return (
 		<div className={`card ${styles.wrap}`}>
-			<svg viewBox={`0 0 ${WZ_MAP_SIZE} ${WZ_MAP_SIZE}`} className={styles.svg} role="img" aria-label="Mapa da Zona de Guerra">
+			<svg viewBox={`0 0 ${WZ_MAP_SIZE} ${WZ_MAP_SIZE}`} className={styles.svg} role="img" aria-label={t("wz.mapAriaLabel")}>
 				<image href={WZ_MAP_IMAGE} width={WZ_MAP_SIZE} height={WZ_MAP_SIZE} preserveAspectRatio="xMidYMid slice" />
 				{forts.map((fort, i) => {
 					const pos = FORT_MAP_POSITIONS[i];
 					if (!pos) return null;
 					const color = REALM_COLOR[fort.owner];
 					const kind = getFortKind(fort.name);
-					const label = formatFortLabel(fort.name);
+					const label = formatFortLabel(fort.name, lang);
 					return (
 						<g
 							key={fort.name}
@@ -47,8 +51,8 @@ export function WzMap({ forts, onSelectFort }: Props) {
 							}
 						>
 							<title>
-								{label} — {fort.owner}
-								{fort.captured ? ` (invadido, dono original: ${fort.home})` : ""}
+								{t("wz.fortTooltip", { label, owner: fort.owner })}
+								{fort.captured ? t("wz.fortTooltipCapturedSuffix", { home: fort.home }) : ""}
 							</title>
 							{fort.captured && (
 								<circle

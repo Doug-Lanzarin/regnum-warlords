@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cortApi } from "../../api/cortApi";
 import { WZ_REFRESH_INTERVAL_MS } from "../../data/wzConstants";
+import { useT } from "../../i18n/useT";
 import type { WzStatusData } from "../../types/wz";
 
 export interface UseWzStatusResult {
@@ -15,6 +16,7 @@ export interface UseWzStatusResult {
 /** Same shape as useBossTimers: live-only, polled, fails soft with a clear
  *  error while keeping the last good snapshot on screen if we had one. */
 export function useWzStatus(): UseWzStatusResult {
+	const t = useT();
 	const [data, setData] = useState<WzStatusData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -35,14 +37,12 @@ export function useWzStatus(): UseWzStatusResult {
 			})
 			.catch(() => {
 				if (id !== requestId.current) return;
-				setError(
-					"Não foi possível carregar o status da Zona de Guerra. Isso costuma acontecer quando a rede bloqueia o acesso a cort.ovh.",
-				);
+				setError(t("wz.fetchError"));
 			})
 			.finally(() => {
 				if (id === requestId.current) setLoading(false);
 			});
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		fetchData();

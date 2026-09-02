@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadTrainerData } from "../../api/trainerData";
 import { DEFAULT_DATASET_VERSION, MAX_CHAR_LEVEL } from "../../data/trainerConstants";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import type { AdvancedClass, TrainerBuild, TrainerData } from "../../types/trainer";
 import {
 	canSetDisciplineLevel,
@@ -30,6 +32,8 @@ export interface UseTrainerBuildResult {
 }
 
 export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION): UseTrainerBuildResult {
+	const { lang } = useLanguage();
+	const t = useT();
 	const [version, setVersion] = useState(initialVersion);
 	const [trainerData, setTrainerData] = useState<TrainerData | null>(null);
 	const [dataSource, setDataSource] = useState<"live" | "bundled" | null>(null);
@@ -42,7 +46,7 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 		let cancelled = false;
 		setLoading(true);
 		setError(null);
-		loadTrainerData(version)
+		loadTrainerData(version, lang)
 			.then(({ data, source }) => {
 				if (cancelled) return;
 				setTrainerData(data);
@@ -109,9 +113,9 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 			if (!trainerData) return;
 			setBuild((prev) => {
 				if (!prev) return prev;
-				const check = canSetDisciplineLevel(trainerData, prev, disciplineName, newLevel);
+				const check = canSetDisciplineLevel(trainerData, prev, disciplineName, newLevel, lang);
 				if (!check.ok) {
-					setLastActionError(check.reason ?? "Ação inválida.");
+					setLastActionError(check.reason ?? t("trainer.errInvalidAction"));
 					return prev;
 				}
 				setLastActionError(null);
@@ -122,7 +126,7 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 				};
 			});
 		},
-		[trainerData],
+		[trainerData, lang, t],
 	);
 
 	const setSpellRank = useCallback(
@@ -130,9 +134,9 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 			if (!trainerData) return;
 			setBuild((prev) => {
 				if (!prev) return prev;
-				const check = canSetSpellRank(trainerData, prev, disciplineName, spellIndex, newRank);
+				const check = canSetSpellRank(trainerData, prev, disciplineName, spellIndex, newRank, lang);
 				if (!check.ok) {
-					setLastActionError(check.reason ?? "Ação inválida.");
+					setLastActionError(check.reason ?? t("trainer.errInvalidAction"));
 					return prev;
 				}
 				setLastActionError(null);
@@ -142,7 +146,7 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 				return { ...prev, disciplines: { ...prev.disciplines, [disciplineName]: { ...state, spellRanks } } };
 			});
 		},
-		[trainerData],
+		[trainerData, lang, t],
 	);
 
 	const reset = useCallback(() => {

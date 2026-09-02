@@ -1,4 +1,5 @@
 import type { Realm } from "../data/realms";
+import type { Lang } from "../i18n/languages";
 
 /** Personal alert preferences — local to this device only (no account, no
  *  server), separate from the public/admin-curated notifications timeline.
@@ -12,6 +13,10 @@ import type { Realm } from "../data/realms";
  *  `localStorage`-touching code it can't type-check or run. */
 export interface AlertSettings {
 	myRealm: Realm | null;
+	/** Language for server-sent push messages (`api/push/tick.ts`) — the
+	 *  client-side toast/OS notification always uses whatever's currently
+	 *  selected in `LanguageContext` instead, since it renders live. */
+	lang: Lang;
 	fortCapturedAlerts: boolean;
 	fortLostAlerts: boolean;
 	/** Own fort, previously held by an invader, just came back under home control. */

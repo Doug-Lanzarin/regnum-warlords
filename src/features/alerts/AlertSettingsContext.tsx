@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Realm } from "../../data/realms";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { readAlertSettings, writeAlertSettings, type AlertSettings, type BooleanAlertKey } from "./alertSettings";
 import { syncPushSettings } from "./notify";
 
@@ -19,12 +20,25 @@ const AlertSettingsContext = createContext<AlertSettingsContextValue | null>(nul
  *  page, writes it) — a plain `useState`-per-call hook would give each its
  *  own copy, so a setting change on the page would never reach the watcher. */
 export function AlertSettingsProvider({ children }: { children: ReactNode }) {
+	const { lang } = useLanguage();
 	const [settings, setSettings] = useState<AlertSettings>(() => readAlertSettings());
 
 	useEffect(() => {
 		// No-ops if there's no active push subscription yet — see notify.ts.
 		syncPushSettings(settings);
 	}, [settings]);
+
+	// Server-sent push messages (api/push/tick.ts) carry no live UI to read a
+	// language from, unlike the client toast/OS notification — so they're
+	// built in whatever language the user last had selected here.
+	useEffect(() => {
+		setSettings((prev) => {
+			if (prev.lang === lang) return prev;
+			const next = { ...prev, lang };
+			writeAlertSettings(next);
+			return next;
+		});
+	}, [lang]);
 
 	const update = useCallback((patch: Partial<AlertSettings>) => {
 		setSettings((prev) => {

@@ -1,5 +1,5 @@
 import { REALMS, type Realm } from "../../src/data/realms";
-import { formatFortLabel, getFortKind } from "../../src/data/fortKind";
+import { getFortKind } from "../../src/data/fortKind";
 import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
 
 /** Mirrors the 9 alert categories `AlertsWatcher` tracks client-side
@@ -20,8 +20,15 @@ export interface CategorySets {
 }
 
 export interface CategoryEvent {
-	/** Display-ready label — clean fort/wall name, or "Gema N" for gems. */
+	/** Raw fort name (still with its "(n)" suffix and, for walls, in
+	 *  English — e.g. "Great Wall of Alsius (3)") — untranslated on purpose,
+	 *  since subscribers can each want a different language; unset for gem
+	 *  events, which use `gemIndex` instead. `tick.ts`'s message builder
+	 *  applies `formatFortLabel(name, subscriberLang)` per subscriber. */
 	name: string;
+	/** Set only for gem events — 0-based gem index, formatted via the
+	 *  `alerts.gemLabel` dictionary key per subscriber's language. */
+	gemIndex?: number;
 	/** For *Lost events: who took it. For *Captured events: whose territory it was. Unset for *Recovered. */
 	otherRealm: Realm | null;
 }
@@ -91,33 +98,29 @@ export function diffState(
 		const prevGemRecovered = new Set(previous.gemRecovered[realm]);
 
 		eventsByRealm[realm] = {
-			fortLost: fortLost
-				.filter((f) => !prevFortLost.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.owner })),
-			wallLost: wallLost
-				.filter((f) => !prevWallLost.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.owner })),
+			fortLost: fortLost.filter((f) => !prevFortLost.has(f.name)).map((f) => ({ name: f.name, otherRealm: f.owner })),
+			wallLost: wallLost.filter((f) => !prevWallLost.has(f.name)).map((f) => ({ name: f.name, otherRealm: f.owner })),
 			fortCaptured: fortCaptured
 				.filter((f) => !prevFortCaptured.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.home })),
+				.map((f) => ({ name: f.name, otherRealm: f.home })),
 			wallCaptured: wallCaptured
 				.filter((f) => !prevWallCaptured.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.home })),
+				.map((f) => ({ name: f.name, otherRealm: f.home })),
 			fortRecovered: fortRecovered
 				.filter((f) => !prevFortRecovered.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: null })),
+				.map((f) => ({ name: f.name, otherRealm: null })),
 			wallRecovered: wallRecovered
 				.filter((f) => !prevWallRecovered.has(f.name))
-				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: null })),
+				.map((f) => ({ name: f.name, otherRealm: null })),
 			gemLost: gemLost
 				.filter((g) => !prevGemLost.has(g.index))
-				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: g.owner })),
+				.map((g) => ({ name: "", gemIndex: g.index, otherRealm: g.owner })),
 			gemCaptured: gemCaptured
 				.filter((g) => !prevGemCaptured.has(g.index))
-				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: g.home })),
+				.map((g) => ({ name: "", gemIndex: g.index, otherRealm: g.home })),
 			gemRecovered: gemRecovered
 				.filter((g) => !prevGemRecovered.has(g.index))
-				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: null })),
+				.map((g) => ({ name: "", gemIndex: g.index, otherRealm: null })),
 		};
 	}
 

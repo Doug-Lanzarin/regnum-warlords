@@ -1,4 +1,5 @@
 import { DATASET_VERSIONS } from "../../data/trainerConstants";
+import { useT } from "../../i18n/useT";
 import type { AdvancedClass, TrainerBuild } from "../../types/trainer";
 import { ClassPicker } from "./ClassPicker";
 import { LevelControl } from "./LevelControl";
@@ -12,16 +13,17 @@ interface Props {
 }
 
 export function BuildHeader({ build, onClassChange, onLevelChange, onVersionChange }: Props) {
+	const t = useT();
 	return (
 		<section className={`card ${styles.wrap}`}>
 			<div className={styles.top}>
 				<div>
-					<h1 className={styles.title}>Monte seu build</h1>
-					<p className={styles.subtitle}>Escolha classe e nível — as disciplinas se ajustam automaticamente.</p>
+					<h1 className={styles.title}>{t("trainer.title")}</h1>
+					<p className={styles.subtitle}>{t("trainer.subtitle")}</p>
 				</div>
 				{DATASET_VERSIONS.length > 1 && (
 					<label className={styles.versionField}>
-						<span>Versão dos dados</span>
+						<span>{t("trainer.datasetVersion")}</span>
 						<select className="select" value={build.datasetVersion} onChange={(e) => onVersionChange(e.target.value)}>
 							{DATASET_VERSIONS.map((v) => (
 								<option key={v} value={v}>

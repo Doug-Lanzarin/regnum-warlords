@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useT } from "../../i18n/useT";
 import styles from "./AlertToastStack.module.css";
 
 export interface AlertToast {
@@ -19,9 +20,10 @@ const AUTO_DISMISS_MS = 8000;
 /** Always-available fallback for `AlertsWatcher`'s alerts — shown regardless
  *  of whether the browser Notification permission was granted. */
 export function AlertToastStack({ toasts, onDismiss }: Props) {
+	const t = useT();
 	if (toasts.length === 0) return null;
 	return (
-		<div className={styles.stack} role="region" aria-label="Alertas">
+		<div className={styles.stack} role="region" aria-label={t("alerts.regionAriaLabel")}>
 			{toasts.map((toast) => (
 				<ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
 			))}
@@ -30,6 +32,7 @@ export function AlertToastStack({ toasts, onDismiss }: Props) {
 }
 
 function ToastItem({ toast, onDismiss }: { toast: AlertToast; onDismiss: (id: string) => void }) {
+	const t = useT();
 	useEffect(() => {
 		const timer = setTimeout(() => onDismiss(toast.id), AUTO_DISMISS_MS);
 		return () => clearTimeout(timer);
@@ -41,7 +44,7 @@ function ToastItem({ toast, onDismiss }: { toast: AlertToast; onDismiss: (id: st
 				<strong className={styles.title}>{toast.title}</strong>
 				{toast.body && <p className={styles.text}>{toast.body}</p>}
 			</div>
-			<button className={styles.close} onClick={() => onDismiss(toast.id)} aria-label="Fechar aviso">
+			<button className={styles.close} onClick={() => onDismiss(toast.id)} aria-label={t("alerts.closeAlert")}>
 				✕
 			</button>
 		</div>

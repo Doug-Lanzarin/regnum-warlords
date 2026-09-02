@@ -1,9 +1,10 @@
 import { disciplineIconUrl } from "../../api/trainerData";
 import { MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../../data/trainerConstants";
-import { DISCIPLINE_NAME_PT } from "../../data/trainerTranslationsPt";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import type { DisciplineState, TrainerData } from "../../types/trainer";
 import { charLevelRequiredFor, isSingleTierSpell, maxSpellRank } from "./trainerEngine";
-import { spellName } from "./spellFormat";
+import { disciplineName as formatDisciplineName, spellName } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import { SpellRow } from "./SpellRow";
 import styles from "./DisciplineColumn.module.css";
@@ -33,10 +34,12 @@ export function DisciplineColumn({
 	onDisciplineLevelChange,
 	onSpellRankChange,
 }: Props) {
+	const { lang } = useLanguage();
+	const t = useT();
 	const discipline = trainerData.disciplines[name];
 	if (!discipline) return null;
 
-	const disciplineName = DISCIPLINE_NAME_PT[discipline.display_name.en] ?? discipline.display_name.en;
+	const disciplineName = formatDisciplineName(discipline, lang);
 	const spriteUrl = disciplineIconUrl(version, dataSource, name);
 
 	const nextLevel = Math.min(state.level + 2, MAX_DISCIPLINE_LEVEL);
@@ -57,7 +60,7 @@ export function DisciplineColumn({
 	const visibleSpells = discipline.spells
 		.map((spell, idx) => ({ spell, idx }))
 		.filter(({ spell }) => !/^undefined\d*$/.test(spell.name.en))
-		.filter(({ spell }) => disciplineMatches || spellName(spell).toLowerCase().includes(normalizedFilter));
+		.filter(({ spell }) => disciplineMatches || spellName(spell, lang).toLowerCase().includes(normalizedFilter));
 
 	if (normalizedFilter && visibleSpells.length === 0) return null;
 
@@ -67,9 +70,7 @@ export function DisciplineColumn({
 				<SkillIcon spriteUrl={spriteUrl} frame={0} size={42} className={styles.icon} />
 				<div className={styles.headerText}>
 					<h3 className={styles.title}>{disciplineName}</h3>
-					{pointsInvested > 0 && (
-						<span className={styles.investedBadge}>{pointsInvested} pts investidos</span>
-					)}
+					{pointsInvested > 0 && <span className={styles.investedBadge}>{t("trainer.pointsInvested", { n: pointsInvested })}</span>}
 				</div>
 			</header>
 
@@ -80,19 +81,19 @@ export function DisciplineColumn({
 						className={styles.stepBtn}
 						disabled={state.level <= MIN_DISCIPLINE_LEVEL}
 						onClick={() => onDisciplineLevelChange(prevLevel)}
-						aria-label="Diminuir nível da disciplina"
+						aria-label={t("trainer.decreaseLevel")}
 					>
 						−
 					</button>
 					<span className={styles.levelValue}>
-						Nível <strong>{state.level}</strong>
+						{t("trainer.levelWord")} <strong>{state.level}</strong>
 					</span>
 					<button
 						type="button"
 						className={styles.stepBtn}
 						disabled={!canRaise}
 						onClick={() => onDisciplineLevelChange(nextLevel)}
-						aria-label="Aumentar nível da disciplina"
+						aria-label={t("trainer.increaseLevel")}
 					>
 						+
 					</button>
@@ -101,7 +102,7 @@ export function DisciplineColumn({
 					<div className="progress-fill" style={{ width: `${levelPct}%` }} />
 				</div>
 				{!canRaise && state.level < MAX_DISCIPLINE_LEVEL && (
-					<span className={styles.levelHint}>Sobe no nível de personagem {nextRequiredLevel}</span>
+					<span className={styles.levelHint}>{t("trainer.levelHint", { level: nextRequiredLevel })}</span>
 				)}
 			</div>
 

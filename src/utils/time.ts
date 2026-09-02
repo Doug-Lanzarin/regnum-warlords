@@ -1,21 +1,26 @@
+import type { Lang } from "../i18n/languages";
+import { translate } from "../i18n/translate";
+
+const LOCALE: Record<Lang, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
+
 /** "há 2d 3h" style relative-past label, for "last seen"/"since" timestamps. */
-export function formatRelativePast(ms: number): string {
-	if (ms <= 0) return "agora";
+export function formatRelativePast(ms: number, lang: Lang): string {
+	if (ms <= 0) return translate(lang, "time.now");
 	const totalSeconds = Math.floor(ms / 1000);
 	const days = Math.floor(totalSeconds / 86400);
 	const hours = Math.floor((totalSeconds % 86400) / 3600);
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-	if (days > 0) return `há ${days}d ${hours}h`;
-	if (hours > 0) return `há ${hours}h ${minutes}m`;
-	if (minutes > 0) return `há ${minutes}m`;
-	return "há poucos segundos";
+	if (days > 0) return translate(lang, "time.daysHoursAgo", { days, hours });
+	if (hours > 0) return translate(lang, "time.hoursMinutesAgo", { hours, minutes });
+	if (minutes > 0) return translate(lang, "time.minutesAgo", { minutes });
+	return translate(lang, "time.fewSecondsAgo");
 }
 
 /** Full local date/time for a Unix-seconds timestamp, e.g. "seg, 31/08, 23:09". */
-export function formatDateTime(unixSeconds: number): string {
+export function formatDateTime(unixSeconds: number, lang: Lang): string {
 	const date = new Date(unixSeconds * 1000);
-	const formatted = date.toLocaleString("pt-BR", {
+	const formatted = date.toLocaleString(LOCALE[lang], {
 		weekday: "short",
 		day: "2-digit",
 		month: "2-digit",
@@ -29,12 +34,12 @@ export function formatDateTime(unixSeconds: number): string {
  *  date itself doesn't matter. Takes a unix-ms timestamp (unlike the
  *  unix-seconds helpers above), since that's what Date.now()-based chart
  *  math already works in. */
-export function formatHourMinute(unixMs: number): string {
-	return new Date(unixMs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+export function formatHourMinute(unixMs: number, lang: Lang): string {
+	return new Date(unixMs).toLocaleTimeString(LOCALE[lang], { hour: "2-digit", minute: "2-digit" });
 }
 
 /** Same as `formatHourMinute` but with seconds, e.g. "23:09:42" — for a
  *  precise "last updated at" stamp rather than a chart tick. */
-export function formatHourMinuteSecond(unixMs: number): string {
-	return new Date(unixMs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+export function formatHourMinuteSecond(unixMs: number, lang: Lang): string {
+	return new Date(unixMs).toLocaleTimeString(LOCALE[lang], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }

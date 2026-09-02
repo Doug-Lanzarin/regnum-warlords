@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createNotification, deleteNotification, listNotifications, NotificationsApiError, type NotificationEntry } from "../../api/notificationsApi";
+import { useT } from "../../i18n/useT";
 
 const ADMIN_PASSWORD_KEY = "rw_notifications_admin_password";
 /** Keeps the timeline current while the page (installed PWA or a regular
@@ -35,6 +36,7 @@ function clearStoredPassword() {
  *  the password-gated create/delete actions (only used by the hidden
  *  /warlords/gerenciamento/notificacoes admin page). */
 export function useNotifications() {
+	const t = useT();
 	const [notifications, setNotifications] = useState<NotificationEntry[] | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -55,9 +57,9 @@ export function useNotifications() {
 				setNotifications(res.notifications);
 				setError(null);
 			})
-			.catch((err) => setError(err instanceof Error ? err.message : "Erro desconhecido."))
+			.catch((err) => setError(err instanceof Error ? err.message : t("notifications.unknownError")))
 			.finally(() => setLoading(false));
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		refresh();
@@ -87,23 +89,23 @@ export function useNotifications() {
 		clearStoredPassword();
 	}, []);
 
+	const handleActionError = useCallback(
+		(err: unknown, fallback: string) => {
+			if (err instanceof NotificationsApiError && err.status === 401) {
+				lock();
+				setActionError(t("notifications.invalidPassword"));
+			} else {
+				setActionError(err instanceof Error ? err.message : fallback);
+			}
+		},
+		[lock, t],
+	);
+
 	const unlock = useCallback((password: string) => {
 		setAdminPassword(password);
 		storePassword(password);
 		setActionError(null);
 	}, []);
-
-	const handleActionError = useCallback(
-		(err: unknown, fallback: string) => {
-			if (err instanceof NotificationsApiError && err.status === 401) {
-				lock();
-				setActionError("Senha inválida. Entre novamente.");
-			} else {
-				setActionError(err instanceof Error ? err.message : fallback);
-			}
-		},
-		[lock],
-	);
 
 	const create = useCallback(
 		async (title: string, description: string) => {
@@ -114,13 +116,13 @@ export function useNotifications() {
 				refresh();
 				return true;
 			} catch (err) {
-				handleActionError(err, "Erro ao criar notificação.");
+				handleActionError(err, t("notifications.createError"));
 				return false;
 			} finally {
 				setBusy(false);
 			}
 		},
-		[adminPassword, refresh, handleActionError],
+		[adminPassword, refresh, handleActionError, t],
 	);
 
 	const remove = useCallback(
@@ -131,12 +133,12 @@ export function useNotifications() {
 				await deleteNotification(id, adminPassword);
 				refresh();
 			} catch (err) {
-				handleActionError(err, "Erro ao remover notificação.");
+				handleActionError(err, t("notifications.deleteError"));
 			} finally {
 				setBusy(false);
 			}
 		},
-		[adminPassword, refresh, handleActionError],
+		[adminPassword, refresh, handleActionError, t],
 	);
 
 	return {

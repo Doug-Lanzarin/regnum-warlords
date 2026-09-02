@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cortApi } from "../../api/cortApi";
 import { BOSS_REFRESH_INTERVAL_MS } from "../../data/bossConstants";
+import { useT } from "../../i18n/useT";
 import type { BossSpawnData } from "../../types/bosses";
 
 export interface UseBossTimersResult {
@@ -24,6 +25,7 @@ export interface UseBossTimersResult {
  * unreachable (common on locked-down networks that block cort.ovh).
  */
 export function useBossTimers(): UseBossTimersResult {
+	const t = useT();
 	const [data, setData] = useState<BossSpawnData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -44,14 +46,12 @@ export function useBossTimers(): UseBossTimersResult {
 			})
 			.catch(() => {
 				if (id !== requestId.current) return;
-				setError(
-					"Não foi possível carregar os horários dos chefes. Isso costuma acontecer quando a rede bloqueia o acesso a cort.ovh.",
-				);
+				setError(t("bosses.fetchError"));
 			})
 			.finally(() => {
 				if (id === requestId.current) setLoading(false);
 			});
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		fetchData();

@@ -1,5 +1,7 @@
 import { useState, type CSSProperties } from "react";
-import { BOSS_INFO, bossIconUrl } from "../../data/bossConstants";
+import { BOSS_INFO, bossDescription, bossIconUrl, bossName } from "../../data/bossConstants";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { useT } from "../../i18n/useT";
 import type { BossKey } from "../../types/bosses";
 import { formatCountdown, formatDateTime, formatRelativePast } from "./countdown";
 import styles from "./BossCard.module.css";
@@ -14,6 +16,8 @@ interface Props {
 
 export function BossCard({ bossKey, prevSpawn, nextSpawns, now, featured }: Props) {
 	const info = BOSS_INFO[bossKey];
+	const { lang } = useLanguage();
+	const t = useT();
 	const [iconFailed, setIconFailed] = useState(false);
 	const nextTs = nextSpawns[0];
 	const msRemaining = nextTs * 1000 - now;
@@ -24,7 +28,7 @@ export function BossCard({ bossKey, prevSpawn, nextSpawns, now, featured }: Prop
 			className={`card ${styles.card} ${featured ? styles.featured : ""}`}
 			style={{ "--realm-color": info.color } as CSSProperties}
 		>
-			{featured && <span className={styles.featuredTag}>Próximo a reaparecer</span>}
+			{featured && <span className={styles.featuredTag}>{t("bosses.featuredTag")}</span>}
 
 			<div className={styles.header}>
 				{iconFailed ? (
@@ -41,42 +45,42 @@ export function BossCard({ bossKey, prevSpawn, nextSpawns, now, featured }: Prop
 					/>
 				)}
 				<div className={styles.headerText}>
-					<h3 className={styles.name}>{info.name}</h3>
+					<h3 className={styles.name}>{bossName(bossKey, lang)}</h3>
 					{info.realm && <span className={styles.realm}>{info.realm}</span>}
 				</div>
 			</div>
 
 			<div className={styles.countdown}>
-				<span className={styles.countdownLabel}>{msRemaining <= 0 ? "Status" : "Reaparece em"}</span>
-				<span className={styles.countdownValue}>{formatCountdown(msRemaining)}</span>
+				<span className={styles.countdownLabel}>{msRemaining <= 0 ? t("bosses.countdownStatus") : t("bosses.countdownReappearIn")}</span>
+				<span className={styles.countdownValue}>{formatCountdown(msRemaining, lang)}</span>
 			</div>
 
 			<dl className={styles.meta}>
 				<div>
-					<dt>Último spawn</dt>
+					<dt>{t("bosses.lastSpawn")}</dt>
 					<dd>
-						{formatDateTime(prevSpawn)}
-						<span className={styles.relative}> ({formatRelativePast(now - prevSpawn * 1000)})</span>
+						{formatDateTime(prevSpawn, lang)}
+						<span className={styles.relative}> ({formatRelativePast(now - prevSpawn * 1000, lang)})</span>
 					</dd>
 				</div>
 				<div>
-					<dt>Próximo horário</dt>
-					<dd>{formatDateTime(nextTs)}</dd>
+					<dt>{t("bosses.nextSpawn")}</dt>
+					<dd>{formatDateTime(nextTs, lang)}</dd>
 				</div>
 			</dl>
 
 			{upcoming.length > 0 && (
 				<details className={styles.upcoming}>
-					<summary>Ver mais horários</summary>
+					<summary>{t("bosses.moreSchedules")}</summary>
 					<ul>
 						{upcoming.map((ts) => (
-							<li key={ts}>{formatDateTime(ts)}</li>
+							<li key={ts}>{formatDateTime(ts, lang)}</li>
 						))}
 					</ul>
 				</details>
 			)}
 
-			<p className={styles.description}>{info.description}</p>
+			<p className={styles.description}>{bossDescription(bossKey, lang)}</p>
 		</div>
 	);
 }

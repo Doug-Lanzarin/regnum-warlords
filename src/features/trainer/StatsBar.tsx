@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n/useT";
 import type { TrainerBuild, TrainerTotals } from "../../types/trainer";
 import { encodeBuild } from "./shareLink";
 import { PointsBar } from "./PointsBar";
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function StatsBar({ build, totals, dataSource, onReset }: Props) {
+	const t = useT();
 	const [copied, setCopied] = useState(false);
 
 	async function handleShare() {
@@ -30,24 +32,24 @@ export function StatsBar({ build, totals, dataSource, onReset }: Props) {
 	return (
 		<div className={`card ${styles.wrap}`}>
 			<div className={styles.points}>
-				<PointsBar label="Pontos de disciplina" spent={totals.dpointsSpent} total={totals.dpointsTotal} />
-				<PointsBar label="Pontos de poder" spent={totals.ppointsSpent} total={totals.ppointsTotal} />
+				<PointsBar label={t("trainer.disciplinePoints")} spent={totals.dpointsSpent} total={totals.dpointsTotal} />
+				<PointsBar label={t("trainer.powerPoints")} spent={totals.ppointsSpent} total={totals.ppointsTotal} />
 			</div>
 
 			<div className={styles.right}>
 				{dataSource && (
 					<span
 						className={`${styles.source} ${dataSource === "live" ? styles.sourceLive : ""}`}
-						title={dataSource === "live" ? "Dados carregados agora de cort.ovh" : "Dados locais (rede indisponível ou cort.ovh bloqueado)"}
+						title={dataSource === "live" ? t("trainer.liveDataTooltip") : t("trainer.localDataTooltip")}
 					>
-						<span className={styles.sourceDot} aria-hidden /> {dataSource === "live" ? "Dados ao vivo" : "Dados locais"}
+						<span className={styles.sourceDot} aria-hidden /> {dataSource === "live" ? t("trainer.liveData") : t("trainer.localData")}
 					</span>
 				)}
 				<button className="btn btn-ghost" onClick={onReset}>
-					Reiniciar
+					{t("trainer.reset")}
 				</button>
 				<button className="btn btn-primary" onClick={handleShare}>
-					{copied ? "Link copiado ✓" : "Compartilhar build"}
+					{copied ? t("trainer.linkCopied") : t("trainer.shareBuild")}
 				</button>
 			</div>
 		</div>
