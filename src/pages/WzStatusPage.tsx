@@ -81,6 +81,11 @@ export function WzStatusPage() {
 
 	return (
 		<div className={styles.wrap}>
+			{/* TEMP: marcador visual só pra confirmar que o auto-update do PWA
+			    pegou este deploy sem precisar reinstalar — remover depois do teste. */}
+			<div style={{ background: "red", color: "white", padding: "12px", textAlign: "center", fontWeight: 700 }}>
+				TESTE — reload automático
+			</div>
 			<div className={styles.statusRow}>
 				{error && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
 				{lastUpdated && <span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated, lang) })}</span>}
