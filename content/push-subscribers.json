@@ -1,18 +1,1 @@
-[
-	{
-		"subscription": {
-			"endpoint": "https://fcm.googleapis.com/fcm/send/test-endpoint-final-789",
-			"keys": {
-				"p256dh": "test-p256dh-key",
-				"auth": "test-auth-key"
-			}
-		},
-		"settings": {
-			"myRealm": "Ignis",
-			"lang": "pt",
-			"fortCapturedAlerts": true,
-			"bossAlertMinutes": []
-		},
-		"updatedAt": 1788375129187
-	}
-]
+[]
