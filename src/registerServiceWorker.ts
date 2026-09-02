@@ -1,25 +1,38 @@
 import { registerSW } from "virtual:pwa-register";
 
-/** How often an already-open tab/installed app re-checks for a new SW.
- *  The browser only checks for updates on its own on a fresh navigation —
- *  an installed PWA that's just brought back to the foreground (not
- *  relaunched) can sit on an old version indefinitely without this. */
-const UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+/** Fallback for a tab/installed app that stays in the foreground for a long
+ *  stretch without ever backgrounding — the visibility-based check below
+ *  covers the far more common case (reopening/refocusing the app). */
+const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 
 /** `registerType: "autoUpdate"` (vite.config.ts) means: no user-facing
  *  "update available" prompt — as soon as a new SW is found, activate it
  *  and reload automatically. `registerSW` itself only wires up *that* part;
  *  actually noticing a new SW exists in an app that's just sitting open
- *  still needs the periodic `registration.update()` calls below (a
- *  documented vite-plugin-pwa recipe, not something it does by itself). */
+ *  still needs explicit `registration.update()` calls (a documented
+ *  vite-plugin-pwa recipe, not something it does by itself) — the browser
+ *  only checks on its own on a fresh navigation, which an already-open tab
+ *  or a reopened *installed* PWA (brought back to the foreground, not
+ *  relaunched) never does. */
 registerSW({
 	immediate: true,
 	onRegisteredSW(_swUrl, registration) {
 		if (!registration) return;
-		setInterval(() => {
+
+		const check = () => {
 			registration.update().catch(() => {
-				// offline / cort.ovh-style network block — try again next interval
+				// offline / cort.ovh-style network block — try again next check
 			});
-		}, UPDATE_CHECK_INTERVAL_MS);
+		};
+
+		// Covers "reopened the app"/"switched back to this tab" — the
+		// scenario an installed PWA hits every time it's brought back to the
+		// foreground, same pattern as the visibilitychange re-check in
+		// useNotifications.ts.
+		document.addEventListener("visibilitychange", () => {
+			if (document.visibilityState === "visible") check();
+		});
+
+		setInterval(check, UPDATE_CHECK_INTERVAL_MS);
 	},
 });
