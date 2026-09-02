@@ -8,6 +8,16 @@ export default defineConfig({
 		react(),
 		VitePWA({
 			registerType: "autoUpdate",
+			// The auto-injected companion script (`injectRegister`'s default)
+			// only calls `navigator.serviceWorker.register(...)` once on page
+			// load — it never periodically checks for a new SW, never tells a
+			// waiting one to `skipWaiting()`, and never reloads once a new one
+			// takes over. That's why, without this, a new deploy only ever
+			// reached an already-running (especially installed/standalone)
+			// PWA after fully closing and relaunching it. `false` here turns
+			// that dumb script off; `src/registerServiceWorker.ts` (imported
+			// from `main.tsx`) does the real thing via `virtual:pwa-register`.
+			injectRegister: false,
 			// injectManifest (custom src/sw.ts) instead of the default
 			// generateSW — needed for the `push`/`notificationclick` handlers
 			// that back web push notifications (see src/sw.ts).
