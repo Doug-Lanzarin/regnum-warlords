@@ -27,5 +27,30 @@
 			]
 		},
 		"updatedAt": 1788389604795
+	},
+	{
+		"subscription": {
+			"endpoint": "https://fcm.googleapis.com/fcm/send/exd4XQEE0yw:APA91bG5qbQxBL6v32-5-zVasJCAPxOzeCbx31MyQCjA4NI-NJu7XeIheoPv2mY_yjMXHxeuTYuADg5eu9se-lnBGUUxt06_yuTAlRg8UICzMAm5tgv2UtNrKmY4QinK0lnyi8w7GvAv",
+			"expirationTime": null,
+			"keys": {
+				"p256dh": "BM2AD9Bq_NPr5RSHQnoTSpBuGKMEp026JeCHgQj1focyVsIIWoOhyygICd9SZ2oAcxlyrr-xi-7KFctadMsBRp8",
+				"auth": "jPwlxbimBntRWil2bQ6cfQ"
+			}
+		},
+		"settings": {
+			"myRealm": null,
+			"lang": "pt",
+			"fortCapturedAlerts": false,
+			"fortLostAlerts": false,
+			"fortRecoveredAlerts": false,
+			"wallCapturedAlerts": false,
+			"wallLostAlerts": false,
+			"wallRecoveredAlerts": false,
+			"gemCapturedAlerts": false,
+			"gemLostAlerts": false,
+			"gemRecoveredAlerts": false,
+			"bossAlertMinutes": []
+		},
+		"updatedAt": 1788390585424
 	}
 ]
