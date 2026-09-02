@@ -12,17 +12,14 @@ crons = ["* * * * *"]
 
 [[kv_namespaces]]
 binding = "PUSH_KV"
-# Replace with the ID printed by:
-#   npx wrangler kv namespace create push_state
-id = "REPLACE_ME_KV_NAMESPACE_ID"
+id = "0cef6f45b96d4749997b51aa5199293b"
 
 [vars]
 # The deployed app's origin — used for CORS on /subscribe and /unsubscribe,
 # and as the VAPID "sub" claim (any https:// or mailto: URL is valid there).
-# Replace with your real Vercel domain before deploying.
-ALLOWED_ORIGIN = "https://REPLACE-ME.vercel.app"
-VAPID_SUBJECT = "https://REPLACE-ME.vercel.app"
+ALLOWED_ORIGIN = "https://regnum-warlords.vercel.app"
+VAPID_SUBJECT = "https://regnum-warlords.vercel.app"
 # The PUBLIC half of the VAPID keypair — safe to commit/expose (the client
 # needs it too, as VITE_VAPID_PUBLIC_KEY). The PRIVATE half is a secret —
 # never put it here, see README.md.
-VAPID_PUBLIC_KEY = "REPLACE_ME_VAPID_PUBLIC_KEY"
+VAPID_PUBLIC_KEY = "BJcY6cqKJwRGWewxP3m0ebtvAPX6JL4gRZyU3uGmtGkMzlWCWjt5_4uaieTsqcnCxtcmwv0b0-WUNVDpJTRcavw"
