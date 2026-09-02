@@ -135,6 +135,24 @@ variáveis entrarem em vigor. Em `npm run dev` local a rota `/api/notifications`
 não existe (o Vite não roda Functions da Vercel), então as duas páginas
 mostram o estado de erro — isso é esperado, só funciona depois de publicado.
 
+## Push de verdade (app fechado)
+
+Os alertas locais do painel de Alertas (`/notificacoes`) só funcionam com
+o app aberto — o polling que os alimenta é o próprio JS da página. Pra
+notificar mesmo com o app **fechado**, `push-worker/` é um Cloudflare
+Worker separado (deploy próprio, fora do build do Vite) que confere o
+`cort.ovh` a cada 1 minuto (o menor intervalo de cron gratuito que existe)
+e dispara Web Push de verdade pra quem assinou. Ver
+[`push-worker/README.md`](push-worker/README.md) pro funcionamento e o
+passo a passo de deploy — precisa de uma conta Cloudflare (grátis) e de
+rodar `wrangler login`/`wrangler deploy` você mesmo, ninguém mais consegue
+fazer isso pela sua conta.
+
+> **Status**: o Worker em si está pronto e testado (localmente, com dados
+> reais do `cort.ovh`). A parte que falta é o app React se inscrever
+> nesse Worker (service worker customizado, botão de assinar push) — isso
+> entra depois que o Worker estiver implantado e eu tiver a URL dele.
+
 ## Regenerando os ícones do PWA
 
 Os ícones em `public/icons/` são gerados a partir da arte-fonte em
