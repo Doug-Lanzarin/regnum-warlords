@@ -1,6 +1,5 @@
 import { BOSS_ORDER } from "../../src/data/bossConstants";
-import type { BossKey } from "../../src/types/bosses";
-import type { BossSpawnData } from "../../src/types/bosses";
+import type { BossKey, BossSpawnData } from "../../src/types/bosses";
 
 export interface BossState {
 	/** `${bossKey}:${spawnSeconds}:${minutes}` keys already alerted for. */
@@ -14,14 +13,13 @@ export interface BossEvent {
 }
 
 /** Same 3 thresholds `AlertSettingsPanel` offers — every subscriber's
- *  `bossAlertMinutes` is a subset of this, filtered in `buildMessagesFor`. */
+ *  `bossAlertMinutes` is a subset of this, filtered when building messages. */
 const THRESHOLD_MINUTES = [60, 30, 15];
 
 /** Mirrors `AlertsWatcher`'s boss-spawn watch: for each boss's soonest
  *  scheduled spawn, checks whether "now" just crossed one of the 60/30/15
- *  minute thresholds — but keeps the "already alerted" bookkeeping in KV
- *  (`BossState`) instead of a component ref, since the Worker has no
- *  in-memory state between cron ticks. */
+ *  minute thresholds — keeping the "already alerted" bookkeeping in
+ *  `BossState` (persisted between ticks) instead of a component ref. */
 export function detectBossEvents(
 	bossData: BossSpawnData,
 	nowMs: number,

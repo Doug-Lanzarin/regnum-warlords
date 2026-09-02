@@ -14,7 +14,7 @@ export interface PushNotificationPayload {
 export interface SendPushResult {
 	ok: boolean;
 	/** True when the push service says the subscription is gone (404/410) —
-	 *  the caller should drop it from `subs:index`. */
+	 *  the caller should drop it from the subscriber list. */
 	expired: boolean;
 }
 
@@ -30,7 +30,7 @@ export async function sendPush(
 		if (res.status === 404 || res.status === 410) return { ok: false, expired: true };
 		return { ok: res.ok, expired: false };
 	} catch (err) {
-		console.error("push-worker: send failed", err);
+		console.error("push: send failed", err);
 		return { ok: false, expired: false };
 	}
 }

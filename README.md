@@ -64,8 +64,9 @@ npm run preview   # serve o build de produção localmente, para testar
   avisos 1h/30min/15min antes de cada épico nascer. Os avisos aparecem como toast dentro do app e,
   se a permissão de notificações do navegador for concedida, também como
   notificação do sistema — funcionam enquanto o app estiver aberto (aba
-  ativa ou minimizada), não é push de verdade (exigiria servidor próprio
-  pra disparar com o app fechado).
+  ativa ou minimizada). Com a permissão concedida também dá pra ativar
+  avisos com o **app fechado** de verdade (push), ver
+  [Push de verdade (app fechado)](#push-de-verdade-app-fechado) abaixo.
 - Navegação em **bottom tab bar** em todas as telas (não só mobile) — o
   header foi removido por enquanto, então essa barra (fixa embaixo no
   celular, flutuante no desktop) é a única navegação do app hoje, com a
@@ -139,19 +140,61 @@ mostram o estado de erro — isso é esperado, só funciona depois de publicado.
 
 Os alertas locais do painel de Alertas (`/notificacoes`) só funcionam com
 o app aberto — o polling que os alimenta é o próprio JS da página. Pra
-notificar mesmo com o app **fechado**, `push-worker/` é um Cloudflare
-Worker separado (deploy próprio, fora do build do Vite) que confere o
-`cort.ovh` a cada 1 minuto (o menor intervalo de cron gratuito que existe)
-e dispara Web Push de verdade pra quem assinou. Ver
-[`push-worker/README.md`](push-worker/README.md) pro funcionamento e o
-passo a passo de deploy — precisa de uma conta Cloudflare (grátis) e de
-rodar `wrangler login`/`wrangler deploy` você mesmo, ninguém mais consegue
-fazer isso pela sua conta.
+notificar mesmo com o app **fechado**, o app usa Web Push de verdade:
 
-> **Status**: o Worker em si está pronto e testado (localmente, com dados
-> reais do `cort.ovh`). A parte que falta é o app React se inscrever
-> nesse Worker (service worker customizado, botão de assinar push) — isso
-> entra depois que o Worker estiver implantado e eu tiver a URL dele.
+- `api/push/subscribe.ts` / `api/push/unsubscribe.ts` — Vercel Functions que
+  guardam a *push subscription* do navegador + as preferências de alerta
+  (mesma ideia do `api/notifications.ts`: GitHub como banco, sem
+  Postgres/Redis — grava em `content/push-subscribers.json`).
+- `api/push/tick.ts` — a cada chamada, busca `wstatus.json`/`bosses.php` do
+  `cort.ovh`, compara com o snapshot da rodada anterior
+  (`content/push-state.json`, só reescrito quando algo de fato muda — pra
+  não virar um commit por minuto), descobre o que mudou (mesmas 6
+  categorias do painel de Alertas, mais os limiares de épico) e dispara o
+  push via VAPID pra quem se aplica. Protegido por um segredo
+  compartilhado (`PUSH_TICK_SECRET`, no header `Authorization: Bearer` ou
+  `?secret=`) — sem ele, ninguém além de quem sabe o segredo consegue
+  disparar um tick.
+- `src/sw.ts` — service worker customizado (o app usa o modo
+  `injectManifest` do `vite-plugin-pwa` em vez do `generateSW` padrão,
+  justamente pra poder ter esse código próprio) com os handlers de
+  `push`/`notificationclick` que mostram a notificação do sistema.
+
+### Por que o "cron" não é da própria Vercel
+
+Chamar `api/push/tick.ts` só funciona se algo disparar isso periodicamente
+— e nenhuma plataforma grátis agenda em menos de 1 minuto (Vercel Cron no
+plano Hobby é só 1x/dia; GitHub Actions é 5 em 5min no mínimo). A solução:
+um serviço **externo** e gratuito de "ping" agendado bate no endpoint a
+cada minuto — a lógica em si roda inteira na Vercel, só o gatilho vem de
+fora. Usei o [cron-job.org](https://cron-job.org) (grátis, sem cartão,
+suporta 1 em 1 minuto):
+
+1. Crie uma conta grátis em cron-job.org.
+2. Crie um novo cronjob:
+   - URL: `https://<seu-domínio>/api/push/tick`
+   - Schedule: a cada 1 minuto
+   - Em "Advanced" → "Request headers", adicione
+     `Authorization: Bearer <o mesmo valor de PUSH_TICK_SECRET>`
+3. Salve e ative.
+
+### Variáveis de ambiente (Vercel)
+
+| Variável | O que é |
+| --- | --- |
+| `PUSH_TICK_SECRET` | Segredo que só o cron-job.org (via header `Authorization`) precisa saber, pra ninguém mais conseguir disparar `/api/push/tick`. |
+| `VAPID_PUBLIC_KEY` | Chave pública VAPID, usada no servidor pra assinar os pushes. |
+| `VAPID_PRIVATE_KEY` | Chave privada VAPID — nunca vai pro código, só aqui. |
+| `VAPID_SUBJECT` | Uma URL `https://` (ou `mailto:`) exigida pelo protocolo VAPID como contato — pode ser a própria URL do site. |
+| `VITE_VAPID_PUBLIC_KEY` | A **mesma** chave pública acima, mas exposta ao client (prefixo `VITE_`) — é o que o navegador usa em `pushManager.subscribe()`. |
+
+O par de chaves VAPID é gerado uma vez com `npx web-push generate-vapid-keys`
+(lib `web-push`, só precisa rodar localmente pra gerar o par — não fica
+como dependência do projeto).
+
+Sem `VITE_VAPID_PUBLIC_KEY` configurada, o botão "Ativar avisos com o app
+fechado" simplesmente não aparece — o resto do app (alertas locais com o
+app aberto) funciona normalmente.
 
 ## Regenerando os ícones do PWA
 
@@ -176,16 +219,22 @@ npm uninstall sharp
 ```
 api/
   notifications.ts   Vercel Function do CRUD de notificações (GitHub como "banco")
+  _push/          lógica compartilhada do push (diff de WZ/épicos, envio VAPID, storage) — não roteável
+  push/           Vercel Functions: subscribe.ts, unsubscribe.ts, tick.ts
 content/
-  notifications.json  dados das notificações — editado só via api/notifications.ts
+  notifications.json     dados das notificações — editado só via api/notifications.ts
+  push-subscribers.json  assinaturas de push — editado só via api/push/*.ts
+  push-state.json         snapshot da WZ/épicos usado pro diff do tick — idem
 src/
   api/            clientes de dados (cort.ovh ao vivo, dados locais, /api/notifications)
   data/           constantes do jogo (classes, níveis, etc.)
+  features/alerts/   alertas locais (client-side) + integração com push
   features/trainer/  lógica de cálculo do trainer + componentes de UI
-  features/notifications/  hook + componentes do CRUD de notificações
+  features/notifications/  hook + componentes do CRUD de notificações + painel de Alertas
   layout/         navegação (bottom tab bar, em todas as telas) e layout geral
   pages/          páginas roteadas
   pwa/            hook de instalação do PWA
+  sw.ts           service worker customizado (push/notificationclick)
   theme/          sistema de temas (CSS custom properties)
   types/          tipos TypeScript dos dados do trainer
 public/

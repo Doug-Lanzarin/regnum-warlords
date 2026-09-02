@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Realm } from "../../data/realms";
 import { readAlertSettings, writeAlertSettings, type AlertSettings, type BooleanAlertKey } from "./alertSettings";
+import { syncPushSettings } from "./notify";
 
 interface AlertSettingsContextValue {
 	settings: AlertSettings;
@@ -19,6 +20,11 @@ const AlertSettingsContext = createContext<AlertSettingsContextValue | null>(nul
  *  own copy, so a setting change on the page would never reach the watcher. */
 export function AlertSettingsProvider({ children }: { children: ReactNode }) {
 	const [settings, setSettings] = useState<AlertSettings>(() => readAlertSettings());
+
+	useEffect(() => {
+		// No-ops if there's no active push subscription yet — see notify.ts.
+		syncPushSettings(settings);
+	}, [settings]);
 
 	const update = useCallback((patch: Partial<AlertSettings>) => {
 		setSettings((prev) => {

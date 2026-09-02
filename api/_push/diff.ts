@@ -6,7 +6,7 @@ import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
  *  (`src/features/alerts/AlertsWatcher.tsx`), just computed once per tick
  *  for all 3 realms instead of once per subscriber's `myRealm` — cheap
  *  since there are only 3 realms, and it lets every subscriber share the
- *  same diff instead of the Worker re-fetching/re-diffing per person. */
+ *  same diff instead of re-fetching/re-diffing per person. */
 export interface CategorySets {
 	fortLost: Record<Realm, string[]>;
 	fortCaptured: Record<Realm, string[]>;
@@ -44,9 +44,9 @@ const cleanFortLabel = (name: string) => name.replace(/\s*\(\d+\)$/, "");
 
 /** Diffs the current WZ snapshot against the previous tick's category sets
  *  (see `emptyCategorySets` — pass that in on the very first tick ever, so
- *  nothing "new" is reported for state that already existed before the
- *  Worker started watching). Returns the recomputed sets to persist, plus
- *  the events that are new since the previous tick, grouped by realm. */
+ *  nothing "new" is reported for state that already existed before this
+ *  started watching). Returns the recomputed sets to persist, plus the
+ *  events that are new since the previous tick, grouped by realm. */
 export function diffState(
 	forts: FortStatus[],
 	gems: GemStatus[],

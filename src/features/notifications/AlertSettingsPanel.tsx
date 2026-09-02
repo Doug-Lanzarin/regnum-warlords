@@ -1,8 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { REALMS, type Realm } from "../../data/realms";
 import { useAlertSettings } from "../alerts/AlertSettingsContext";
 import type { BooleanAlertKey } from "../alerts/alertSettings";
-import { notificationSupport, requestNotificationPermission, type NotificationSupport } from "../alerts/notify";
+import {
+	getPushSubscription,
+	notificationSupport,
+	pushSupported,
+	requestNotificationPermission,
+	subscribeToPush,
+	unsubscribeFromPush,
+	type NotificationSupport,
+} from "../alerts/notify";
 import styles from "./AlertSettingsPanel.module.css";
 
 const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; label: string }[] = [
@@ -27,33 +35,86 @@ const PERMISSION_LABEL: Record<NotificationSupport, string> = {
 	unsupported: "Não suportadas neste navegador",
 };
 
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+
 /** Personal alert preferences, local to this device — lives on the public
  *  Notifications tab alongside the admin-curated timeline, but writes to
  *  `AlertSettingsContext` (localStorage) instead of the notifications API. */
 export function AlertSettingsPanel() {
 	const { settings, setMyRealm, setFlag, toggleBossAlertMinute } = useAlertSettings();
 	const [permission, setPermission] = useState<NotificationSupport>(() => notificationSupport());
+	const [pushActive, setPushActive] = useState(false);
+	const [pushBusy, setPushBusy] = useState(false);
+
+	useEffect(() => {
+		getPushSubscription()
+			.then((sub) => setPushActive(!!sub))
+			.catch(() => setPushActive(false));
+	}, []);
 
 	async function handleEnableNotifications() {
-		setPermission(await requestNotificationPermission());
+		const result = await requestNotificationPermission();
+		setPermission(result);
+		if (result === "granted" && VAPID_PUBLIC_KEY && pushSupported()) {
+			setPushBusy(true);
+			const ok = await subscribeToPush(VAPID_PUBLIC_KEY, settings);
+			setPushActive(ok);
+			setPushBusy(false);
+		}
 	}
+
+	async function handleDisablePush() {
+		setPushBusy(true);
+		await unsubscribeFromPush();
+		setPushActive(false);
+		setPushBusy(false);
+	}
+
+	const canOfferPush = VAPID_PUBLIC_KEY && pushSupported();
 
 	return (
 		<section className={`card ${styles.panel}`}>
 			<h2 className={styles.title}>Alertas</h2>
 			<p className={styles.subtitle}>
 				Avisos locais neste dispositivo, sem cadastro — funcionam enquanto o app estiver aberto (aba ativa ou
-				minimizada).
+				minimizada), e também com o app fechado se a notificação do navegador estiver ativada.
 			</p>
 
 			<div className={styles.permissionRow}>
 				{permission !== "granted" && permission !== "unsupported" && (
-					<button type="button" className="btn btn-primary" onClick={handleEnableNotifications}>
+					<button type="button" className="btn btn-primary" onClick={handleEnableNotifications} disabled={pushBusy}>
 						Ativar notificações do navegador
 					</button>
 				)}
 				<p className={styles.permissionStatus}>{PERMISSION_LABEL[permission]}</p>
 			</div>
+
+			{permission === "granted" && canOfferPush && (
+				<div className={styles.permissionRow}>
+					{pushActive ? (
+						<button type="button" className="btn btn-ghost" onClick={handleDisablePush} disabled={pushBusy}>
+							Desativar avisos com o app fechado
+						</button>
+					) : (
+						<button
+							type="button"
+							className="btn btn-primary"
+							disabled={pushBusy}
+							onClick={async () => {
+								setPushBusy(true);
+								const ok = await subscribeToPush(VAPID_PUBLIC_KEY, settings);
+								setPushActive(ok);
+								setPushBusy(false);
+							}}
+						>
+							Ativar avisos com o app fechado
+						</button>
+					)}
+					<p className={styles.permissionStatus}>
+						{pushActive ? "App fechado: você recebe avisos mesmo assim" : "App fechado: sem avisos por enquanto"}
+					</p>
+				</div>
+			)}
 
 			<div className={styles.group}>
 				<label className={styles.groupLabel} htmlFor="my-realm-select">
