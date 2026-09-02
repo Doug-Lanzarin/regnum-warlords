@@ -7,6 +7,8 @@ import styles from "./WzMap.module.css";
 interface Props {
 	/** In `WzStatusData.forts` order — index i matches `FORT_MAP_POSITIONS[i]`. */
 	forts: FortStatus[];
+	/** Called with the fort's raw name when a fort icon is clicked/activated. */
+	onSelectFort?: (fort: FortStatus) => void;
 }
 
 const ICON_SIZE = 32;
@@ -14,7 +16,7 @@ const ICON_SIZE = 32;
 /** The war zone map with the 12 forts placed on top, ported from CoRT's
  *  canvas-based `wz-map` (same base image and hand-placed coordinates),
  *  redrawn as SVG so each fort can be a hoverable, keyboard-reachable node. */
-export function WzMap({ forts }: Props) {
+export function WzMap({ forts, onSelectFort }: Props) {
 	return (
 		<div className={`card ${styles.wrap}`}>
 			<svg viewBox={`0 0 ${WZ_MAP_SIZE} ${WZ_MAP_SIZE}`} className={styles.svg} role="img" aria-label="Mapa da Zona de Guerra">
@@ -26,7 +28,23 @@ export function WzMap({ forts }: Props) {
 					const kind = getFortKind(fort.name);
 					const label = fort.name.replace(/\s*\(\d+\)$/, "");
 					return (
-						<g key={fort.name} className={fort.captured ? styles.fortCaptured : undefined}>
+						<g
+							key={fort.name}
+							className={`${styles.fort} ${fort.captured ? styles.fortCaptured : ""}`}
+							role={onSelectFort ? "button" : undefined}
+							tabIndex={onSelectFort ? 0 : undefined}
+							onClick={onSelectFort ? () => onSelectFort(fort) : undefined}
+							onKeyDown={
+								onSelectFort
+									? (e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault();
+												onSelectFort(fort);
+											}
+										}
+									: undefined
+							}
+						>
 							<title>
 								{label} — {fort.owner}
 								{fort.captured ? ` (invadido, dono original: ${fort.home})` : ""}

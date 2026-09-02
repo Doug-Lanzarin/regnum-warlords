@@ -124,6 +124,23 @@ export function computeDragonWishes(events: WzEvent[], limit = 5): HumanizedEven
 	return wishes;
 }
 
+/** Every capture/recapture of a single fort (matched by its clean name, so
+ *  callers can pass either the raw `WzFort.name` — with its "(n)" map-order
+ *  suffix — or an already-clean name), newest first. Meant for a per-fort
+ *  drill-down (e.g. clicking that fort on the map), as opposed to
+ *  `computeEventLog`'s all-forts feed. */
+export function computeFortHistory(events: WzEvent[], fortName: string, limit = 15): HumanizedEvent[] {
+	const target = cleanFortName(fortName);
+	const history: HumanizedEvent[] = [];
+	for (let i = 0; i < events.length && history.length < limit; i++) {
+		const event = events[i];
+		if (event.type !== "fort" || event.name !== target) continue;
+		const humanized = humanizeEvent(event, i);
+		if (humanized) history.push(humanized);
+	}
+	return history;
+}
+
 export interface RealmActivityCount {
 	realm: Realm;
 	count: number;

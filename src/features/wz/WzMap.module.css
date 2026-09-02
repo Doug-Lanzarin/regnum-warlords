@@ -14,8 +14,22 @@
 	background: #0b1220;
 }
 
+.fort {
+	cursor: pointer;
+}
+.fort:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+
 .fortShadow {
 	filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.75));
+	transition: filter 0.15s var(--ease);
+}
+.fort:hover .fortShadow,
+.fort:focus-visible .fortShadow {
+	filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6)) drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.75));
 }
 
 .fortLabel {

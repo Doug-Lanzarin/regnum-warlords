@@ -1,0 +1,124 @@
+.backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-4);
+	z-index: 100;
+}
+
+.dialog {
+	width: 100%;
+	max-width: 420px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	padding: var(--space-4);
+	gap: var(--space-3);
+}
+
+.header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--space-3);
+}
+
+.titleGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.fortName {
+	font-size: 1.05rem;
+	overflow-wrap: break-word;
+}
+
+.subtitle {
+	font-size: 0.8rem;
+	color: var(--faded);
+}
+
+.ownerBadge {
+	--owner-color: var(--links);
+	flex-shrink: 0;
+	padding: 3px 10px;
+	border-radius: var(--radius-full);
+	font-size: 0.78rem;
+	font-weight: 700;
+	color: #0a0a12;
+	background: var(--owner-color);
+}
+
+.closeBtn {
+	appearance: none;
+	border: none;
+	background: transparent;
+	color: var(--faded);
+	font-size: 1.2rem;
+	line-height: 1;
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--radius-sm);
+	flex-shrink: 0;
+}
+.closeBtn:hover {
+	background: var(--card-background-alt);
+	color: var(--foreground);
+}
+
+.list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	overflow-y: auto;
+}
+
+.empty {
+	color: var(--faded);
+	font-size: 0.86rem;
+	margin: 0;
+}
+
+.row {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-3);
+	padding: 7px 8px;
+	border-radius: var(--radius-sm);
+	font-size: 0.86rem;
+}
+.row:hover {
+	background: var(--card-background-alt);
+}
+
+.time {
+	flex-shrink: 0;
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: var(--faded);
+	white-space: nowrap;
+}
+
+.line {
+	min-width: 0;
+}
+
+.realmText {
+	color: var(--realm-color, inherit);
+	font-weight: 700;
+}
+
+@media (max-width: 640px) {
+	.row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+	}
+}
