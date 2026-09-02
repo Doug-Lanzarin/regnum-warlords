@@ -1,4 +1,4 @@
-import { REALMS, type Realm } from "../../data/realms";
+import { REALMS, type Realm } from "../../data/realms.js";
 import type { WzStatusData } from "../../types/wz";
 
 export interface FortStatus {

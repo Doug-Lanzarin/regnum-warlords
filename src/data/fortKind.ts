@@ -1,5 +1,5 @@
 import type { Lang } from "../i18n/languages";
-import { translate } from "../i18n/translate";
+import { translate } from "../i18n/translate.js";
 
 /** The 3 fort "shapes" the game has — keep (regular fort), castle, and
  *  Great Wall — used both for icon selection (`wzIcons.tsx`) and for

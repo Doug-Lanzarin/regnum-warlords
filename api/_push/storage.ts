@@ -1,6 +1,6 @@
 import type { PushSubscription } from "@block65/webcrypto-web-push";
 import type { AlertSettings } from "../../src/types/alertSettings";
-import { emptyCategorySets, type CategorySets } from "./diff";
+import { emptyCategorySets, type CategorySets } from "./diff.js";
 import type { BossState } from "./boss";
 
 export interface SubscriberRecord {

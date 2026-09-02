@@ -3,18 +3,18 @@
 // on a free external pinger like cron-job.org hitting this endpoint every
 // minute with the shared secret below. See README.md's push section.
 
-import { bossName } from "../../src/data/bossConstants";
-import { formatFortLabel } from "../../src/data/fortKind";
+import { bossName } from "../../src/data/bossConstants.js";
+import { formatFortLabel } from "../../src/data/fortKind.js";
 import type { Realm } from "../../src/data/realms";
-import { translate } from "../../src/i18n/translate";
+import { translate } from "../../src/i18n/translate.js";
 import type { AlertSettings } from "../../src/types/alertSettings";
 import type { BossSpawnData } from "../../src/types/bosses";
-import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine";
+import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine.js";
 import type { WzStatusData } from "../../src/types/wz";
-import { detectBossEvents, type BossEvent } from "../_push/boss";
-import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff";
-import { sendPush, type PushNotificationPayload } from "../_push/push";
-import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage";
+import { detectBossEvents, type BossEvent } from "../_push/boss.js";
+import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff.js";
+import { sendPush, type PushNotificationPayload } from "../_push/push.js";
+import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage.js";
 
 export interface VercelLikeRequest {
 	method?: string;

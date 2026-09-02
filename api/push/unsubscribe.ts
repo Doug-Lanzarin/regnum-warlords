@@ -1,4 +1,4 @@
-import { readSubscribers, writeSubscribers } from "../_push/storage";
+import { readSubscribers, writeSubscribers } from "../_push/storage.js";
 
 interface VercelLikeRequest {
 	method?: string;
