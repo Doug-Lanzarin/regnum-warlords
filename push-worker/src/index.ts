@@ -7,7 +7,18 @@ import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/w
 import type { WzStatusData } from "../../src/types/wz";
 import { detectBossEvents, type BossEvent } from "./boss";
 import { diffState, type CategoryEvents } from "./diff";
-import { emptyCategorySets, readBossState, readCategorySets, readSubscribers, writeBossState, writeCategorySets, writeSubscribers, type SubscriberRecord } from "./kv";
+import {
+	emptyCategorySets,
+	readBossState,
+	readCategorySets,
+	readLastTick,
+	readSubscribers,
+	writeBossState,
+	writeCategorySets,
+	writeLastTick,
+	writeSubscribers,
+	type SubscriberRecord,
+} from "./kv";
 import { sendPush, type PushNotificationPayload } from "./push";
 
 export interface Env {
@@ -136,6 +147,8 @@ function buildMessagesFor(
 }
 
 async function runTick(env: Env): Promise<void> {
+	await writeLastTick(env.PUSH_KV, Date.now());
+
 	const [wzRes, bossRes] = await Promise.all([fetch(WZ_STATUS_URL), fetch(BOSSES_URL)]);
 	if (!wzRes.ok || !bossRes.ok) {
 		console.error("push-worker: cort.ovh fetch failed", wzRes.status, bossRes.status);
@@ -192,6 +205,14 @@ export default {
 		try {
 			if (request.method === "POST" && url.pathname === "/subscribe") return await handleSubscribe(request, env);
 			if (request.method === "POST" && url.pathname === "/unsubscribe") return await handleUnsubscribe(request, env);
+			if (request.method === "GET" && url.pathname === "/health") {
+				const lastTick = await readLastTick(env.PUSH_KV);
+				return jsonResponse(
+					{ lastTickAt: lastTick, ageSeconds: lastTick ? Math.round((Date.now() - lastTick) / 1000) : null },
+					200,
+					env.ALLOWED_ORIGIN,
+				);
+			}
 		} catch (err) {
 			console.error("push-worker: fetch handler error", err);
 			return jsonResponse({ error: "Erro interno." }, 500, env.ALLOWED_ORIGIN);

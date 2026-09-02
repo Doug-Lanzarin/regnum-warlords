@@ -18,6 +18,7 @@ export interface SubscriberRecord {
 const SUBS_KEY = "subs:index";
 const CATEGORIES_KEY = "state:categories";
 const BOSS_KEY = "state:boss";
+const LAST_TICK_KEY = "state:lastTick";
 
 export async function readSubscribers(kv: KVNamespace): Promise<SubscriberRecord[]> {
 	const raw = await kv.get<SubscriberRecord[]>(SUBS_KEY, "json");
@@ -45,6 +46,20 @@ export async function readBossState(kv: KVNamespace): Promise<BossState> {
 
 export async function writeBossState(kv: KVNamespace, state: BossState): Promise<void> {
 	await kv.put(BOSS_KEY, JSON.stringify(state));
+}
+
+/** Heartbeat — the Unix ms of the last `scheduled` run, written on every
+ *  tick regardless of whether anything changed. Lets `GET /health` (and
+ *  anyone debugging via the KV dashboard) confirm the cron is actually
+ *  firing on its own, independent of whether the WZ state happens to have
+ *  changed that minute. */
+export async function writeLastTick(kv: KVNamespace, atMs: number): Promise<void> {
+	await kv.put(LAST_TICK_KEY, String(atMs));
+}
+
+export async function readLastTick(kv: KVNamespace): Promise<number | null> {
+	const raw = await kv.get(LAST_TICK_KEY);
+	return raw ? Number(raw) : null;
 }
 
 export { emptyCategorySets };
