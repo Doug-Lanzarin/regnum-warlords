@@ -32,3 +32,9 @@ export function formatDateTime(unixSeconds: number): string {
 export function formatHourMinute(unixMs: number): string {
 	return new Date(unixMs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
+
+/** Same as `formatHourMinute` but with seconds, e.g. "23:09:42" — for a
+ *  precise "last updated at" stamp rather than a chart tick. */
+export function formatHourMinuteSecond(unixMs: number): string {
+	return new Date(unixMs).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}

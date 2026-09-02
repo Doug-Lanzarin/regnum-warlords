@@ -18,7 +18,7 @@ import {
 	computeFortHistory,
 	type RealmActivityCount,
 } from "../features/wz/wzEventsEngine";
-import { formatHourMinute } from "../utils/time";
+import { formatHourMinuteSecond } from "../utils/time";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
@@ -79,7 +79,7 @@ export function WzStatusPage() {
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
 				{error && <span className={styles.staleWarning}>Falha ao atualizar — mostrando o último dado obtido.</span>}
-				{lastUpdated && <span className={styles.updated}>Atualizado às {formatHourMinute(lastUpdated)}</span>}
+				{lastUpdated && <span className={styles.updated}>Atualizado às {formatHourMinuteSecond(lastUpdated)}</span>}
 			</div>
 			<WzMap forts={forts} onSelectFort={setSelectedFort} />
 			{selectedFort && (
