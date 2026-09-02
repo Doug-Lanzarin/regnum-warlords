@@ -63,19 +63,29 @@ async function postToPushApi(path: string, body: unknown): Promise<void> {
  *  browsers refuse `pushManager.subscribe()` otherwise. */
 export async function subscribeToPush(vapidPublicKey: string, settings: AlertSettings): Promise<boolean> {
 	if (!pushSupported() || Notification.permission !== "granted") return false;
+	let subscription: PushSubscription | null = null;
+	let createdNewSubscription = false;
 	try {
 		const registration = await navigator.serviceWorker.ready;
-		let subscription = await registration.pushManager.getSubscription();
+		subscription = await registration.pushManager.getSubscription();
 		if (!subscription) {
 			subscription = await registration.pushManager.subscribe({
 				userVisibleOnly: true,
 				applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
 			});
+			createdNewSubscription = true;
 		}
 		await postToPushApi("/api/push/subscribe", { subscription: subscription.toJSON(), settings });
 		return true;
 	} catch (err) {
 		console.error("subscribeToPush failed", err);
+		// A subscription the server never learned about will never receive
+		// anything — leaving it dangling here would make a later
+		// `getPushSubscription()` check (e.g. after remounting this panel)
+		// report "active" even though nothing will actually be delivered.
+		if (createdNewSubscription && subscription) {
+			await subscription.unsubscribe().catch(() => undefined);
+		}
 		return false;
 	}
 }
