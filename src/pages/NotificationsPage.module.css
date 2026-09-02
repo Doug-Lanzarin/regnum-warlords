@@ -36,25 +36,3 @@
 	}
 }
 
-.intro {
-	padding: var(--space-5);
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
-}
-
-.title {
-	font-size: 1.3rem;
-}
-
-.subtitle {
-	margin: 4px 0 0;
-	color: var(--faded);
-	font-size: 0.88rem;
-}
-
-@media (max-width: 640px) {
-	.intro {
-		padding: var(--space-4);
-	}
-}

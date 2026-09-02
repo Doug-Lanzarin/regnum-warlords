@@ -14,10 +14,6 @@ export function NotificationsPage() {
 
 	return (
 		<div className={styles.wrap}>
-			<div className={`card ${styles.intro}`}>
-				<h1 className={styles.title}>Avisos Warlords</h1>
-			</div>
-
 			<AlertSettingsPanel />
 
 			{loading && notifications === null ? (

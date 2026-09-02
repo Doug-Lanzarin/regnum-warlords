@@ -11,9 +11,7 @@ interface Props {
 }
 
 export function NotificationTimeline({ notifications, now, editable, busy, onDelete }: Props) {
-	if (notifications.length === 0) {
-		return <p className={styles.empty}>Nenhuma notificação por enquanto.</p>;
-	}
+	if (notifications.length === 0) return null;
 
 	return (
 		<ol className={styles.timeline}>
