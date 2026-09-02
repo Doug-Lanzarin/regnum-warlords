@@ -1,0 +1,31 @@
+[
+	{
+		"subscription": {
+			"endpoint": "https://web.push.apple.com/QIPriMvhuFMeYNKi092JM4tQEgps48a87_GOrOWXCRb_6nFAIWNGmjfBAlrMtw0vv28VzbfKeszMUsHeWtoV9FINgosg3OWGi-s1omlutUZF7YODzljlBZ12IPb-ZQ6xVMjVIqdiBI0IaE2-aAfpKTS1S1WvFB8jypWTDs4GaD0",
+			"expirationTime": null,
+			"keys": {
+				"p256dh": "BKOCC93p-9crBnDIho1zG2UmiEXpYasjtTxJ0c3JNRJkxnf0zaIqjRgxFalUcg3FkgdPqotjhby44YWf69g17eo",
+				"auth": "dD_Bq5wsjJXXQT0uzX2I1A"
+			}
+		},
+		"settings": {
+			"myRealm": "Syrtis",
+			"lang": "pt",
+			"fortCapturedAlerts": true,
+			"fortLostAlerts": true,
+			"fortRecoveredAlerts": true,
+			"wallCapturedAlerts": true,
+			"wallLostAlerts": true,
+			"wallRecoveredAlerts": true,
+			"gemCapturedAlerts": true,
+			"gemLostAlerts": true,
+			"gemRecoveredAlerts": true,
+			"bossAlertMinutes": [
+				60,
+				30,
+				15
+			]
+		},
+		"updatedAt": 1788375356676
+	}
+]
