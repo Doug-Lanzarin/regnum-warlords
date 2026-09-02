@@ -1,3 +1,4 @@
+import { formatFortLabel } from "../../data/fortKind";
 import { REALM_COLOR } from "../../data/realms";
 import { FORT_MAP_POSITIONS, WZ_MAP_IMAGE, WZ_MAP_SIZE } from "../../data/wzMapConstants";
 import type { FortStatus } from "./wzEngine";
@@ -26,7 +27,7 @@ export function WzMap({ forts, onSelectFort }: Props) {
 					if (!pos) return null;
 					const color = REALM_COLOR[fort.owner];
 					const kind = getFortKind(fort.name);
-					const label = fort.name.replace(/\s*\(\d+\)$/, "");
+					const label = formatFortLabel(fort.name);
 					return (
 						<g
 							key={fort.name}

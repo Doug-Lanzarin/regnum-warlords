@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { formatFortLabel } from "../../data/fortKind";
 import { REALM_COLOR, type Realm } from "../../data/realms";
 import { formatDateTime, formatRelativePast } from "../../utils/time";
 import type { HumanizedEvent } from "./wzEventsEngine";
@@ -24,7 +25,7 @@ export function FortHistoryModal({ fortName, owner, now, history, onClose }: Pro
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, [onClose]);
 
-	const cleanName = fortName.replace(/\s*\(\d+\)$/, "");
+	const cleanName = formatFortLabel(fortName);
 
 	return (
 		<div className={styles.backdrop} onClick={onClose}>
