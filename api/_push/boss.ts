@@ -1,4 +1,4 @@
-import { BOSS_ORDER } from "../../src/data/bossConstants";
+import { BOSS_ORDER } from "../../src/data/bossConstants.js";
 import type { BossKey, BossSpawnData } from "../../src/types/bosses";
 
 export interface BossState {

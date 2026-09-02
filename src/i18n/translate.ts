@@ -1,7 +1,7 @@
 import type { Lang } from "./languages";
-import pt from "./dictionaries/pt";
-import en from "./dictionaries/en";
-import es from "./dictionaries/es";
+import pt from "./dictionaries/pt.js";
+import en from "./dictionaries/en.js";
+import es from "./dictionaries/es.js";
 import type { TranslationKey } from "./dictionaries/pt";
 
 export type { TranslationKey };

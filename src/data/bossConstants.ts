@@ -1,7 +1,7 @@
-import { REALM_COLOR, type Realm } from "./realms";
+import { REALM_COLOR, type Realm } from "./realms.js";
 import type { BossKey } from "../types/bosses";
 import type { Lang } from "../i18n/languages";
-import { translate } from "../i18n/translate";
+import { translate } from "../i18n/translate.js";
 
 export type { Realm };
 

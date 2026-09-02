@@ -1,5 +1,5 @@
-import { REALMS, type Realm } from "../../src/data/realms";
-import { getFortKind } from "../../src/data/fortKind";
+import { REALMS, type Realm } from "../../src/data/realms.js";
+import { getFortKind } from "../../src/data/fortKind.js";
 import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
 
 /** Mirrors the 9 alert categories `AlertsWatcher` tracks client-side
