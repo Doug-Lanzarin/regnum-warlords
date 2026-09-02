@@ -5,11 +5,15 @@
 				"Fort Aggersborg (2)"
 			],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Eferias Castle (11)"
+			]
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [],
+			"Ignis": [
+				"Eferias Castle (11)"
+			],
 			"Syrtis": [
 				"Fort Aggersborg (2)"
 			]
@@ -26,8 +30,7 @@
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			]
 		},
 		"wallLost": {
@@ -94,5 +97,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788385862989
+	"lastTickAt": 1788386342813
 }
