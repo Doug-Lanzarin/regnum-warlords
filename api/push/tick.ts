@@ -78,6 +78,21 @@ function buildMessagesFor(
 				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
 			}
 		}
+		if (settings.fortRecoveredAlerts) {
+			for (const e of events.fortRecovered ?? []) {
+				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+			}
+		}
+		if (settings.wallRecoveredAlerts) {
+			for (const e of events.wallRecovered ?? []) {
+				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+			}
+		}
+		if (settings.gemRecoveredAlerts) {
+			for (const e of events.gemRecovered ?? []) {
+				messages.push({ title: `${myRealm} recuperou ${e.name}`, body: "", url: "/" });
+			}
+		}
 	}
 
 	for (const be of bossEvents) {

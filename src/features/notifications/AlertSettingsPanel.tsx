@@ -16,10 +16,13 @@ import styles from "./AlertSettingsPanel.module.css";
 const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; label: string }[] = [
 	{ key: "fortCapturedAlerts", label: "Forte tomado" },
 	{ key: "fortLostAlerts", label: "Forte perdido" },
-	{ key: "wallLostAlerts", label: "Muralha perdida" },
+	{ key: "fortRecoveredAlerts", label: "Forte recuperado" },
 	{ key: "wallCapturedAlerts", label: "Muralha capturada" },
-	{ key: "gemLostAlerts", label: "Gem perdida" },
+	{ key: "wallLostAlerts", label: "Muralha perdida" },
+	{ key: "wallRecoveredAlerts", label: "Muralha recuperada" },
 	{ key: "gemCapturedAlerts", label: "Gem capturada" },
+	{ key: "gemLostAlerts", label: "Gem perdida" },
+	{ key: "gemRecoveredAlerts", label: "Gem recuperada" },
 ];
 
 const BOSS_ALERT_OPTIONS: { minutes: number; label: string }[] = [

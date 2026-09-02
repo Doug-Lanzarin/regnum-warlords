@@ -59,9 +59,11 @@ npm run preview   # serve o build de produção localmente, para testar
   [Configurando as notificações](#configurando-as-notificações) abaixo. A
   mesma página tem um painel de **Alertas** pessoais, local ao aparelho (sem
   cadastro, guardado só no `localStorage`): escolher "meu reino" e ativar,
-  independentemente, cada um dos 6 eventos — forte tomado, forte perdido,
-  muralha perdida, muralha capturada, gem perdida, gem capturada — além de
-  avisos 1h/30min/15min antes de cada épico nascer. Os avisos aparecem como toast dentro do app e,
+  independentemente, cada um dos 9 eventos — forte/muralha/gem, cada um com
+  tomado, perdido e recuperado (recuperar é só a sua própria territorial
+  voltando ao seu controle depois de invadida — diferente de tomar, que é
+  capturar território alheio) — além de avisos 1h/30min/15min antes de cada
+  épico nascer. Os avisos aparecem como toast dentro do app e,
   se a permissão de notificações do navegador for concedida, também como
   notificação do sistema — funcionam enquanto o app estiver aberto (aba
   ativa ou minimizada). Com a permissão concedida também dá pra ativar
@@ -149,7 +151,7 @@ notificar mesmo com o app **fechado**, o app usa Web Push de verdade:
 - `api/push/tick.ts` — a cada chamada, busca `wstatus.json`/`bosses.php` do
   `cort.ovh`, compara com o snapshot da rodada anterior
   (`content/push-state.json`, só reescrito quando algo de fato muda — pra
-  não virar um commit por minuto), descobre o que mudou (mesmas 6
+  não virar um commit por minuto), descobre o que mudou (mesmas 9
   categorias do painel de Alertas, mais os limiares de épico) e dispara o
   push via VAPID pra quem se aplica. Protegido por um segredo
   compartilhado (`PUSH_TICK_SECRET`, no header `Authorization: Bearer` ou

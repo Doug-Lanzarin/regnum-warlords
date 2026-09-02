@@ -52,20 +52,26 @@ export function AlertsWatcher() {
 
 	const fortCapturedRef = useRef<Set<string> | null>(null);
 	const fortLostRef = useRef<Set<string> | null>(null);
+	const fortRecoveredRef = useRef<Set<string> | null>(null);
 	const wallCapturedRef = useRef<Set<string> | null>(null);
 	const wallLostRef = useRef<Set<string> | null>(null);
+	const wallRecoveredRef = useRef<Set<string> | null>(null);
 	const gemCapturedRef = useRef<Set<string> | null>(null);
 	const gemLostRef = useRef<Set<string> | null>(null);
+	const gemRecoveredRef = useRef<Set<string> | null>(null);
 
 	useEffect(() => {
 		// Realm changed — reseed every baseline instead of firing for state
 		// that already existed before the switch.
 		fortCapturedRef.current = null;
 		fortLostRef.current = null;
+		fortRecoveredRef.current = null;
 		wallCapturedRef.current = null;
 		wallLostRef.current = null;
+		wallRecoveredRef.current = null;
 		gemCapturedRef.current = null;
 		gemLostRef.current = null;
+		gemRecoveredRef.current = null;
 	}, [settings.myRealm]);
 
 	useEffect(() => {
@@ -100,7 +106,31 @@ export function AlertsWatcher() {
 				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
-	}, [forts, settings.myRealm, settings.fortLostAlerts, settings.wallLostAlerts, settings.fortCapturedAlerts, settings.wallCapturedAlerts, fireAlert]);
+		if (settings.fortRecoveredAlerts) {
+			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) !== "wall");
+			for (const fort of newSince(recovered, (f) => f.name, fortRecoveredRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
+			}
+		}
+		if (settings.wallRecoveredAlerts) {
+			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) === "wall");
+			for (const fort of newSince(recovered, (f) => f.name, wallRecoveredRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
+			}
+		}
+	}, [
+		forts,
+		settings.myRealm,
+		settings.fortLostAlerts,
+		settings.wallLostAlerts,
+		settings.fortCapturedAlerts,
+		settings.wallCapturedAlerts,
+		settings.fortRecoveredAlerts,
+		settings.wallRecoveredAlerts,
+		fireAlert,
+	]);
 
 	useEffect(() => {
 		const myRealm = settings.myRealm;
@@ -121,7 +151,14 @@ export function AlertsWatcher() {
 				fireAlert(`${myRealm} capturou ${label}`, "", REALM_COLOR[myRealm]);
 			}
 		}
-	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, fireAlert]);
+		if (settings.gemRecoveredAlerts) {
+			const recovered = gems.filter((g) => g.home === myRealm && g.owner === myRealm);
+			for (const gem of newSince(recovered, (g) => `${g.index}`, gemRecoveredRef)) {
+				const label = `Gema ${gem.index + 1}`;
+				fireAlert(`${myRealm} recuperou ${label}`, "", REALM_COLOR[myRealm]);
+			}
+		}
+	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, settings.gemRecoveredAlerts, fireAlert]);
 
 	// -- boss spawn countdown watch --
 	const alertedSpawnsRef = useRef<Set<string>>(new Set());
