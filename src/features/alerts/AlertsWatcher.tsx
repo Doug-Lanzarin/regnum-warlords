@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { BOSS_INFO, BOSS_ORDER } from "../../data/bossConstants";
+import { formatFortLabel } from "../../data/fortKind";
 import { REALM_COLOR } from "../../data/realms";
 import { useBossTimers } from "../bosses/useBossTimers";
 import { useWzStatus } from "../wz/useWzStatus";
@@ -10,8 +11,6 @@ import { AlertToastStack, type AlertToast } from "./AlertToastStack";
 import { fireOsNotification } from "./notify";
 
 let toastSeq = 0;
-
-const cleanFortLabel = (name: string) => name.replace(/\s*\(\d+\)$/, "");
 
 /** Diffs `items` against the previous call's snapshot (keyed by `keyOf`),
  *  returning the ones that are new since then, and reseeds the ref either
@@ -81,42 +80,42 @@ export function AlertsWatcher() {
 		if (settings.fortLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(lost, (f) => f.name, fortLostRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.wallLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(lost, (f) => f.name, wallLostRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(captured, (f) => f.name, fortCapturedRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) === "wall");
 			for (const fort of newSince(captured, (f) => f.name, wallCapturedRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.fortRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(recovered, (f) => f.name, fortRecoveredRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.wallRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(recovered, (f) => f.name, wallRecoveredRef)) {
-				const name = cleanFortLabel(fort.name);
+				const name = formatFortLabel(fort.name);
 				fireAlert(`${myRealm} recuperou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}

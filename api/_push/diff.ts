@@ -1,5 +1,5 @@
 import { REALMS, type Realm } from "../../src/data/realms";
-import { getFortKind } from "../../src/data/fortKind";
+import { formatFortLabel, getFortKind } from "../../src/data/fortKind";
 import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
 
 /** Mirrors the 9 alert categories `AlertsWatcher` tracks client-side
@@ -45,8 +45,6 @@ export function emptyCategorySets(): CategorySets {
 		gemRecovered: emptyByRealm(),
 	};
 }
-
-const cleanFortLabel = (name: string) => name.replace(/\s*\(\d+\)$/, "");
 
 /** Diffs the current WZ snapshot against the previous tick's category sets
  *  (see `emptyCategorySets` — pass that in on the very first tick ever, so
@@ -95,22 +93,22 @@ export function diffState(
 		eventsByRealm[realm] = {
 			fortLost: fortLost
 				.filter((f) => !prevFortLost.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: f.owner })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.owner })),
 			wallLost: wallLost
 				.filter((f) => !prevWallLost.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: f.owner })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.owner })),
 			fortCaptured: fortCaptured
 				.filter((f) => !prevFortCaptured.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: f.home })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.home })),
 			wallCaptured: wallCaptured
 				.filter((f) => !prevWallCaptured.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: f.home })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: f.home })),
 			fortRecovered: fortRecovered
 				.filter((f) => !prevFortRecovered.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: null })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: null })),
 			wallRecovered: wallRecovered
 				.filter((f) => !prevWallRecovered.has(f.name))
-				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: null })),
+				.map((f) => ({ name: formatFortLabel(f.name), otherRealm: null })),
 			gemLost: gemLost
 				.filter((g) => !prevGemLost.has(g.index))
 				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: g.owner })),

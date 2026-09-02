@@ -1,3 +1,4 @@
+import { formatFortLabel } from "../../data/fortKind";
 import { REALMS, REALM_COLOR, type Realm } from "../../data/realms";
 import { formatRelativePast } from "../../utils/time";
 import type { FortStatus } from "./wzEngine";
@@ -32,7 +33,7 @@ export function FortsSection({ forts, now }: Props) {
 								{realmForts.map((fort) => (
 									<li key={fort.name} className={`${styles.row} ${fort.captured ? styles.rowCaptured : ""}`}>
 										<div className={styles.rowMain}>
-											<span className={styles.fortName}>{fort.name.replace(/\s*\(\d+\)$/, "")}</span>
+											<span className={styles.fortName}>{formatFortLabel(fort.name)}</span>
 											<span
 												className={styles.ownerBadge}
 												style={{ "--owner-color": REALM_COLOR[fort.owner as Realm] } as React.CSSProperties}
