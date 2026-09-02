@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { REALMS, type Realm } from "../../data/realms";
 import { useT } from "../../i18n/useT";
 import { useAlertSettings } from "../alerts/AlertSettingsContext";
@@ -52,10 +52,29 @@ export function AlertSettingsPanel() {
 	const [pushActive, setPushActive] = useState(false);
 	const [pushBusy, setPushBusy] = useState(false);
 
+	// Guards against the initial subscription check (below) resolving *after*
+	// a manual enable/disable click and clobbering its result back — both are
+	// independent async operations touching the same `pushActive` state, and
+	// with no ordering guarantee the slower one used to win regardless of
+	// which was actually more recent (e.g. click "enable" right after mount,
+	// subscribeToPush finishes first and sets pushActive=true, then the
+	// mount-time check — which started before the subscription existed —
+	// finally resolves and flips it back to false; only a remount, which
+	// re-runs this check against the now-real state, would "fix" it). Same
+	// `requestId`-ref pattern already used for this in useWzStatus.ts/
+	// useBossTimers.ts, just guarding two different async sources instead of
+	// repeated calls to the same one.
+	const pushCheckId = useRef(0);
+
 	useEffect(() => {
+		const id = ++pushCheckId.current;
 		getPushSubscription()
-			.then((sub) => setPushActive(!!sub))
-			.catch(() => setPushActive(false));
+			.then((sub) => {
+				if (id === pushCheckId.current) setPushActive(!!sub);
+			})
+			.catch(() => {
+				if (id === pushCheckId.current) setPushActive(false);
+			});
 	}, []);
 
 	async function handleEnableNotifications() {
@@ -63,16 +82,18 @@ export function AlertSettingsPanel() {
 		setPermission(result);
 		if (result === "granted" && VAPID_PUBLIC_KEY && pushSupported()) {
 			setPushBusy(true);
+			const id = ++pushCheckId.current;
 			const ok = await subscribeToPush(VAPID_PUBLIC_KEY, settings);
-			setPushActive(ok);
+			if (id === pushCheckId.current) setPushActive(ok);
 			setPushBusy(false);
 		}
 	}
 
 	async function handleDisablePush() {
 		setPushBusy(true);
+		const id = ++pushCheckId.current;
 		await unsubscribeFromPush();
-		setPushActive(false);
+		if (id === pushCheckId.current) setPushActive(false);
 		setPushBusy(false);
 	}
 
@@ -105,8 +126,9 @@ export function AlertSettingsPanel() {
 							disabled={pushBusy}
 							onClick={async () => {
 								setPushBusy(true);
+								const id = ++pushCheckId.current;
 								const ok = await subscribeToPush(VAPID_PUBLIC_KEY, settings);
-								setPushActive(ok);
+								if (id === pushCheckId.current) setPushActive(ok);
 								setPushBusy(false);
 							}}
 						>
