@@ -39,7 +39,7 @@ function ToastItem({ toast, onDismiss }: { toast: AlertToast; onDismiss: (id: st
 		<div className={`card ${styles.toast}`} style={toast.color ? ({ "--toast-accent": toast.color } as React.CSSProperties) : undefined}>
 			<div className={styles.body}>
 				<strong className={styles.title}>{toast.title}</strong>
-				<p className={styles.text}>{toast.body}</p>
+				{toast.body && <p className={styles.text}>{toast.body}</p>}
 			</div>
 			<button className={styles.close} onClick={() => onDismiss(toast.id)} aria-label="Fechar aviso">
 				✕

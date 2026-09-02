@@ -49,33 +49,33 @@ function buildMessagesFor(
 		const events = eventsByRealm[myRealm];
 		if (settings.fortLostAlerts) {
 			for (const e of events.fortLost ?? []) {
-				messages.push({ title: `${e.name} perdido!`, body: `${e.otherRealm} capturou ${e.name}, território de ${myRealm}.`, url: "/" });
+				messages.push({ title: `${myRealm} perdeu ${e.name} para ${e.otherRealm}`, body: "", url: "/" });
 			}
 		}
 		if (settings.wallLostAlerts) {
 			for (const e of events.wallLost ?? []) {
-				messages.push({ title: `${e.name} perdida!`, body: `${e.otherRealm} invadiu ${e.name}, território de ${myRealm}.`, url: "/" });
+				messages.push({ title: `${myRealm} perdeu ${e.name} para ${e.otherRealm}`, body: "", url: "/" });
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			for (const e of events.fortCaptured ?? []) {
-				messages.push({ title: `${myRealm} tomou ${e.name}!`, body: `Território de ${e.otherRealm} agora sob controle de ${myRealm}.`, url: "/" });
+				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			for (const e of events.wallCaptured ?? []) {
-				messages.push({ title: `${myRealm} capturou ${e.name}!`, body: `Território de ${e.otherRealm} agora sob controle de ${myRealm}.`, url: "/" });
+				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
 			}
 		}
 		if (settings.gemLostAlerts) {
 			for (const e of events.gemLost ?? []) {
-				const body = e.otherRealm ? `${e.otherRealm} tomou a gema, território de ${myRealm}.` : `A gema ficou sem dono, território de ${myRealm}.`;
-				messages.push({ title: `${e.name} perdida!`, body, url: "/" });
+				const title = e.otherRealm ? `${myRealm} perdeu ${e.name} para ${e.otherRealm}` : `${myRealm} perdeu ${e.name} (ficou sem dono)`;
+				messages.push({ title, body: "", url: "/" });
 			}
 		}
 		if (settings.gemCapturedAlerts) {
 			for (const e of events.gemCaptured ?? []) {
-				messages.push({ title: `${myRealm} capturou a ${e.name}!`, body: `Território de ${e.otherRealm} agora sob controle de ${myRealm}.`, url: "/" });
+				messages.push({ title: `${myRealm} capturou ${e.name}`, body: "", url: "/" });
 			}
 		}
 	}

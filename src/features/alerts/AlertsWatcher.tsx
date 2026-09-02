@@ -76,28 +76,28 @@ export function AlertsWatcher() {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(lost, (f) => f.name, fortLostRef)) {
 				const name = cleanFortLabel(fort.name);
-				fireAlert(`${name} perdido!`, `${fort.owner} capturou ${name}, território de ${myRealm}.`, REALM_COLOR[fort.owner]);
+				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.wallLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(lost, (f) => f.name, wallLostRef)) {
 				const name = cleanFortLabel(fort.name);
-				fireAlert(`${name} perdida!`, `${fort.owner} invadiu ${name}, território de ${myRealm}.`, REALM_COLOR[fort.owner]);
+				fireAlert(`${myRealm} perdeu ${name} para ${fort.owner}`, "", REALM_COLOR[fort.owner]);
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(captured, (f) => f.name, fortCapturedRef)) {
 				const name = cleanFortLabel(fort.name);
-				fireAlert(`${myRealm} tomou ${name}!`, `Território de ${fort.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) === "wall");
 			for (const fort of newSince(captured, (f) => f.name, wallCapturedRef)) {
 				const name = cleanFortLabel(fort.name);
-				fireAlert(`${myRealm} capturou ${name}!`, `Território de ${fort.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+				fireAlert(`${myRealm} capturou ${name}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 	}, [forts, settings.myRealm, settings.fortLostAlerts, settings.wallLostAlerts, settings.fortCapturedAlerts, settings.wallCapturedAlerts, fireAlert]);
@@ -110,18 +110,15 @@ export function AlertsWatcher() {
 			const lost = gems.filter((g) => g.home === myRealm && g.owner !== myRealm);
 			for (const gem of newSince(lost, (g) => `${g.index}`, gemLostRef)) {
 				const label = `Gema ${gem.index + 1}`;
-				fireAlert(
-					`${label} perdida!`,
-					gem.owner ? `${gem.owner} tomou a gema, território de ${myRealm}.` : `A gema ficou sem dono, território de ${myRealm}.`,
-					gem.owner ? REALM_COLOR[gem.owner] : undefined,
-				);
+				const title = gem.owner ? `${myRealm} perdeu ${label} para ${gem.owner}` : `${myRealm} perdeu ${label} (ficou sem dono)`;
+				fireAlert(title, "", gem.owner ? REALM_COLOR[gem.owner] : undefined);
 			}
 		}
 		if (settings.gemCapturedAlerts) {
 			const captured = gems.filter((g) => g.owner === myRealm && g.home !== myRealm);
 			for (const gem of newSince(captured, (g) => `${g.index}`, gemCapturedRef)) {
 				const label = `Gema ${gem.index + 1}`;
-				fireAlert(`${myRealm} capturou a ${label}!`, `Território de ${gem.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+				fireAlert(`${myRealm} capturou ${label}`, "", REALM_COLOR[myRealm]);
 			}
 		}
 	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, fireAlert]);
