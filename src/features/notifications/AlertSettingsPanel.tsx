@@ -1,8 +1,18 @@
 import { useState } from "react";
 import { REALMS, type Realm } from "../../data/realms";
 import { useAlertSettings } from "../alerts/AlertSettingsContext";
+import type { BooleanAlertKey } from "../alerts/alertSettings";
 import { notificationSupport, requestNotificationPermission, type NotificationSupport } from "../alerts/notify";
 import styles from "./AlertSettingsPanel.module.css";
+
+const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; label: string }[] = [
+	{ key: "fortCapturedAlerts", label: "Forte tomado" },
+	{ key: "fortLostAlerts", label: "Forte perdido" },
+	{ key: "wallLostAlerts", label: "Muralha perdida" },
+	{ key: "wallCapturedAlerts", label: "Muralha capturada" },
+	{ key: "gemLostAlerts", label: "Gem perdida" },
+	{ key: "gemCapturedAlerts", label: "Gem capturada" },
+];
 
 const BOSS_ALERT_OPTIONS: { minutes: number; label: string }[] = [
 	{ minutes: 60, label: "1 hora antes" },
@@ -21,7 +31,7 @@ const PERMISSION_LABEL: Record<NotificationSupport, string> = {
  *  Notifications tab alongside the admin-curated timeline, but writes to
  *  `AlertSettingsContext` (localStorage) instead of the notifications API. */
 export function AlertSettingsPanel() {
-	const { settings, setMyRealm, setRealmInvadedAlerts, setRealmInvadingAlerts, toggleBossAlertMinute } = useAlertSettings();
+	const { settings, setMyRealm, setFlag, toggleBossAlertMinute } = useAlertSettings();
 	const [permission, setPermission] = useState<NotificationSupport>(() => notificationSupport());
 
 	async function handleEnableNotifications() {
@@ -66,28 +76,21 @@ export function AlertSettingsPanel() {
 
 			<div className={styles.group}>
 				<span className={styles.groupLabel}>
-					Invasões
+					Eventos do meu reino
 					{!settings.myRealm && <span className={styles.hint}> (escolha seu reino acima)</span>}
 				</span>
 				<div className={styles.checkRow}>
-					<label className={styles.toggleRow}>
-						<input
-							type="checkbox"
-							checked={settings.realmInvadedAlerts}
-							disabled={!settings.myRealm}
-							onChange={(e) => setRealmInvadedAlerts(e.target.checked)}
-						/>
-						<span>Meu reino está sendo invadido (perdeu um forte)</span>
-					</label>
-					<label className={styles.toggleRow}>
-						<input
-							type="checkbox"
-							checked={settings.realmInvadingAlerts}
-							disabled={!settings.myRealm}
-							onChange={(e) => setRealmInvadingAlerts(e.target.checked)}
-						/>
-						<span>Meu reino está invadindo (capturou um forte)</span>
-					</label>
+					{EVENT_ALERT_OPTIONS.map((opt) => (
+						<label key={opt.key} className={styles.toggleRow}>
+							<input
+								type="checkbox"
+								checked={settings[opt.key]}
+								disabled={!settings.myRealm}
+								onChange={(e) => setFlag(opt.key, e.target.checked)}
+							/>
+							<span>{opt.label}</span>
+						</label>
+					))}
 				</div>
 			</div>
 

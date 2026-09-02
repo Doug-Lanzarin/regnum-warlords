@@ -1,14 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { BOSS_INFO, BOSS_ORDER } from "../../data/bossConstants";
 import { REALM_COLOR } from "../../data/realms";
 import { useBossTimers } from "../bosses/useBossTimers";
 import { useWzStatus } from "../wz/useWzStatus";
-import { computeFortStatuses } from "../wz/wzEngine";
+import { computeFortStatuses, computeGemStatuses } from "../wz/wzEngine";
+import { getFortKind } from "../wz/wzIcons";
 import { useAlertSettings } from "./AlertSettingsContext";
 import { AlertToastStack, type AlertToast } from "./AlertToastStack";
 import { fireOsNotification } from "./notify";
 
 let toastSeq = 0;
+
+const cleanFortLabel = (name: string) => name.replace(/\s*\(\d+\)$/, "");
+
+/** Diffs `items` against the previous call's snapshot (keyed by `keyOf`),
+ *  returning the ones that are new since then, and reseeds the ref either
+ *  way. `null` in the ref means "no baseline yet" (first run after mount or
+ *  a realm switch), which always yields no results — so a toggle only
+ *  starts alerting from the point it's turned on, never for state that
+ *  already existed. */
+function newSince<T>(items: T[], keyOf: (item: T) => string, ref: RefObject<Set<string> | null>): T[] {
+	const currentKeys = new Set(items.map(keyOf));
+	const known = ref.current;
+	ref.current = currentKeys;
+	return known ? items.filter((item) => !known.has(keyOf(item))) : [];
+}
 
 /** Mounted once in `AppLayout`, outside the routed pages, so it keeps
  *  watching (and can pop a toast/notification) no matter which tab the
@@ -30,64 +46,85 @@ export function AlertsWatcher() {
 		fireOsNotification(title, body, id);
 	}, []);
 
-	// -- fort invasion watch (defense: my territory falling to an invader,
-	//    and offense: my realm capturing someone else's territory) --
+	// -- fort / wall / gem watch --
 	const forts = useMemo(() => (wzData ? computeFortStatuses(wzData) : []), [wzData]);
-	const knownInvadedRef = useRef<Set<string> | null>(null);
-	const knownInvadingRef = useRef<Set<string> | null>(null);
+	const gems = useMemo(() => (wzData ? computeGemStatuses(wzData) : []), [wzData]);
+
+	const fortCapturedRef = useRef<Set<string> | null>(null);
+	const fortLostRef = useRef<Set<string> | null>(null);
+	const wallCapturedRef = useRef<Set<string> | null>(null);
+	const wallLostRef = useRef<Set<string> | null>(null);
+	const gemCapturedRef = useRef<Set<string> | null>(null);
+	const gemLostRef = useRef<Set<string> | null>(null);
 
 	useEffect(() => {
-		// Realm changed — reseed both baselines instead of firing for state
+		// Realm changed — reseed every baseline instead of firing for state
 		// that already existed before the switch.
-		knownInvadedRef.current = null;
-		knownInvadingRef.current = null;
+		fortCapturedRef.current = null;
+		fortLostRef.current = null;
+		wallCapturedRef.current = null;
+		wallLostRef.current = null;
+		gemCapturedRef.current = null;
+		gemLostRef.current = null;
 	}, [settings.myRealm]);
 
 	useEffect(() => {
-		if (!settings.myRealm || forts.length === 0) return;
+		const myRealm = settings.myRealm;
+		if (!myRealm || forts.length === 0) return;
 
-		if (settings.realmInvadedAlerts) {
-			// Forts of my own territory currently held by an invader.
-			const myForts = forts.filter((f) => f.home === settings.myRealm);
-			const invadedNow = new Set(myForts.filter((f) => f.captured).map((f) => f.name));
-			const known = knownInvadedRef.current;
-			if (known) {
-				for (const name of invadedNow) {
-					if (known.has(name)) continue;
-					const fort = myForts.find((f) => f.name === name);
-					if (!fort) continue;
-					const cleanName = fort.name.replace(/\s*\(\d+\)$/, "");
-					fireAlert(
-						`${cleanName} invadido!`,
-						`${fort.owner} capturou ${cleanName}, território de ${settings.myRealm}.`,
-						REALM_COLOR[fort.owner],
-					);
-				}
+		if (settings.fortLostAlerts) {
+			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) !== "wall");
+			for (const fort of newSince(lost, (f) => f.name, fortLostRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${name} perdido!`, `${fort.owner} capturou ${name}, território de ${myRealm}.`, REALM_COLOR[fort.owner]);
 			}
-			knownInvadedRef.current = invadedNow;
 		}
+		if (settings.wallLostAlerts) {
+			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) === "wall");
+			for (const fort of newSince(lost, (f) => f.name, wallLostRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${name} perdida!`, `${fort.owner} invadiu ${name}, território de ${myRealm}.`, REALM_COLOR[fort.owner]);
+			}
+		}
+		if (settings.fortCapturedAlerts) {
+			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) !== "wall");
+			for (const fort of newSince(captured, (f) => f.name, fortCapturedRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${myRealm} tomou ${name}!`, `Território de ${fort.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+			}
+		}
+		if (settings.wallCapturedAlerts) {
+			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) === "wall");
+			for (const fort of newSince(captured, (f) => f.name, wallCapturedRef)) {
+				const name = cleanFortLabel(fort.name);
+				fireAlert(`${myRealm} capturou ${name}!`, `Território de ${fort.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+			}
+		}
+	}, [forts, settings.myRealm, settings.fortLostAlerts, settings.wallLostAlerts, settings.fortCapturedAlerts, settings.wallCapturedAlerts, fireAlert]);
 
-		if (settings.realmInvadingAlerts) {
-			// Forts outside my territory that my realm currently holds.
-			const conqueredForts = forts.filter((f) => f.owner === settings.myRealm && f.home !== settings.myRealm);
-			const invadingNow = new Set(conqueredForts.map((f) => f.name));
-			const known = knownInvadingRef.current;
-			if (known) {
-				for (const name of invadingNow) {
-					if (known.has(name)) continue;
-					const fort = conqueredForts.find((f) => f.name === name);
-					if (!fort) continue;
-					const cleanName = fort.name.replace(/\s*\(\d+\)$/, "");
-					fireAlert(
-						`${settings.myRealm} capturou ${cleanName}!`,
-						`Território de ${fort.home} agora sob controle de ${settings.myRealm}.`,
-						REALM_COLOR[settings.myRealm],
-					);
-				}
+	useEffect(() => {
+		const myRealm = settings.myRealm;
+		if (!myRealm || gems.length === 0) return;
+
+		if (settings.gemLostAlerts) {
+			const lost = gems.filter((g) => g.home === myRealm && g.owner !== myRealm);
+			for (const gem of newSince(lost, (g) => `${g.index}`, gemLostRef)) {
+				const label = `Gema ${gem.index + 1}`;
+				fireAlert(
+					`${label} perdida!`,
+					gem.owner ? `${gem.owner} tomou a gema, território de ${myRealm}.` : `A gema ficou sem dono, território de ${myRealm}.`,
+					gem.owner ? REALM_COLOR[gem.owner] : undefined,
+				);
 			}
-			knownInvadingRef.current = invadingNow;
 		}
-	}, [forts, settings.realmInvadedAlerts, settings.realmInvadingAlerts, settings.myRealm, fireAlert]);
+		if (settings.gemCapturedAlerts) {
+			const captured = gems.filter((g) => g.owner === myRealm && g.home !== myRealm);
+			for (const gem of newSince(captured, (g) => `${g.index}`, gemCapturedRef)) {
+				const label = `Gema ${gem.index + 1}`;
+				fireAlert(`${myRealm} capturou a ${label}!`, `Território de ${gem.home} agora sob controle de ${myRealm}.`, REALM_COLOR[myRealm]);
+			}
+		}
+	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, fireAlert]);
 
 	// -- boss spawn countdown watch --
 	const alertedSpawnsRef = useRef<Set<string>>(new Set());
