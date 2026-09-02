@@ -2,11 +2,15 @@
 	"categories": {
 		"fortLost": {
 			"Alsius": [],
-			"Ignis": [],
+			"Ignis": [
+				"Fort Samal (6)"
+			],
 			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [],
+			"Alsius": [
+				"Fort Samal (6)"
+			],
 			"Ignis": [],
 			"Syrtis": []
 		},
@@ -18,7 +22,6 @@
 			],
 			"Ignis": [
 				"Fort Menirah (5)",
-				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
@@ -91,5 +94,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788383406725
+	"lastTickAt": 1788383763557
 }
