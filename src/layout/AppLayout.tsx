@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AlertsWatcher } from "../features/alerts/AlertsWatcher";
 import { BottomTabBar } from "./BottomTabBar";
 import styles from "./AppLayout.module.css";
 
@@ -15,6 +16,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 				</p>
 			</footer>
 			<BottomTabBar />
+			<AlertsWatcher />
 		</div>
 	);
 }
