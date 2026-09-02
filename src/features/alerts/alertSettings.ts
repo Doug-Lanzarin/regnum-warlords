@@ -1,28 +1,6 @@
-import type { Realm } from "../../data/realms";
+import type { AlertSettings } from "../../types/alertSettings";
 
-/** Personal alert preferences — local to this device only (no account, no
- *  server), separate from the public/admin-curated notifications timeline.
- *  Fort/wall/gem each get their own captured (offense) and lost (defense)
- *  toggle since a player may only care about some of these. */
-export interface AlertSettings {
-	myRealm: Realm | null;
-	fortCapturedAlerts: boolean;
-	fortLostAlerts: boolean;
-	wallCapturedAlerts: boolean;
-	wallLostAlerts: boolean;
-	gemCapturedAlerts: boolean;
-	gemLostAlerts: boolean;
-	/** Minutes-before-spawn thresholds the user wants a heads-up for, e.g. [60, 30, 15]. */
-	bossAlertMinutes: number[];
-}
-
-export type BooleanAlertKey =
-	| "fortCapturedAlerts"
-	| "fortLostAlerts"
-	| "wallCapturedAlerts"
-	| "wallLostAlerts"
-	| "gemCapturedAlerts"
-	| "gemLostAlerts";
+export type { AlertSettings, BooleanAlertKey } from "../../types/alertSettings";
 
 const STORAGE_KEY = "rw_alert_settings";
 
