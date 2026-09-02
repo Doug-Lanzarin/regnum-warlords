@@ -25,12 +25,21 @@ registerSW({
 			});
 		};
 
-		// Covers "reopened the app"/"switched back to this tab" — the
-		// scenario an installed PWA hits every time it's brought back to the
-		// foreground, same pattern as the visibilitychange re-check in
+		// Covers "reopened the app"/"switched back to this tab" on most
+		// browsers — same pattern as the visibilitychange re-check in
 		// useNotifications.ts.
 		document.addEventListener("visibilitychange", () => {
 			if (document.visibilityState === "visible") check();
+		});
+
+		// Safari/WebKit (notably iOS, in both a plain tab and an installed
+		// "Add to Home Screen" app) very often restores a backgrounded page
+		// from its back/forward cache instead of re-running any JS —
+		// `visibilitychange` isn't reliable there, but a bfcache restore
+		// always fires `pageshow` with `persisted: true`, so that's the
+		// trigger that actually works on iOS.
+		window.addEventListener("pageshow", (event) => {
+			if (event.persisted) check();
 		});
 
 		setInterval(check, UPDATE_CHECK_INTERVAL_MS);
