@@ -21,7 +21,7 @@ const PERMISSION_LABEL: Record<NotificationSupport, string> = {
  *  Notifications tab alongside the admin-curated timeline, but writes to
  *  `AlertSettingsContext` (localStorage) instead of the notifications API. */
 export function AlertSettingsPanel() {
-	const { settings, setMyRealm, setFortInvasionAlerts, toggleBossAlertMinute } = useAlertSettings();
+	const { settings, setMyRealm, setRealmInvadedAlerts, setRealmInvadingAlerts, toggleBossAlertMinute } = useAlertSettings();
 	const [permission, setPermission] = useState<NotificationSupport>(() => notificationSupport());
 
 	async function handleEnableNotifications() {
@@ -64,18 +64,32 @@ export function AlertSettingsPanel() {
 				</select>
 			</div>
 
-			<label className={styles.toggleRow}>
-				<input
-					type="checkbox"
-					checked={settings.fortInvasionAlerts}
-					disabled={!settings.myRealm}
-					onChange={(e) => setFortInvasionAlerts(e.target.checked)}
-				/>
-				<span>
-					Avisar quando um forte do meu reino for invadido
+			<div className={styles.group}>
+				<span className={styles.groupLabel}>
+					Invasões
 					{!settings.myRealm && <span className={styles.hint}> (escolha seu reino acima)</span>}
 				</span>
-			</label>
+				<div className={styles.checkRow}>
+					<label className={styles.toggleRow}>
+						<input
+							type="checkbox"
+							checked={settings.realmInvadedAlerts}
+							disabled={!settings.myRealm}
+							onChange={(e) => setRealmInvadedAlerts(e.target.checked)}
+						/>
+						<span>Meu reino está sendo invadido (perdeu um forte)</span>
+					</label>
+					<label className={styles.toggleRow}>
+						<input
+							type="checkbox"
+							checked={settings.realmInvadingAlerts}
+							disabled={!settings.myRealm}
+							onChange={(e) => setRealmInvadingAlerts(e.target.checked)}
+						/>
+						<span>Meu reino está invadindo (capturou um forte)</span>
+					</label>
+				</div>
+			</div>
 
 			<div className={styles.group}>
 				<span className={styles.groupLabel}>Avisar antes dos épicos nascerem</span>

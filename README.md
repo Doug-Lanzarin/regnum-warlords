@@ -58,9 +58,10 @@ npm run preview   # serve o build de produção localmente, para testar
   lugar nenhum — sem banco de dados nem servidor próprio, ver
   [Configurando as notificações](#configurando-as-notificações) abaixo. A
   mesma página tem um painel de **Alertas** pessoais, local ao aparelho (sem
-  cadastro, guardado só no `localStorage`): escolher "meu reino" e ser
-  avisado quando um forte dele for invadido, e/ou avisos 1h/30min/15min antes
-  de cada épico nascer. Os avisos aparecem como toast dentro do app e,
+  cadastro, guardado só no `localStorage`): escolher "meu reino" e ativar,
+  independentemente, aviso de defesa (um forte do meu reino foi invadido) e/ou
+  de ataque (meu reino capturou um forte de outro reino), além de avisos
+  1h/30min/15min antes de cada épico nascer. Os avisos aparecem como toast dentro do app e,
   se a permissão de notificações do navegador for concedida, também como
   notificação do sistema — funcionam enquanto o app estiver aberto (aba
   ativa ou minimizada), não é push de verdade (exigiria servidor próprio
