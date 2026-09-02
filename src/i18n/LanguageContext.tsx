@@ -10,14 +10,10 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-function detectBrowserLang(): Lang {
-	if (typeof navigator === "undefined") return "pt";
-	const code = navigator.language?.toLowerCase() ?? "";
-	if (code.startsWith("pt")) return "pt";
-	if (code.startsWith("es")) return "es";
-	return "en";
-}
-
+/** Defaults to Portuguese — the app's original and primary audience —
+ *  rather than detecting the browser's language, so an existing user never
+ *  gets unexpectedly switched to another language just because their OS
+ *  locale isn't `pt*`. Only an explicit pick via `LanguagePicker` changes it. */
 function readStoredLang(): Lang {
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY);
@@ -25,7 +21,7 @@ function readStoredLang(): Lang {
 	} catch {
 		// ignore
 	}
-	return detectBrowserLang();
+	return "pt";
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
