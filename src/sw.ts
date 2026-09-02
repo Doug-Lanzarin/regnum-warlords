@@ -1,10 +1,25 @@
 /// <reference lib="webworker" />
+import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 import { precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { NetworkFirst } from "workbox-strategies";
 
 declare const self: ServiceWorkerGlobalScope;
+
+// `registerType: "autoUpdate"` (vite.config.ts) only auto-*checks* for a new
+// SW — with the custom `injectManifest` strategy this project uses, it's on
+// us to make a detected update actually take over: workbox-window's client
+// script posts `{type: "SKIP_WAITING"}` to the waiting worker, which does
+// nothing unless the SW itself listens and calls `skipWaiting()`. Without
+// this, a new deploy silently never reaches an open tab — the old SW just
+// keeps serving its stale precached shell forever. `clientsClaim()` is the
+// matching half: once activated, take control of already-open pages
+// immediately instead of only affecting the *next* navigation.
+self.addEventListener("message", (event) => {
+	if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+clientsClaim();
 
 // Keeps the same offline precache behavior the old `generateSW`-mode
 // service worker gave the Trainer's bundled reference data — this custom
