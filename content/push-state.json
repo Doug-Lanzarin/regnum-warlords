@@ -1,24 +1,20 @@
 {
 	"categories": {
 		"fortLost": {
-			"Alsius": [
-				"Fort Aggersborg (2)",
-				"Fort Trelleborg (3)"
-			],
+			"Alsius": [],
 			"Ignis": [],
 			"Syrtis": []
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [
-				"Fort Aggersborg (2)",
-				"Fort Trelleborg (3)"
-			],
+			"Ignis": [],
 			"Syrtis": []
 		},
 		"fortRecovered": {
 			"Alsius": [
-				"Imperia Castle (1)"
+				"Imperia Castle (1)",
+				"Fort Aggersborg (2)",
+				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
 				"Fort Menirah (5)",
@@ -95,5 +91,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788378243530
+	"lastTickAt": 1788378662551
 }
