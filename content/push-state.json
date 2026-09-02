@@ -1,0 +1,99 @@
+{
+	"categories": {
+		"fortLost": {
+			"Alsius": [
+				"Fort Aggersborg (2)",
+				"Fort Trelleborg (3)"
+			],
+			"Ignis": [],
+			"Syrtis": []
+		},
+		"fortCaptured": {
+			"Alsius": [],
+			"Ignis": [
+				"Fort Aggersborg (2)",
+				"Fort Trelleborg (3)"
+			],
+			"Syrtis": []
+		},
+		"fortRecovered": {
+			"Alsius": [
+				"Imperia Castle (1)"
+			],
+			"Ignis": [
+				"Fort Menirah (5)",
+				"Fort Samal (6)",
+				"Shaanarid Castle (7)"
+			],
+			"Syrtis": [
+				"Fort Algaros (9)",
+				"Fort Herbred (10)",
+				"Eferias Castle (11)"
+			]
+		},
+		"wallLost": {
+			"Alsius": [],
+			"Ignis": [],
+			"Syrtis": []
+		},
+		"wallCaptured": {
+			"Alsius": [],
+			"Ignis": [],
+			"Syrtis": []
+		},
+		"wallRecovered": {
+			"Alsius": [
+				"Great Wall of Alsius (4)"
+			],
+			"Ignis": [
+				"Great Wall of Ignis (8)"
+			],
+			"Syrtis": [
+				"Great Wall of Syrtis (12)"
+			]
+		},
+		"gemLost": {
+			"Alsius": [
+				0,
+				2,
+				4,
+				5
+			],
+			"Ignis": [
+				6,
+				7,
+				9,
+				11
+			],
+			"Syrtis": [
+				13,
+				14,
+				15,
+				16
+			]
+		},
+		"gemCaptured": {
+			"Alsius": [],
+			"Ignis": [],
+			"Syrtis": []
+		},
+		"gemRecovered": {
+			"Alsius": [
+				1,
+				3
+			],
+			"Ignis": [
+				8,
+				10
+			],
+			"Syrtis": [
+				12,
+				17
+			]
+		}
+	},
+	"boss": {
+		"alerted": []
+	},
+	"lastTickAt": 1788376355469
+}
