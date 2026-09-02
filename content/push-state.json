@@ -1,27 +1,27 @@
 {
 	"categories": {
 		"fortLost": {
-			"Alsius": [],
-			"Ignis": [
-				"Fort Samal (6)"
+			"Alsius": [
+				"Fort Aggersborg (2)"
 			],
+			"Ignis": [],
 			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [
-				"Fort Samal (6)"
+			"Alsius": [],
+			"Ignis": [
+				"Fort Aggersborg (2)"
 			],
-			"Ignis": [],
 			"Syrtis": []
 		},
 		"fortRecovered": {
 			"Alsius": [
 				"Imperia Castle (1)",
-				"Fort Aggersborg (2)",
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
 				"Fort Menirah (5)",
+				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
@@ -94,5 +94,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788387606957
+	"lastTickAt": 1788388083209
 }
