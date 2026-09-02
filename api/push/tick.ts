@@ -16,7 +16,7 @@ import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/dif
 import { sendPush, type PushNotificationPayload } from "../_push/push";
 import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage";
 
-interface VercelLikeRequest {
+export interface VercelLikeRequest {
 	method?: string;
 	headers: Record<string, string | string[] | undefined>;
 	query: Record<string, string | string[] | undefined>;
@@ -30,7 +30,7 @@ interface VercelLikeResponse {
 const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
 const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
 
-function isAuthorized(req: VercelLikeRequest): boolean {
+export function isAuthorized(req: VercelLikeRequest): boolean {
 	const expected = process.env.PUSH_TICK_SECRET?.trim();
 	if (!expected) return false;
 	const auth = req.headers.authorization;
@@ -45,12 +45,12 @@ const LOCALE_FOR_LANG: Record<AlertSettings["lang"], string> = { pt: "pt-BR", en
  *  go through `formatFortLabel` (suffix-strip + Great Wall translation),
  *  gems build "{n}"-style labels from their index. See `diff.ts`'s
  *  `CategoryEvent` doc comment for why this can't be baked in earlier. */
-function eventDisplayName(e: CategoryEvent, lang: AlertSettings["lang"]): string {
+export function eventDisplayName(e: CategoryEvent, lang: AlertSettings["lang"]): string {
 	if (e.gemIndex !== undefined) return translate(lang, "alerts.gemLabel", { n: e.gemIndex + 1 });
 	return formatFortLabel(e.name, lang);
 }
 
-function buildMessagesFor(
+export function buildMessagesFor(
 	settings: AlertSettings,
 	eventsByRealm: Record<Realm, CategoryEvents>,
 	bossEvents: BossEvent[],
