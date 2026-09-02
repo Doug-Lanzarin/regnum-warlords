@@ -8,6 +8,12 @@ export default defineConfig({
 		react(),
 		VitePWA({
 			registerType: "autoUpdate",
+			// injectManifest (custom src/sw.ts) instead of the default
+			// generateSW — needed for the `push`/`notificationclick` handlers
+			// that back web push notifications (see src/sw.ts).
+			strategies: "injectManifest",
+			srcDir: "src",
+			filename: "sw.ts",
 			includeAssets: ["icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"],
 			manifest: {
 				id: "/",
@@ -26,24 +32,16 @@ export default defineConfig({
 					{ src: "icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
 				],
 			},
-			workbox: {
+			injectManifest: {
+				// Trainer reference data + icons bundled locally are the
+				// offline-critical assets; the live cort.ovh runtime cache is
+				// wired up by hand in src/sw.ts instead of this option (that's
+				// only for the old generateSW-mode config shape).
 				globPatterns: ["**/*.{js,css,html,svg,png,webp,json}"],
-				// Trainer reference data + icons bundled locally are the offline-critical
-				// assets; runtime-cache the live CoRT calls opportunistically.
-				runtimeCaching: [
-					{
-						urlPattern: /^https:\/\/cort\.ovh\//,
-						handler: "NetworkFirst",
-						options: {
-							cacheName: "cort-live-data",
-							networkTimeoutSeconds: 4,
-							expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
-						},
-					},
-				],
 			},
 			devOptions: {
 				enabled: true,
+				type: "module",
 			},
 		}),
 	],
