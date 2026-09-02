@@ -14,10 +14,14 @@ export interface AlertSettings {
 	myRealm: Realm | null;
 	fortCapturedAlerts: boolean;
 	fortLostAlerts: boolean;
+	/** Own fort, previously held by an invader, just came back under home control. */
+	fortRecoveredAlerts: boolean;
 	wallCapturedAlerts: boolean;
 	wallLostAlerts: boolean;
+	wallRecoveredAlerts: boolean;
 	gemCapturedAlerts: boolean;
 	gemLostAlerts: boolean;
+	gemRecoveredAlerts: boolean;
 	/** Minutes-before-spawn thresholds the user wants a heads-up for, e.g. [60, 30, 15]. */
 	bossAlertMinutes: number[];
 }
@@ -25,7 +29,10 @@ export interface AlertSettings {
 export type BooleanAlertKey =
 	| "fortCapturedAlerts"
 	| "fortLostAlerts"
+	| "fortRecoveredAlerts"
 	| "wallCapturedAlerts"
 	| "wallLostAlerts"
+	| "wallRecoveredAlerts"
 	| "gemCapturedAlerts"
-	| "gemLostAlerts";
+	| "gemLostAlerts"
+	| "gemRecoveredAlerts";

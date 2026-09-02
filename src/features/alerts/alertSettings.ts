@@ -8,10 +8,13 @@ export const DEFAULT_ALERT_SETTINGS: AlertSettings = {
 	myRealm: null,
 	fortCapturedAlerts: false,
 	fortLostAlerts: false,
+	fortRecoveredAlerts: false,
 	wallCapturedAlerts: false,
 	wallLostAlerts: false,
+	wallRecoveredAlerts: false,
 	gemCapturedAlerts: false,
 	gemLostAlerts: false,
+	gemRecoveredAlerts: false,
 	bossAlertMinutes: [],
 };
 
@@ -35,10 +38,13 @@ export function readAlertSettings(): AlertSettings {
 			myRealm: parsed.myRealm ?? null,
 			fortCapturedAlerts: !!(parsed.fortCapturedAlerts ?? capturedFallback),
 			fortLostAlerts: !!(parsed.fortLostAlerts ?? lostFallback),
+			fortRecoveredAlerts: !!parsed.fortRecoveredAlerts,
 			wallCapturedAlerts: !!(parsed.wallCapturedAlerts ?? capturedFallback),
 			wallLostAlerts: !!(parsed.wallLostAlerts ?? lostFallback),
+			wallRecoveredAlerts: !!parsed.wallRecoveredAlerts,
 			gemCapturedAlerts: !!parsed.gemCapturedAlerts,
 			gemLostAlerts: !!parsed.gemLostAlerts,
+			gemRecoveredAlerts: !!parsed.gemRecoveredAlerts,
 			bossAlertMinutes: Array.isArray(parsed.bossAlertMinutes)
 				? parsed.bossAlertMinutes.filter((n) => typeof n === "number")
 				: [],

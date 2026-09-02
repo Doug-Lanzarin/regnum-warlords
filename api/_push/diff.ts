@@ -2,7 +2,7 @@ import { REALMS, type Realm } from "../../src/data/realms";
 import { getFortKind } from "../../src/data/fortKind";
 import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
 
-/** Mirrors the 6 alert categories `AlertsWatcher` tracks client-side
+/** Mirrors the 9 alert categories `AlertsWatcher` tracks client-side
  *  (`src/features/alerts/AlertsWatcher.tsx`), just computed once per tick
  *  for all 3 realms instead of once per subscriber's `myRealm` — cheap
  *  since there are only 3 realms, and it lets every subscriber share the
@@ -10,16 +10,19 @@ import type { FortStatus, GemStatus } from "../../src/features/wz/wzEngine";
 export interface CategorySets {
 	fortLost: Record<Realm, string[]>;
 	fortCaptured: Record<Realm, string[]>;
+	fortRecovered: Record<Realm, string[]>;
 	wallLost: Record<Realm, string[]>;
 	wallCaptured: Record<Realm, string[]>;
+	wallRecovered: Record<Realm, string[]>;
 	gemLost: Record<Realm, number[]>;
 	gemCaptured: Record<Realm, number[]>;
+	gemRecovered: Record<Realm, number[]>;
 }
 
 export interface CategoryEvent {
 	/** Display-ready label — clean fort/wall name, or "Gema N" for gems. */
 	name: string;
-	/** For *Lost events: who took it. For *Captured events: whose territory it was. */
+	/** For *Lost events: who took it. For *Captured events: whose territory it was. Unset for *Recovered. */
 	otherRealm: Realm | null;
 }
 
@@ -33,10 +36,13 @@ export function emptyCategorySets(): CategorySets {
 	return {
 		fortLost: emptyByRealm(),
 		fortCaptured: emptyByRealm(),
+		fortRecovered: emptyByRealm(),
 		wallLost: emptyByRealm(),
 		wallCaptured: emptyByRealm(),
+		wallRecovered: emptyByRealm(),
 		gemLost: emptyByRealm(),
 		gemCaptured: emptyByRealm(),
+		gemRecovered: emptyByRealm(),
 	};
 }
 
@@ -60,22 +66,31 @@ export function diffState(
 		const wallLost = forts.filter((f) => f.home === realm && f.captured && getFortKind(f.name) === "wall");
 		const fortCaptured = forts.filter((f) => f.owner === realm && f.home !== realm && getFortKind(f.name) !== "wall");
 		const wallCaptured = forts.filter((f) => f.owner === realm && f.home !== realm && getFortKind(f.name) === "wall");
+		const fortRecovered = forts.filter((f) => f.home === realm && !f.captured && getFortKind(f.name) !== "wall");
+		const wallRecovered = forts.filter((f) => f.home === realm && !f.captured && getFortKind(f.name) === "wall");
 		const gemLost = gems.filter((g) => g.home === realm && g.owner !== realm);
 		const gemCaptured = gems.filter((g) => g.owner === realm && g.home !== realm);
+		const gemRecovered = gems.filter((g) => g.home === realm && g.owner === realm);
 
 		next.fortLost[realm] = fortLost.map((f) => f.name);
 		next.wallLost[realm] = wallLost.map((f) => f.name);
 		next.fortCaptured[realm] = fortCaptured.map((f) => f.name);
 		next.wallCaptured[realm] = wallCaptured.map((f) => f.name);
+		next.fortRecovered[realm] = fortRecovered.map((f) => f.name);
+		next.wallRecovered[realm] = wallRecovered.map((f) => f.name);
 		next.gemLost[realm] = gemLost.map((g) => g.index);
 		next.gemCaptured[realm] = gemCaptured.map((g) => g.index);
+		next.gemRecovered[realm] = gemRecovered.map((g) => g.index);
 
 		const prevFortLost = new Set(previous.fortLost[realm]);
 		const prevWallLost = new Set(previous.wallLost[realm]);
 		const prevFortCaptured = new Set(previous.fortCaptured[realm]);
 		const prevWallCaptured = new Set(previous.wallCaptured[realm]);
+		const prevFortRecovered = new Set(previous.fortRecovered[realm]);
+		const prevWallRecovered = new Set(previous.wallRecovered[realm]);
 		const prevGemLost = new Set(previous.gemLost[realm]);
 		const prevGemCaptured = new Set(previous.gemCaptured[realm]);
+		const prevGemRecovered = new Set(previous.gemRecovered[realm]);
 
 		eventsByRealm[realm] = {
 			fortLost: fortLost
@@ -90,12 +105,21 @@ export function diffState(
 			wallCaptured: wallCaptured
 				.filter((f) => !prevWallCaptured.has(f.name))
 				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: f.home })),
+			fortRecovered: fortRecovered
+				.filter((f) => !prevFortRecovered.has(f.name))
+				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: null })),
+			wallRecovered: wallRecovered
+				.filter((f) => !prevWallRecovered.has(f.name))
+				.map((f) => ({ name: cleanFortLabel(f.name), otherRealm: null })),
 			gemLost: gemLost
 				.filter((g) => !prevGemLost.has(g.index))
 				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: g.owner })),
 			gemCaptured: gemCaptured
 				.filter((g) => !prevGemCaptured.has(g.index))
 				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: g.home })),
+			gemRecovered: gemRecovered
+				.filter((g) => !prevGemRecovered.has(g.index))
+				.map((g) => ({ name: `Gema ${g.index + 1}`, otherRealm: null })),
 		};
 	}
 
