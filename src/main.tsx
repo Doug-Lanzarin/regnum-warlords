@@ -5,6 +5,7 @@ import { AlertSettingsProvider } from "./features/alerts/AlertSettingsContext";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { ThemeProvider } from "./theme/ThemeContext";
 import "./styles/global.css";
+import "./registerServiceWorker";
 import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
