@@ -6,16 +6,13 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [],
-			"Syrtis": [
-				"Fort Algaros (9)"
-			]
+			"Syrtis": []
 		},
 		"fortCaptured": {
 			"Alsius": [],
 			"Ignis": [
 				"Fort Aggersborg (2)",
-				"Fort Trelleborg (3)",
-				"Fort Algaros (9)"
+				"Fort Trelleborg (3)"
 			],
 			"Syrtis": []
 		},
@@ -29,6 +26,7 @@
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
+				"Fort Algaros (9)",
 				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
@@ -97,5 +95,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788377523310
+	"lastTickAt": 1788378243530
 }
