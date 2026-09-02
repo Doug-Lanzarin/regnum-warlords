@@ -1,19 +1,21 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortActivityChart, type FortActivityRange } from "../features/wz/FortActivityChart";
 import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
+import { FortHistoryModal } from "../features/wz/FortHistoryModal";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
 import { useEventsDump } from "../features/wz/useEventsDump";
 import { useWzStats } from "../features/wz/useWzStats";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { FORT_ACTIVITY_WINDOW_MS } from "../data/wzConstants";
-import { computeFortStatuses, computeGemStatuses } from "../features/wz/wzEngine";
+import { computeFortStatuses, computeGemStatuses, type FortStatus } from "../features/wz/wzEngine";
 import {
 	computeDragonWishes,
 	computeEventLog,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
+	computeFortHistory,
 	type RealmActivityCount,
 } from "../features/wz/wzEventsEngine";
 import { formatHourMinute } from "../utils/time";
@@ -24,6 +26,7 @@ export function WzStatusPage() {
 	const { data, loading, error, now, lastUpdated, refresh } = useWzStatus();
 	const { events: eventsDump } = useEventsDump();
 	const { reports } = useWzStats();
+	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
@@ -37,6 +40,10 @@ export function WzStatusPage() {
 			"90d": reports ? computeFortActivityFromStats(reports.ninetyDay) : null,
 		}),
 		[eventsDump, now, reports],
+	);
+	const fortHistory = useMemo(
+		() => (selectedFort ? computeFortHistory(eventsDump, selectedFort.name) : []),
+		[eventsDump, selectedFort],
 	);
 
 	if (loading && !data) {
@@ -74,7 +81,16 @@ export function WzStatusPage() {
 				{error && <span className={styles.staleWarning}>Falha ao atualizar — mostrando o último dado obtido.</span>}
 				{lastUpdated && <span className={styles.updated}>Atualizado às {formatHourMinute(lastUpdated)}</span>}
 			</div>
-			<WzMap forts={forts} />
+			<WzMap forts={forts} onSelectFort={setSelectedFort} />
+			{selectedFort && (
+				<FortHistoryModal
+					fortName={selectedFort.name}
+					owner={selectedFort.owner}
+					now={now}
+					history={fortHistory}
+					onClose={() => setSelectedFort(null)}
+				/>
+			)}
 			<FortsSection forts={forts} now={now} />
 			<GemsSection gems={gems} />
 			{wishes.length > 0 && (
