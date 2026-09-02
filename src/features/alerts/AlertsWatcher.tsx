@@ -110,7 +110,7 @@ export function AlertsWatcher() {
 			const lost = gems.filter((g) => g.home === myRealm && g.owner !== myRealm);
 			for (const gem of newSince(lost, (g) => `${g.index}`, gemLostRef)) {
 				const label = `Gema ${gem.index + 1}`;
-				const title = gem.owner ? `${myRealm} perdeu ${label} para ${gem.owner}` : `${myRealm} perdeu ${label} (ficou sem dono)`;
+				const title = gem.owner ? `${myRealm} perdeu ${label} para ${gem.owner}` : `${myRealm} perdeu ${label}`;
 				fireAlert(title, "", gem.owner ? REALM_COLOR[gem.owner] : undefined);
 			}
 		}
