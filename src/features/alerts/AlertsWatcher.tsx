@@ -30,36 +30,64 @@ export function AlertsWatcher() {
 		fireOsNotification(title, body, id);
 	}, []);
 
-	// -- fort invasion watch --
+	// -- fort invasion watch (defense: my territory falling to an invader,
+	//    and offense: my realm capturing someone else's territory) --
 	const forts = useMemo(() => (wzData ? computeFortStatuses(wzData) : []), [wzData]);
-	const knownCapturedRef = useRef<Set<string> | null>(null);
+	const knownInvadedRef = useRef<Set<string> | null>(null);
+	const knownInvadingRef = useRef<Set<string> | null>(null);
 
 	useEffect(() => {
-		// Realm changed — reseed the baseline instead of firing for invasions
+		// Realm changed — reseed both baselines instead of firing for state
 		// that already existed before the switch.
-		knownCapturedRef.current = null;
+		knownInvadedRef.current = null;
+		knownInvadingRef.current = null;
 	}, [settings.myRealm]);
 
 	useEffect(() => {
-		if (!settings.fortInvasionAlerts || !settings.myRealm || forts.length === 0) return;
-		const myForts = forts.filter((f) => f.home === settings.myRealm);
-		const capturedNow = new Set(myForts.filter((f) => f.captured).map((f) => f.name));
-		const known = knownCapturedRef.current;
-		if (known) {
-			for (const name of capturedNow) {
-				if (known.has(name)) continue;
-				const fort = myForts.find((f) => f.name === name);
-				if (!fort) continue;
-				const cleanName = fort.name.replace(/\s*\(\d+\)$/, "");
-				fireAlert(
-					`${cleanName} invadido!`,
-					`${fort.owner} capturou ${cleanName}, território de ${settings.myRealm}.`,
-					REALM_COLOR[fort.owner],
-				);
+		if (!settings.myRealm || forts.length === 0) return;
+
+		if (settings.realmInvadedAlerts) {
+			// Forts of my own territory currently held by an invader.
+			const myForts = forts.filter((f) => f.home === settings.myRealm);
+			const invadedNow = new Set(myForts.filter((f) => f.captured).map((f) => f.name));
+			const known = knownInvadedRef.current;
+			if (known) {
+				for (const name of invadedNow) {
+					if (known.has(name)) continue;
+					const fort = myForts.find((f) => f.name === name);
+					if (!fort) continue;
+					const cleanName = fort.name.replace(/\s*\(\d+\)$/, "");
+					fireAlert(
+						`${cleanName} invadido!`,
+						`${fort.owner} capturou ${cleanName}, território de ${settings.myRealm}.`,
+						REALM_COLOR[fort.owner],
+					);
+				}
 			}
+			knownInvadedRef.current = invadedNow;
 		}
-		knownCapturedRef.current = capturedNow;
-	}, [forts, settings.fortInvasionAlerts, settings.myRealm, fireAlert]);
+
+		if (settings.realmInvadingAlerts) {
+			// Forts outside my territory that my realm currently holds.
+			const conqueredForts = forts.filter((f) => f.owner === settings.myRealm && f.home !== settings.myRealm);
+			const invadingNow = new Set(conqueredForts.map((f) => f.name));
+			const known = knownInvadingRef.current;
+			if (known) {
+				for (const name of invadingNow) {
+					if (known.has(name)) continue;
+					const fort = conqueredForts.find((f) => f.name === name);
+					if (!fort) continue;
+					const cleanName = fort.name.replace(/\s*\(\d+\)$/, "");
+					fireAlert(
+						`${settings.myRealm} capturou ${cleanName}!`,
+						`Território de ${fort.home} agora sob controle de ${settings.myRealm}.`,
+						REALM_COLOR[settings.myRealm],
+					);
+				}
+			}
+			knownInvadingRef.current = invadingNow;
+		}
+	}, [forts, settings.realmInvadedAlerts, settings.realmInvadingAlerts, settings.myRealm, fireAlert]);
 
 	// -- boss spawn countdown watch --
 	const alertedSpawnsRef = useRef<Set<string>>(new Set());

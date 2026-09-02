@@ -5,7 +5,8 @@ import { readAlertSettings, writeAlertSettings, type AlertSettings } from "./ale
 interface AlertSettingsContextValue {
 	settings: AlertSettings;
 	setMyRealm: (realm: Realm | null) => void;
-	setFortInvasionAlerts: (on: boolean) => void;
+	setRealmInvadedAlerts: (on: boolean) => void;
+	setRealmInvadingAlerts: (on: boolean) => void;
 	toggleBossAlertMinute: (minute: number) => void;
 }
 
@@ -29,7 +30,8 @@ export function AlertSettingsProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const setMyRealm = useCallback((realm: Realm | null) => update({ myRealm: realm }), [update]);
-	const setFortInvasionAlerts = useCallback((on: boolean) => update({ fortInvasionAlerts: on }), [update]);
+	const setRealmInvadedAlerts = useCallback((on: boolean) => update({ realmInvadedAlerts: on }), [update]);
+	const setRealmInvadingAlerts = useCallback((on: boolean) => update({ realmInvadingAlerts: on }), [update]);
 	const toggleBossAlertMinute = useCallback((minute: number) => {
 		setSettings((prev) => {
 			const bossAlertMinutes = prev.bossAlertMinutes.includes(minute)
@@ -42,7 +44,9 @@ export function AlertSettingsProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	return (
-		<AlertSettingsContext.Provider value={{ settings, setMyRealm, setFortInvasionAlerts, toggleBossAlertMinute }}>
+		<AlertSettingsContext.Provider
+			value={{ settings, setMyRealm, setRealmInvadedAlerts, setRealmInvadingAlerts, toggleBossAlertMinute }}
+		>
 			{children}
 		</AlertSettingsContext.Provider>
 	);
