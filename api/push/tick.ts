@@ -69,7 +69,7 @@ function buildMessagesFor(
 		}
 		if (settings.gemLostAlerts) {
 			for (const e of events.gemLost ?? []) {
-				const title = e.otherRealm ? `${myRealm} perdeu ${e.name} para ${e.otherRealm}` : `${myRealm} perdeu ${e.name} (ficou sem dono)`;
+				const title = e.otherRealm ? `${myRealm} perdeu ${e.name} para ${e.otherRealm}` : `${myRealm} perdeu ${e.name}`;
 				messages.push({ title, body: "", url: "/" });
 			}
 		}
