@@ -1,6 +1,6 @@
 /* Now the app's only navigation surface (the header was removed) — shown
-   at every screen size: docked to the bottom edge on phones, a floating
-   pill above that on wider screens. */
+   at every screen size: docked to the bottom edge on phones, a fixed bar
+   at the top on wider screens (see the `min-width: 641px` block below). */
 .bar {
 	position: fixed;
 	left: 0;
@@ -76,29 +76,30 @@
 	background: var(--links);
 }
 
-/* Tablets/desktop: detach into a floating pill instead of a full-width dock. */
+/* Tablets/desktop: move to a fixed bar at the top instead of the phone's
+   bottom dock — a floating bottom pill reads like a mobile affordance, not
+   a desktop nav. Mobile layout above stays completely untouched. */
 @media (min-width: 641px) {
 	.bar {
-		left: 50%;
-		right: auto;
-		bottom: var(--space-4);
-		transform: translateX(-50%);
-		width: max-content;
-		max-width: calc(100% - var(--space-6));
-		border: 1px solid var(--border);
-		border-radius: var(--radius-full);
-		box-shadow: var(--shadow-pop);
+		top: 0;
+		bottom: auto;
+		justify-content: center;
+		border-top: none;
+		border-bottom: 1px solid var(--border);
 		padding-bottom: 0;
 	}
 
 	.tab {
+		flex: 0 0 auto;
 		min-height: 52px;
-		padding: 8px 20px 6px;
+		padding: 8px 22px 6px;
 	}
 
-	/* The top indicator reads fine flush against a screen edge, but would
-	   poke out oddly against this pill's rounded corners. */
+	/* Flush against the top edge now, so the active indicator reads better
+	   on the inner (bottom) edge of the tab than the outer one. */
 	.tabActive::before {
-		display: none;
+		top: auto;
+		bottom: 0;
+		border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 	}
 }
