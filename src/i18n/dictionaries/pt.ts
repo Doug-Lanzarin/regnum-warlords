@@ -254,8 +254,6 @@ const pt = {
 	"alerts.gemLabel": "Gema {n}",
 	"alerts.bossSpawnTitle": "{boss} nasce em {minutes} min",
 	"alerts.bossSpawnBody": "Spawn previsto às {time}.",
-	"alerts.regionAriaLabel": "Alertas",
-	"alerts.closeAlert": "Fechar aviso",
 
 	// -- 404 --
 	"notFound.title": "Página não encontrada",

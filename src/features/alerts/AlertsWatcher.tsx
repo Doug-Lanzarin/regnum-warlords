@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { BOSS_INFO, BOSS_ORDER, bossName } from "../../data/bossConstants";
+import { useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
+import { BOSS_ORDER, bossName } from "../../data/bossConstants";
 import { formatFortLabel } from "../../data/fortKind";
-import { REALM_COLOR } from "../../data/realms";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
 import { useBossTimers } from "../bosses/useBossTimers";
@@ -9,10 +8,7 @@ import { useWzStatus } from "../wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses } from "../wz/wzEngine";
 import { getFortKind } from "../wz/wzIcons";
 import { useAlertSettings } from "./AlertSettingsContext";
-import { AlertToastStack, type AlertToast } from "./AlertToastStack";
 import { fireOsNotification } from "./notify";
-
-let toastSeq = 0;
 
 /** Diffs `items` against the previous call's snapshot (keyed by `keyOf`),
  *  returning the ones that are new since then, and reseeds the ref either
@@ -27,26 +23,21 @@ function newSince<T>(items: T[], keyOf: (item: T) => string, ref: RefObject<Set<
 	return known ? items.filter((item) => !known.has(keyOf(item))) : [];
 }
 
+let alertSeq = 0;
+
 /** Mounted once in `AppLayout`, outside the routed pages, so it keeps
- *  watching (and can pop a toast/notification) no matter which tab the
- *  user is on — polls WZ status and boss timers itself, independent of
- *  whichever page-level instances of those hooks may also be mounted. */
+ *  watching (and can fire a notification) no matter which tab the user is
+ *  on — polls WZ status and boss timers itself, independent of whichever
+ *  page-level instances of those hooks may also be mounted. */
 export function AlertsWatcher() {
 	const { settings } = useAlertSettings();
 	const { lang } = useLanguage();
 	const t = useT();
 	const { data: wzData } = useWzStatus();
 	const { data: bossData, now: bossNow } = useBossTimers();
-	const [toasts, setToasts] = useState<AlertToast[]>([]);
 
-	const dismissToast = useCallback((id: string) => {
-		setToasts((prev) => prev.filter((t) => t.id !== id));
-	}, []);
-
-	const fireAlert = useCallback((title: string, body: string, color?: string) => {
-		const id = `alert-${++toastSeq}`;
-		setToasts((prev) => [...prev, { id, title, body, color }]);
-		fireOsNotification(title, body, id);
+	const fireAlert = useCallback((title: string, body: string) => {
+		fireOsNotification(title, body, `alert-${++alertSeq}`);
 	}, []);
 
 	// -- fort / wall / gem watch --
@@ -85,42 +76,42 @@ export function AlertsWatcher() {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(lost, (f) => f.name, fortLostRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "", REALM_COLOR[fort.owner]);
+				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "");
 			}
 		}
 		if (settings.wallLostAlerts) {
 			const lost = forts.filter((f) => f.home === myRealm && f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(lost, (f) => f.name, wallLostRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "", REALM_COLOR[fort.owner]);
+				fireAlert(t("alerts.msgLost", { realm: myRealm, name, otherRealm: fort.owner }), "");
 			}
 		}
 		if (settings.fortCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(captured, (f) => f.name, fortCapturedRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "");
 			}
 		}
 		if (settings.wallCapturedAlerts) {
 			const captured = forts.filter((f) => f.owner === myRealm && f.home !== myRealm && getFortKind(f.name) === "wall");
 			for (const fort of newSince(captured, (f) => f.name, wallCapturedRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name }), "");
 			}
 		}
 		if (settings.fortRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) !== "wall");
 			for (const fort of newSince(recovered, (f) => f.name, fortRecoveredRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "");
 			}
 		}
 		if (settings.wallRecoveredAlerts) {
 			const recovered = forts.filter((f) => f.home === myRealm && !f.captured && getFortKind(f.name) === "wall");
 			for (const fort of newSince(recovered, (f) => f.name, wallRecoveredRef)) {
 				const name = formatFortLabel(fort.name, lang);
-				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name }), "");
 			}
 		}
 	}, [
@@ -148,21 +139,21 @@ export function AlertsWatcher() {
 				const title = gem.owner
 					? t("alerts.msgLost", { realm: myRealm, name: label, otherRealm: gem.owner })
 					: t("alerts.msgLostNoOwner", { realm: myRealm, name: label });
-				fireAlert(title, "", gem.owner ? REALM_COLOR[gem.owner] : undefined);
+				fireAlert(title, "");
 			}
 		}
 		if (settings.gemCapturedAlerts) {
 			const captured = gems.filter((g) => g.owner === myRealm && g.home !== myRealm);
 			for (const gem of newSince(captured, (g) => `${g.index}`, gemCapturedRef)) {
 				const label = t("alerts.gemLabel", { n: gem.index + 1 });
-				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name: label }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgCaptured", { realm: myRealm, name: label }), "");
 			}
 		}
 		if (settings.gemRecoveredAlerts) {
 			const recovered = gems.filter((g) => g.home === myRealm && g.owner === myRealm);
 			for (const gem of newSince(recovered, (g) => `${g.index}`, gemRecoveredRef)) {
 				const label = t("alerts.gemLabel", { n: gem.index + 1 });
-				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name: label }), "", REALM_COLOR[myRealm]);
+				fireAlert(t("alerts.msgRecovered", { realm: myRealm, name: label }), "");
 			}
 		}
 	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, settings.gemRecoveredAlerts, t, fireAlert]);
@@ -190,11 +181,10 @@ export function AlertsWatcher() {
 				fireAlert(
 					t("alerts.bossSpawnTitle", { boss: bossName(key, lang), minutes }),
 					t("alerts.bossSpawnBody", { time: spawnClock }),
-					BOSS_INFO[key].color,
 				);
 			}
 		}
 	}, [bossData, bossNow, settings.bossAlertMinutes, lang, t, fireAlert]);
 
-	return <AlertToastStack toasts={toasts} onDismiss={dismissToast} />;
+	return null;
 }
