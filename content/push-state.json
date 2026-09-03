@@ -5,7 +5,8 @@
 				"Fort Aggersborg (2)"
 			],
 			"Ignis": [
-				"Fort Samal (6)"
+				"Fort Samal (6)",
+				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
 				"Fort Herbred (10)"
@@ -19,7 +20,8 @@
 				"Fort Aggersborg (2)"
 			],
 			"Syrtis": [
-				"Fort Samal (6)"
+				"Fort Samal (6)",
+				"Shaanarid Castle (7)"
 			]
 		},
 		"fortRecovered": {
@@ -28,8 +30,7 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
-				"Fort Menirah (5)",
-				"Shaanarid Castle (7)"
+				"Fort Menirah (5)"
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
@@ -104,5 +105,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788402722944
+	"lastTickAt": 1788402843075
 }
