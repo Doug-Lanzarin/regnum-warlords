@@ -87,6 +87,7 @@ export function TrainerPage() {
 							key={name}
 							trainerData={trainerData!}
 							name={name}
+							clas={build!.clas!}
 							state={build!.disciplines[name]}
 							isFirstDiscipline={isFirstDiscipline(trainerData!, build!.clas, name)}
 							charLevel={build!.level}

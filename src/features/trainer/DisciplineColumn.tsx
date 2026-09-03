@@ -1,9 +1,9 @@
 import { disciplineIconUrl } from "../../api/trainerData";
-import { MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../../data/trainerConstants";
+import { MAX_CHAR_LEVEL, MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../../data/trainerConstants";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
-import type { DisciplineState, TrainerData } from "../../types/trainer";
-import { charLevelRequiredFor, isSingleTierSpell, maxSpellRank } from "./trainerEngine";
+import type { AdvancedClass, DisciplineState, TrainerData } from "../../types/trainer";
+import { charLevelRequiredFor, isSingleTierSpell, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
 import { disciplineName as formatDisciplineName, spellName } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import { SpellRow } from "./SpellRow";
@@ -12,6 +12,7 @@ import styles from "./DisciplineColumn.module.css";
 interface Props {
 	trainerData: TrainerData;
 	name: string;
+	clas: AdvancedClass;
 	state: DisciplineState;
 	isFirstDiscipline: boolean;
 	charLevel: number;
@@ -25,6 +26,7 @@ interface Props {
 export function DisciplineColumn({
 	trainerData,
 	name,
+	clas,
 	state,
 	isFirstDiscipline,
 	charLevel,
@@ -42,10 +44,14 @@ export function DisciplineColumn({
 	const disciplineName = formatDisciplineName(discipline, lang);
 	const spriteUrl = disciplineIconUrl(version, dataSource, name);
 
+	const isWarMastery = isWarMasteryDiscipline(trainerData, clas, name);
 	const nextLevel = Math.min(state.level + 2, MAX_DISCIPLINE_LEVEL);
 	const prevLevel = Math.max(state.level - 2, MIN_DISCIPLINE_LEVEL);
 	const nextRequiredLevel = charLevelRequiredFor(trainerData, nextLevel);
-	const canRaise = state.level < MAX_DISCIPLINE_LEVEL && nextRequiredLevel <= charLevel;
+	// War Mastery can't be trained at all until the character is at the
+	// level cap — see `isWarMasteryDiscipline`'s doc comment.
+	const blockedByWarMastery = isWarMastery && charLevel !== MAX_CHAR_LEVEL;
+	const canRaise = state.level < MAX_DISCIPLINE_LEVEL && nextRequiredLevel <= charLevel && !blockedByWarMastery;
 	const levelPct = (state.level / MAX_DISCIPLINE_LEVEL) * 100;
 	// Excludes single-tier (War Mastery) spells — unlocking those doesn't
 	// spend power points, so they shouldn't count as "invested" here either.
@@ -101,7 +107,10 @@ export function DisciplineColumn({
 				<div className={`progress-track ${styles.levelTrack}`}>
 					<div className="progress-fill" style={{ width: `${levelPct}%` }} />
 				</div>
-				{!canRaise && state.level < MAX_DISCIPLINE_LEVEL && (
+				{!canRaise && state.level < MAX_DISCIPLINE_LEVEL && blockedByWarMastery && (
+					<span className={styles.levelHint}>{t("trainer.errWarMasteryRequiresMaxLevel", { level: MAX_CHAR_LEVEL })}</span>
+				)}
+				{!canRaise && state.level < MAX_DISCIPLINE_LEVEL && !blockedByWarMastery && (
 					<span className={styles.levelHint}>{t("trainer.levelHint", { level: nextRequiredLevel })}</span>
 				)}
 			</div>

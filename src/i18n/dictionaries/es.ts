@@ -186,6 +186,7 @@ const es: Record<TranslationKey, string> = {
 	"trainer.disciplinesCount": "{count} disciplinas",
 	"trainer.errOutOfRangePermitted": "Fuera del rango permitido.",
 	"trainer.errRequiresCharLevel": "Requiere personaje de nivel {level}.",
+	"trainer.errWarMasteryRequiresMaxLevel": "Maestría en Guerra solo se puede entrenar en el nivel {level}.",
 	"trainer.errLowerSkillsFirst": "Reduce antes las habilidades por encima del nuevo límite.",
 	"trainer.errInvalidDiscipline": "Disciplina inválida.",
 	"trainer.errInsufficientDisciplinePoints": "Puntos de disciplina insuficientes.",

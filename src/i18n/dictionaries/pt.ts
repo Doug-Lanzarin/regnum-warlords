@@ -189,6 +189,7 @@ const pt = {
 	"trainer.disciplinesCount": "{count} disciplinas",
 	"trainer.errOutOfRangePermitted": "Fora do intervalo permitido.",
 	"trainer.errRequiresCharLevel": "Requer personagem nível {level}.",
+	"trainer.errWarMasteryRequiresMaxLevel": "Maestria de Guerra só pode ser treinada no nível {level}.",
 	"trainer.errLowerSkillsFirst": "Reduza antes as habilidades acima do novo limite.",
 	"trainer.errInvalidDiscipline": "Disciplina inválida.",
 	"trainer.errInsufficientDisciplinePoints": "Pontos de disciplina insuficientes.",

@@ -1,5 +1,6 @@
 import {
 	CLASS_TYPE_MASKS,
+	MAX_CHAR_LEVEL,
 	MAX_DISCIPLINE_LEVEL,
 	MAX_SPELL_RANK,
 	MIN_DISCIPLINE_LEVEL,
@@ -177,6 +178,9 @@ export function canSetDisciplineLevel(
 	}
 	const state = build.disciplines[disciplineName];
 	if (!state) return { ok: false, reason: translate(lang, "trainer.errInvalidDiscipline") };
+	if (newLevel > state.level && build.clas && build.level !== MAX_CHAR_LEVEL && isWarMasteryDiscipline(trainerData, build.clas, disciplineName)) {
+		return { ok: false, reason: translate(lang, "trainer.errWarMasteryRequiresMaxLevel", { level: MAX_CHAR_LEVEL }) };
+	}
 	if (newLevel < state.level) {
 		// lowering: make sure no spell rank would exceed the new cap
 		const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
@@ -227,6 +231,16 @@ export function canSetSpellRank(
 
 export function firstDisciplineName(trainerData: TrainerData, clas: AdvancedClass): string | undefined {
 	return getTreeNames(trainerData, clas)[0];
+}
+
+/** War Mastery is always the last tree in a class's specialization group
+ *  (CoRT's `trainer.js` picks it the same way — `this.wmrow` is fixed at
+ *  the final row, "7" for archers/warriors and "8" for mages — rather than
+ *  matching on the discipline's name, which this mirrors for the same
+ *  reason: robust to a dataset relabeling "X WM" someday). */
+export function isWarMasteryDiscipline(trainerData: TrainerData, clas: AdvancedClass, name: string): boolean {
+	const { specialization } = getTreeGroups(trainerData, clas);
+	return specialization.length > 0 && specialization[specialization.length - 1] === name;
 }
 
 export function isFirstDiscipline(trainerData: TrainerData, clas: AdvancedClass | null, name: string): boolean {

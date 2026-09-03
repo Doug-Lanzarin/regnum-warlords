@@ -1,0 +1,110 @@
+import { describe, expect, it } from "vitest";
+import type { Discipline, TrainerBuild, TrainerData } from "../../types/trainer";
+import { canSetDisciplineLevel, createEmptyBuild, isWarMasteryDiscipline } from "./trainerEngine";
+
+/** Small hand-built fixture, shaped like the real bundled trainerdata.json
+ *  (public/data/trainer/1.35.19/trainerdata.json, itself a copy of CoRT's)
+ *  but trimmed to just what these tests touch: one archer base discipline
+ *  and the hunter specialization list ending in its War Mastery tree,
+ *  matching CoRT's `class_type_masks.hunter = 0x11` (archer base 0x10 +
+ *  hunter's own 0x11). */
+function discipline(name: string, singleTier = false): Discipline {
+	return {
+		class: "Hunter",
+		display_name: { en: name },
+		spells: [
+			{
+				name: { en: `${name} Skill` },
+				description: { en: "" },
+				mana: singleTier ? 0 : [10, 20, 30, 40, 50],
+				type: "Active",
+				cast: 1,
+				gcd: "Short",
+				cooldown: 0,
+			},
+		],
+	};
+}
+
+function makeTrainerData(): TrainerData {
+	return {
+		version: "test",
+		min_power_level: 0,
+		is_translatable: false,
+		accept_languages: ["en"],
+		translatable_constants: {},
+		// Indexed by *character* level (60 entries, index 0 = level 1) — a
+		// generous ramp is enough here, these tests aren't about point costs.
+		points: {
+			discipline: { "80": Array.from({ length: 60 }, (_, i) => (i + 1) * 100) },
+			power: { "80": Array.from({ length: 60 }, (_, i) => (i + 1) * 20) },
+		},
+		required: {
+			level: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37],
+			points: [0, 1, 4, 7, 13, 19, 29, 39, 54, 69, 90, 111, 139, 167, 203, 239, 284, 329, 384],
+			available: [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10],
+			power: [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5],
+		},
+		class_disciplines: {
+			// base archetype (0x10) — never includes a WM tree.
+			"16": ["Short Bows"],
+			// hunter (0x11) specialization — WM is always last, per CoRT's
+			// `trainer.js` ("WM row is always the latest one").
+			"17": ["Scouting", "Hunter WM"],
+		},
+		disciplines: {
+			"Short Bows": discipline("Short Bows"),
+			Scouting: discipline("Scouting"),
+			"Hunter WM": discipline("Hunter WM", true),
+		},
+	};
+}
+
+function buildAtLevel(trainerData: TrainerData, level: number): TrainerBuild {
+	return createEmptyBuild(trainerData, "hunter", level, false, "test");
+}
+
+describe("isWarMasteryDiscipline", () => {
+	it("identifies the last discipline in the class's specialization group as War Mastery", () => {
+		const trainerData = makeTrainerData();
+		expect(isWarMasteryDiscipline(trainerData, "hunter", "Hunter WM")).toBe(true);
+	});
+
+	it("does not flag the shared base-archetype or earlier specialization disciplines", () => {
+		const trainerData = makeTrainerData();
+		expect(isWarMasteryDiscipline(trainerData, "hunter", "Short Bows")).toBe(false);
+		expect(isWarMasteryDiscipline(trainerData, "hunter", "Scouting")).toBe(false);
+	});
+});
+
+describe("canSetDisciplineLevel — War Mastery level-60 gate", () => {
+	it("blocks raising War Mastery below character level 60, matching CoRT's WM-row lock", () => {
+		const trainerData = makeTrainerData();
+		const build = buildAtLevel(trainerData, 37); // max char level required by any *normal* discipline level
+		const check = canSetDisciplineLevel(trainerData, build, "Hunter WM", 3, "en");
+		expect(check.ok).toBe(false);
+	});
+
+	it("allows raising War Mastery once the character is at level 60", () => {
+		const trainerData = makeTrainerData();
+		const build = buildAtLevel(trainerData, 60);
+		const check = canSetDisciplineLevel(trainerData, build, "Hunter WM", 3, "en");
+		expect(check.ok).toBe(true);
+	});
+
+	it("still allows lowering an already-raised War Mastery discipline even if char level later drops below 60", () => {
+		const trainerData = makeTrainerData();
+		let build = buildAtLevel(trainerData, 60);
+		build = { ...build, disciplines: { ...build.disciplines, "Hunter WM": { level: 5, spellRanks: [0] } } };
+		build = { ...build, level: 37 };
+		const check = canSetDisciplineLevel(trainerData, build, "Hunter WM", 3, "en");
+		expect(check.ok).toBe(true);
+	});
+
+	it("does not apply the War Mastery gate to normal disciplines", () => {
+		const trainerData = makeTrainerData();
+		const build = buildAtLevel(trainerData, 37);
+		const check = canSetDisciplineLevel(trainerData, build, "Scouting", 3, "en");
+		expect(check.ok).toBe(true);
+	});
+});
