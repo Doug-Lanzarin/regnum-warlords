@@ -11,13 +11,13 @@ import App from "./App.tsx";
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<LanguageProvider>
-			<ThemeProvider>
-				<AlertSettingsProvider>
+			<AlertSettingsProvider>
+				<ThemeProvider>
 					<BrowserRouter>
 						<App />
 					</BrowserRouter>
-				</AlertSettingsProvider>
-			</ThemeProvider>
+				</ThemeProvider>
+			</AlertSettingsProvider>
 		</LanguageProvider>
 	</StrictMode>,
 );

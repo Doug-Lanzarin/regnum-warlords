@@ -80,6 +80,8 @@
 	--foreground: #f2f8ff;
 	--forms: #294f6e;
 	--faded: #a6bdd6;
+	--links: #7cb8f0;
+	--link-hover: #a8d4ff;
 	--border: rgba(120, 180, 255, 0.16);
 	--focus-ring: #9ccdf9;
 }

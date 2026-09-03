@@ -1,4 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import type { Realm } from "../data/realms";
+import { useAlertSettings } from "../features/alerts/AlertSettingsContext";
 
 export const THEMES = ["Dark", "Light", "OLED", "Alsius", "Ignis", "Syrtis"] as const;
 export type ThemeName = (typeof THEMES)[number];
@@ -12,24 +14,27 @@ export const THEME_LABELS: Record<ThemeName, string> = {
 	Syrtis: "Syrtis",
 };
 
-const STORAGE_KEY = "regnum-warlords:theme";
-
 interface ThemeContextValue {
 	theme: ThemeName;
-	setTheme: (theme: ThemeName) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function readStoredTheme(): ThemeName {
-	// The theme picker lived in the header, which is removed for now — stay
-	// on the default until it's back, regardless of what an earlier visit
-	// may have stored (see AppLayout).
+/** Alsius/Ignis get their own tinted palette so the app visually matches
+ *  "your" realm; Syrtis (and no realm picked yet) keeps today's default
+ *  look rather than switching to the brighter dedicated Syrtis palette. */
+function themeForRealm(realm: Realm | null): ThemeName {
+	if (realm === "Alsius") return "Alsius";
+	if (realm === "Ignis") return "Ignis";
 	return "Dark";
 }
 
+/** The color palette follows the realm chosen in Notifications settings
+ *  (`AlertSettings.myRealm`) — no manual picker, it just tracks that
+ *  choice live. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-	const [theme, setThemeState] = useState<ThemeName>(readStoredTheme);
+	const { settings } = useAlertSettings();
+	const theme = themeForRealm(settings.myRealm);
 
 	useEffect(() => {
 		if (theme === "Dark") {
@@ -37,14 +42,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		} else {
 			document.documentElement.setAttribute("data-theme", theme);
 		}
-		try {
-			localStorage.setItem(STORAGE_KEY, theme);
-		} catch {
-			// ignore
-		}
 	}, [theme]);
 
-	const value = useMemo(() => ({ theme, setTheme: setThemeState }), [theme]);
+	const value = useMemo(() => ({ theme }), [theme]);
 
 	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
