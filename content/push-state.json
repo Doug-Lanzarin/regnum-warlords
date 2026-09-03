@@ -32,19 +32,21 @@
 			]
 		},
 		"wallLost": {
-			"Alsius": [],
+			"Alsius": [
+				"Great Wall of Alsius (4)"
+			],
 			"Ignis": [],
 			"Syrtis": []
 		},
 		"wallCaptured": {
 			"Alsius": [],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Great Wall of Alsius (4)"
+			]
 		},
 		"wallRecovered": {
-			"Alsius": [
-				"Great Wall of Alsius (4)"
-			],
+			"Alsius": [],
 			"Ignis": [
 				"Great Wall of Ignis (8)"
 			],
@@ -95,5 +97,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788407705110
+	"lastTickAt": 1788408182448
 }
