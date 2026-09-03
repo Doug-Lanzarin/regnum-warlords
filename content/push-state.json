@@ -3,11 +3,15 @@
 		"fortLost": {
 			"Alsius": [],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Eferias Castle (11)"
+			]
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [],
+			"Ignis": [
+				"Eferias Castle (11)"
+			],
 			"Syrtis": []
 		},
 		"fortRecovered": {
@@ -23,8 +27,7 @@
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			]
 		},
 		"wallLost": {
@@ -95,5 +98,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788404763250
+	"lastTickAt": 1788405062596
 }
