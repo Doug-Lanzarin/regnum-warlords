@@ -5,6 +5,7 @@
 				"Fort Aggersborg (2)"
 			],
 			"Ignis": [
+				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
@@ -19,6 +20,7 @@
 				"Fort Aggersborg (2)"
 			],
 			"Syrtis": [
+				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			]
 		},
@@ -28,8 +30,7 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
-				"Fort Menirah (5)",
-				"Fort Samal (6)"
+				"Fort Menirah (5)"
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
@@ -100,5 +101,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788395582701
+	"lastTickAt": 1788395823001
 }
