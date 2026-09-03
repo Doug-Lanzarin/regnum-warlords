@@ -10,11 +10,19 @@ import { translate } from "../../src/i18n/translate.js";
 import type { AlertSettings } from "../../src/types/alertSettings";
 import type { BossSpawnData } from "../../src/types/bosses";
 import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine.js";
-import type { WzStatusData } from "../../src/types/wz";
+import { computeWallVulnerability } from "../../src/features/wz/wzEventsEngine.js";
+import type { WzEvent, WzEventsDumpEntry, WzStatusData } from "../../src/types/wz";
 import { detectBossEvents, type BossEvent } from "../_push/boss.js";
 import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff.js";
 import { sendPush, type PushNotificationPayload } from "../_push/push.js";
 import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage.js";
+
+/** A wall that just crossed from "not vulnerable" to "vulnerable" this
+ *  tick — see `buildMessagesFor`'s two directions (defender vs aggressor). */
+export interface WallVulnerableEvent {
+	homeRealm: Realm;
+	aggressor: Realm;
+}
 
 export interface VercelLikeRequest {
 	method?: string;
@@ -30,6 +38,7 @@ interface VercelLikeResponse {
 
 const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
 const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
+const EVENTS_URL = "https://cort.ovh/api/var/events.json";
 
 export function isAuthorized(req: VercelLikeRequest): boolean {
 	const expected = process.env.PUSH_TICK_SECRET?.trim();
@@ -55,6 +64,7 @@ export function buildMessagesFor(
 	settings: AlertSettings,
 	eventsByRealm: Record<Realm, CategoryEvents>,
 	bossEvents: BossEvent[],
+	wallVulnerableEvents: WallVulnerableEvent[],
 ): PushNotificationPayload[] {
 	const messages: PushNotificationPayload[] = [];
 	const myRealm = settings.myRealm;
@@ -111,6 +121,14 @@ export function buildMessagesFor(
 				messages.push({ title: translate(lang, "alerts.msgRecovered", { realm: myRealm, name: eventDisplayName(e, lang) }), body: "", url: "/" });
 			}
 		}
+		for (const e of wallVulnerableEvents) {
+			if (e.homeRealm === myRealm && settings.wallVulnerableMineAlerts) {
+				messages.push({ title: translate(lang, "alerts.msgWallVulnerableMine", { realm: e.homeRealm, otherRealm: e.aggressor }), body: "", url: "/" });
+			}
+			if (e.aggressor === myRealm && settings.wallVulnerableEnemyAlerts) {
+				messages.push({ title: translate(lang, "alerts.msgWallVulnerableEnemy", { realm: e.homeRealm }), body: "", url: "/" });
+			}
+		}
 	}
 
 	for (const be of bossEvents) {
@@ -160,6 +178,14 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		}
 		const wzData = (await wzRes.json()) as WzStatusData;
 		const bossData = (await bossRes.json()) as BossSpawnData;
+		// Wall vulnerability is the only thing that needs this ~10-day raw
+		// event dump — fails soft (falls back to "no history this tick", so
+		// no wall-vulnerable events fire) rather than taking down fort/gem/
+		// boss alerts too if cort.ovh's events endpoint has a bad moment.
+		const events = await fetch(EVENTS_URL)
+			.then((r) => (r.ok ? (r.json() as Promise<WzEventsDumpEntry[]>) : []))
+			.then((entries) => entries.filter((e): e is WzEvent => "type" in e))
+			.catch(() => [] as WzEvent[]);
 
 		const forts = computeFortStatuses(wzData);
 		const gems = computeGemStatuses(wzData);
@@ -171,13 +197,24 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		const now = Date.now();
 		const { next: nextBossState, events: bossEvents } = detectBossEvents(bossData, now, prevState.boss);
 
-		const nextState: PushState = { categories: nextCategories, boss: nextBossState, lastTickAt: now };
+		const prevWallVulnerable = prevState.wallVulnerable ?? { Alsius: false, Ignis: false, Syrtis: false };
+		const nextWallVulnerable: Record<Realm, boolean> = { Alsius: false, Ignis: false, Syrtis: false };
+		const wallVulnerableEvents: WallVulnerableEvent[] = [];
+		for (const w of computeWallVulnerability(forts, events, now)) {
+			nextWallVulnerable[w.homeRealm] = w.isVulnerable;
+			if (w.isVulnerable && !prevWallVulnerable[w.homeRealm] && w.aggressor) {
+				wallVulnerableEvents.push({ homeRealm: w.homeRealm, aggressor: w.aggressor });
+			}
+		}
+
+		const nextState: PushState = { categories: nextCategories, boss: nextBossState, wallVulnerable: nextWallVulnerable, lastTickAt: now };
 		// Only commit when the persisted shape actually changed — every tick
 		// recomputing identical sets (the common case: nothing happened this
 		// minute) would otherwise be a commit a minute, forever.
 		const stateChanged =
 			JSON.stringify(nextState.categories) !== JSON.stringify(prevState.categories) ||
-			JSON.stringify(nextState.boss) !== JSON.stringify(prevState.boss);
+			JSON.stringify(nextState.boss) !== JSON.stringify(prevState.boss) ||
+			JSON.stringify(nextState.wallVulnerable) !== JSON.stringify(prevWallVulnerable);
 		if (stateChanged || isFirstTick) {
 			await writeState(nextState, stateSha, "push: atualiza snapshot da WZ/épicos");
 		}
@@ -199,7 +236,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		let sent = 0;
 
 		for (const sub of subscribers) {
-			const messages = buildMessagesFor(sub.settings, eventsByRealm, bossEvents);
+			const messages = buildMessagesFor(sub.settings, eventsByRealm, bossEvents, wallVulnerableEvents);
 			let expired = false;
 			for (const message of messages) {
 				const result = await sendPush(sub.subscription, vapid, message);

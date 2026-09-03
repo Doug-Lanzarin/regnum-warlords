@@ -4,8 +4,10 @@ import { formatFortLabel } from "../../data/fortKind";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
 import { useBossTimers } from "../bosses/useBossTimers";
+import { useEventsDump } from "../wz/useEventsDump";
 import { useWzStatus } from "../wz/useWzStatus";
 import { computeFortStatuses, computeGemStatuses } from "../wz/wzEngine";
+import { computeWallVulnerability } from "../wz/wzEventsEngine";
 import { getFortKind } from "../wz/wzIcons";
 import { useAlertSettings } from "./AlertSettingsContext";
 import { fireOsNotification } from "./notify";
@@ -33,7 +35,8 @@ export function AlertsWatcher() {
 	const { settings } = useAlertSettings();
 	const { lang } = useLanguage();
 	const t = useT();
-	const { data: wzData } = useWzStatus();
+	const { data: wzData, now } = useWzStatus();
+	const { events: eventsDump } = useEventsDump();
 	const { data: bossData, now: bossNow } = useBossTimers();
 
 	const fireAlert = useCallback((title: string, body: string) => {
@@ -53,6 +56,7 @@ export function AlertsWatcher() {
 	const gemCapturedRef = useRef<Set<string> | null>(null);
 	const gemLostRef = useRef<Set<string> | null>(null);
 	const gemRecoveredRef = useRef<Set<string> | null>(null);
+	const wallVulnerableRef = useRef<Set<string> | null>(null);
 
 	useEffect(() => {
 		// Realm changed — reseed every baseline instead of firing for state
@@ -66,6 +70,7 @@ export function AlertsWatcher() {
 		gemCapturedRef.current = null;
 		gemLostRef.current = null;
 		gemRecoveredRef.current = null;
+		wallVulnerableRef.current = null;
 	}, [settings.myRealm]);
 
 	useEffect(() => {
@@ -157,6 +162,26 @@ export function AlertsWatcher() {
 			}
 		}
 	}, [gems, settings.myRealm, settings.gemLostAlerts, settings.gemCapturedAlerts, settings.gemRecoveredAlerts, t, fireAlert]);
+
+	// -- wall vulnerability watch (both directions: mine going vulnerable, or me making someone else's vulnerable) --
+	const wallVulnerability = useMemo(() => computeWallVulnerability(forts, eventsDump, now), [forts, eventsDump, now]);
+
+	useEffect(() => {
+		const myRealm = settings.myRealm;
+		if (!myRealm || forts.length === 0) return;
+		if (!settings.wallVulnerableMineAlerts && !settings.wallVulnerableEnemyAlerts) return;
+
+		const vulnerableNow = wallVulnerability.filter((w) => w.isVulnerable);
+		for (const w of newSince(vulnerableNow, (v) => v.homeRealm, wallVulnerableRef)) {
+			if (!w.aggressor) continue;
+			if (w.homeRealm === myRealm && settings.wallVulnerableMineAlerts) {
+				fireAlert(t("alerts.msgWallVulnerableMine", { realm: w.homeRealm, otherRealm: w.aggressor }), "");
+			}
+			if (w.aggressor === myRealm && settings.wallVulnerableEnemyAlerts) {
+				fireAlert(t("alerts.msgWallVulnerableEnemy", { realm: w.homeRealm }), "");
+			}
+		}
+	}, [wallVulnerability, forts, settings.myRealm, settings.wallVulnerableMineAlerts, settings.wallVulnerableEnemyAlerts, t, fireAlert]);
 
 	// -- boss spawn countdown watch --
 	const alertedSpawnsRef = useRef<Set<string>>(new Set());

@@ -24,6 +24,10 @@ export interface AlertSettings {
 	wallCapturedAlerts: boolean;
 	wallLostAlerts: boolean;
 	wallRecoveredAlerts: boolean;
+	/** My own realm's wall just became vulnerable to capture. */
+	wallVulnerableMineAlerts: boolean;
+	/** My realm just made another realm's wall vulnerable to capture. */
+	wallVulnerableEnemyAlerts: boolean;
 	gemCapturedAlerts: boolean;
 	gemLostAlerts: boolean;
 	gemRecoveredAlerts: boolean;
@@ -38,6 +42,8 @@ export type BooleanAlertKey =
 	| "wallCapturedAlerts"
 	| "wallLostAlerts"
 	| "wallRecoveredAlerts"
+	| "wallVulnerableMineAlerts"
+	| "wallVulnerableEnemyAlerts"
 	| "gemCapturedAlerts"
 	| "gemLostAlerts"
 	| "gemRecoveredAlerts";
