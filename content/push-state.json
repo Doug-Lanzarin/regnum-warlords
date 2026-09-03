@@ -1,19 +1,22 @@
 {
 	"categories": {
 		"fortLost": {
-			"Alsius": [],
+			"Alsius": [
+				"Fort Aggersborg (2)"
+			],
 			"Ignis": [],
 			"Syrtis": []
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [],
+			"Ignis": [
+				"Fort Aggersborg (2)"
+			],
 			"Syrtis": []
 		},
 		"fortRecovered": {
 			"Alsius": [
 				"Imperia Castle (1)",
-				"Fort Aggersborg (2)",
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
@@ -95,5 +98,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788406382864
+	"lastTickAt": 1788406504796
 }
