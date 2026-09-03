@@ -9,10 +9,10 @@
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [
+			"Ignis": [],
+			"Syrtis": [
 				"Fort Aggersborg (2)"
-			],
-			"Syrtis": []
+			]
 		},
 		"fortRecovered": {
 			"Alsius": [
@@ -98,5 +98,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788406504796
+	"lastTickAt": 1788406807362
 }
