@@ -1,35 +1,60 @@
 .wrap {
-	padding: var(--space-6);
-	max-width: 520px;
-	margin: var(--space-6) auto;
-	text-align: center;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	gap: var(--space-3);
+	gap: var(--space-5);
 }
 
-.icon {
-	width: 56px;
-	height: 56px;
-	border-radius: var(--radius-full);
-	background: var(--forms);
+.header {
+	padding: var(--space-5);
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--links);
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--space-4);
 }
 
-.iconSvg {
-	width: 28px;
-	height: 28px;
+.title {
+	font-size: 1.3rem;
 }
 
-.wrap h1 {
-	margin: 0;
-}
-
-.wrap p {
+.subtitle {
+	margin: 4px 0 0;
 	color: var(--faded);
-	margin: 0;
+	font-size: 0.88rem;
+	max-width: 56ch;
+}
+
+.headerActions {
+	display: flex;
+	gap: var(--space-2);
+	flex-shrink: 0;
+}
+
+.classCard {
+	padding: var(--space-4);
+}
+
+.pieceGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+	gap: var(--space-3);
+	align-items: start;
+}
+
+@media (max-width: 640px) {
+	.wrap {
+		gap: var(--space-4);
+	}
+	.header {
+		padding: var(--space-4);
+	}
+	.title {
+		font-size: 1.15rem;
+	}
+	.subtitle {
+		font-size: 0.84rem;
+	}
+	.pieceGrid {
+		grid-template-columns: 1fr;
+	}
 }

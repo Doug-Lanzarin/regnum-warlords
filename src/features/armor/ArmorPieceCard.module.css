@@ -1,0 +1,118 @@
+.card {
+	padding: var(--space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-width: 0;
+}
+
+.header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-2);
+}
+
+.name {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 0.92rem;
+}
+
+.dist {
+	color: var(--faded);
+	font-size: 0.72rem;
+	font-variant-numeric: tabular-nums;
+	flex-shrink: 0;
+}
+
+.numRow {
+	display: flex;
+	gap: var(--space-2);
+}
+
+.numField {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+
+.numField span {
+	font-size: 0.62rem;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--faded);
+}
+
+.numField input {
+	width: 100%;
+	background: var(--forms);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	color: var(--foreground);
+	font-family: inherit;
+	font-size: 0.86rem;
+	font-variant-numeric: tabular-nums;
+	padding: 6px 8px;
+	transition: border-color 0.15s var(--ease);
+}
+.numField input:hover {
+	border-color: var(--links);
+}
+.numField input:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 1px;
+}
+
+.qualityGrid {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+	gap: 4px;
+}
+
+.qCell {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	min-width: 0;
+}
+
+.qTypeLabel {
+	font-size: 0.58rem;
+	color: var(--faded);
+	text-transform: uppercase;
+}
+
+.qBtn {
+	width: 100%;
+	height: 24px;
+	border-radius: 6px;
+	border: 1px solid var(--border);
+	font-size: 0.62rem;
+	font-weight: 700;
+	color: var(--foreground);
+	transition: transform 0.1s var(--ease), border-color 0.15s var(--ease);
+}
+.qBtn:hover {
+	border-color: var(--links);
+}
+.qBtn:active {
+	transform: scale(0.92);
+}
+.qBtn:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 1px;
+}
+
+@media (max-width: 640px) {
+	.qBtn {
+		height: 34px;
+		font-size: 0.7rem;
+	}
+	.numField input {
+		min-height: 38px;
+	}
+}
