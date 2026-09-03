@@ -30,11 +30,19 @@ precacheAndRoute(self.__WB_MANIFEST);
 // Same opportunistic runtime cache for the live CoRT calls the old
 // `workbox.runtimeCaching` config gave — offline-first is only for the
 // Trainer's bundled data above, this is just "don't wait forever" for WZ/bosses.
+//
+// networkTimeoutSeconds must stay above the app's own per-call timeout
+// (AbortSignal.timeout(6000) in src/api/cortApi.ts) — this SW sits in front
+// of every one of those fetches, so a shorter value here silently overrides
+// the app's declared tolerance and can fail a request (with nothing to fall
+// back to on a cold/expired cache) well before the app's own 6s would have.
+// That mismatch (was 4s here vs 6s there) is exactly what a real "good
+// connection, just a bit of extra mobile latency" case could trip.
 registerRoute(
 	({ url }) => url.origin === "https://cort.ovh",
 	new NetworkFirst({
 		cacheName: "cort-live-data",
-		networkTimeoutSeconds: 4,
+		networkTimeoutSeconds: 8,
 		plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 })],
 	}),
 );
