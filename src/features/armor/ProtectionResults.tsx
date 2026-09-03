@@ -4,6 +4,7 @@ import { useT } from "../../i18n/useT";
 import type { ArmorBuild, DamageType, ProtectionByType } from "../../types/armor";
 import { simulateIncomingDamage } from "./armorEngine";
 import { TYPE_LABEL_KEY } from "./ArmorPieceCard";
+import { NumberField } from "./NumberField";
 import styles from "./ProtectionResults.module.css";
 
 interface Props {
@@ -59,7 +60,7 @@ export function ProtectionResults({ build, protection }: Props) {
 					</label>
 					<label className={styles.simField}>
 						<span>{t("armor.simDamageLabel")}</span>
-						<input type="number" min={0} className={styles.simDamageInput} value={simDamage} onChange={(e) => setSimDamage(Number(e.target.value))} />
+						<NumberField min={0} className={styles.simDamageInput} value={simDamage} onChange={setSimDamage} />
 					</label>
 				</div>
 				<div className={styles.simOut}>

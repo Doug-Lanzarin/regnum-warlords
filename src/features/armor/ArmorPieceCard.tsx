@@ -2,6 +2,7 @@ import { DAMAGE_TYPES, PIECE_DISTRIBUTION, QUALITY_TIERS } from "../../data/armo
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/translate";
 import type { ArmorPieceId, ArmorPieceState, DamageType, QualityTier } from "../../types/armor";
+import { NumberField } from "./NumberField";
 import styles from "./ArmorPieceCard.module.css";
 
 export const PIECE_LABEL_KEY: Record<ArmorPieceId, TranslationKey> = {
@@ -68,11 +69,11 @@ export function ArmorPieceCard({ pieceId, state, onFieldChange, onCycleQuality }
 			<div className={styles.numRow}>
 				<label className={styles.numField}>
 					<span>{t("armor.pbaLabel")}</span>
-					<input type="number" min={0} value={state.pba} onChange={(e) => onFieldChange("pba", Math.max(0, Number(e.target.value)))} />
+					<NumberField min={0} value={state.pba} onChange={(v) => onFieldChange("pba", v)} />
 				</label>
 				<label className={styles.numField}>
 					<span>{t("armor.bcmtLabel")}</span>
-					<input type="number" min={0} value={state.bcmt} onChange={(e) => onFieldChange("bcmt", Math.max(0, Number(e.target.value)))} />
+					<NumberField min={0} value={state.bcmt} onChange={(v) => onFieldChange("bcmt", v)} />
 				</label>
 			</div>
 

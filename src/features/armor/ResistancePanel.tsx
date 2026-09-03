@@ -2,6 +2,7 @@ import { DAMAGE_TYPES } from "../../data/armorConstants";
 import { useT } from "../../i18n/useT";
 import type { ArmorBuild, DamageType } from "../../types/armor";
 import { TYPE_LABEL_KEY } from "./ArmorPieceCard";
+import { NumberField } from "./NumberField";
 import styles from "./ResistancePanel.module.css";
 
 interface Props {
@@ -29,19 +30,19 @@ export function ResistancePanel({
 			<div className={styles.grid}>
 				<label className={styles.field}>
 					<span>{t("armor.armorBonusLabel")}</span>
-					<input type="number" value={build.armorBonusPct} onChange={(e) => onArmorBonusPctChange(Number(e.target.value))} />
+					<NumberField value={build.armorBonusPct} onChange={onArmorBonusPctChange} />
 				</label>
 				<label className={styles.field}>
 					<span>{t("armor.resPhysicalLabel")}</span>
-					<input type="number" value={build.resistancePhysicalPct} onChange={(e) => onResistancePhysicalPctChange(Number(e.target.value))} />
+					<NumberField value={build.resistancePhysicalPct} onChange={onResistancePhysicalPctChange} />
 				</label>
 				<label className={styles.field}>
 					<span>{t("armor.resMagicLabel")}</span>
-					<input type="number" value={build.resistanceMagicPct} onChange={(e) => onResistanceMagicPctChange(Number(e.target.value))} />
+					<NumberField value={build.resistanceMagicPct} onChange={onResistanceMagicPctChange} />
 				</label>
 				<label className={styles.field}>
 					<span>{t("armor.damageReductionLabel")}</span>
-					<input type="number" value={build.damageReductionPct} onChange={(e) => onDamageReductionPctChange(Number(e.target.value))} />
+					<NumberField value={build.damageReductionPct} onChange={onDamageReductionPctChange} />
 				</label>
 			</div>
 
@@ -50,7 +51,7 @@ export function ResistancePanel({
 				{DAMAGE_TYPES.map((type) => (
 					<label key={type} className={styles.field}>
 						<span>{t(TYPE_LABEL_KEY[type])}</span>
-						<input type="number" value={build.resistanceByType[type]} onChange={(e) => onResistanceByTypeChange(type, Number(e.target.value))} />
+						<NumberField value={build.resistanceByType[type]} onChange={(v) => onResistanceByTypeChange(type, v)} />
 					</label>
 				))}
 			</div>
