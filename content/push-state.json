@@ -4,15 +4,13 @@
 			"Alsius": [],
 			"Ignis": [],
 			"Syrtis": [
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			]
 		},
 		"fortCaptured": {
 			"Alsius": [],
 			"Ignis": [
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			],
 			"Syrtis": []
 		},
@@ -28,7 +26,8 @@
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
-				"Fort Algaros (9)"
+				"Fort Algaros (9)",
+				"Eferias Castle (11)"
 			]
 		},
 		"wallLost": {
@@ -99,5 +98,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788406083114
+	"lastTickAt": 1788406209882
 }
