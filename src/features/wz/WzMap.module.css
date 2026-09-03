@@ -9,7 +9,7 @@
 	   flexbox, and a child narrower than the stretched cross-axis needs
 	   align-self to center there; margin: auto alone left it pinned to
 	   the start edge. */
-	max-width: clamp(360px, 52vw, 800px);
+	max-width: clamp(360px, 52vw, 600px);
 	margin: 0 auto;
 	align-self: center;
 	width: 100%;
