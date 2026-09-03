@@ -2,8 +2,17 @@
 	padding: var(--space-3);
 	display: flex;
 	justify-content: center;
-	max-width: 560px;
+	/* Scales with the viewport instead of sitting fixed-small on wide
+	   desktop screens, capped so it doesn't get absurd on ultrawide
+	   monitors. align-self (not just margin: auto) is what actually
+	   centers this card — its parent (WzStatusPage's .wrap) is a column
+	   flexbox, and a child narrower than the stretched cross-axis needs
+	   align-self to center there; margin: auto alone left it pinned to
+	   the start edge. */
+	max-width: clamp(360px, 52vw, 860px);
 	margin: 0 auto;
+	align-self: center;
+	width: 100%;
 }
 
 .svg {
