@@ -5,16 +5,14 @@
 			"Ignis": [],
 			"Syrtis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			]
 		},
 		"fortCaptured": {
 			"Alsius": [],
 			"Ignis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
-				"Eferias Castle (11)"
+				"Fort Herbred (10)"
 			],
 			"Syrtis": []
 		},
@@ -29,7 +27,9 @@
 				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
-			"Syrtis": []
+			"Syrtis": [
+				"Eferias Castle (11)"
+			]
 		},
 		"wallLost": {
 			"Alsius": [],
@@ -97,5 +97,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788416822739
+	"lastTickAt": 1788417243787
 }
