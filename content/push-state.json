@@ -8,11 +8,11 @@
 			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [
-				"Fort Samal (6)"
-			],
+			"Alsius": [],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Fort Samal (6)"
+			]
 		},
 		"fortRecovered": {
 			"Alsius": [
@@ -54,7 +54,9 @@
 		"gemLost": {
 			"Alsius": [
 				0,
+				1,
 				2,
+				3,
 				4,
 				5
 			],
@@ -72,15 +74,15 @@
 			]
 		},
 		"gemCaptured": {
-			"Alsius": [],
+			"Alsius": [
+				13,
+				15
+			],
 			"Ignis": [],
 			"Syrtis": []
 		},
 		"gemRecovered": {
-			"Alsius": [
-				1,
-				3
-			],
+			"Alsius": [],
 			"Ignis": [
 				8,
 				10
@@ -94,5 +96,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788383763557
+	"lastTickAt": 1788432662681
 }
