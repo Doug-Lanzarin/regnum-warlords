@@ -173,6 +173,30 @@ export function computeFortActivityFromStats(report: WzStatsReport): RealmActivi
 	return REALMS.map((realm) => ({ realm, count: report[realm]?.forts.total ?? 0 })).sort((a, b) => b.count - a.count);
 }
 
+/** How many dragon wishes each realm has made within the last `windowMs` —
+ *  same rolling-events-dump source and rationale as `computeFortActivityByRealm`
+ *  (only reaches back ~10 days; use `computeWishActivityFromStats` for the
+ *  fixed 7/30/90-day windows `stats.json` covers instead). Sorted most
+ *  active realm first. */
+export function computeWishActivityByRealm(events: WzEvent[], windowMs: number, now: number): RealmActivityCount[] {
+	const cutoff = now - windowMs;
+	const counts: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+	for (const event of events) {
+		if (event.type !== "wish") continue;
+		if (event.date * 1000 < cutoff) continue;
+		if (event.location in counts) counts[event.location as Realm] += 1;
+	}
+	return REALMS.map((realm) => ({ realm, count: counts[realm] })).sort((a, b) => b.count - a.count);
+}
+
+/** Same tally as `computeWishActivityByRealm`, but from CoRT's
+ *  pre-aggregated `stats.json` report (`wishes.count`) instead of the raw
+ *  event log — needed for windows (7/30/90 days) longer than what the raw
+ *  event history covers. */
+export function computeWishActivityFromStats(report: WzStatsReport): RealmActivityCount[] {
+	return REALMS.map((realm) => ({ realm, count: report[realm]?.wishes.count ?? 0 })).sort((a, b) => b.count - a.count);
+}
+
 export interface ActivityBucket {
 	/** Bucket start, unix ms. */
 	time: number;
