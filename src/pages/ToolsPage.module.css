@@ -17,11 +17,17 @@
 .grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+	grid-auto-rows: 1fr;
 	gap: var(--space-4);
 }
 
 .tile {
-	aspect-ratio: 1 / 1;
+	/* No aspect-ratio here on purpose: combined with grid's default
+	   stretch, a fixed ratio fights the row's own auto-height whenever one
+	   tile's text wraps more than its sibling's — that tile grows past the
+	   square while the other stays pinned to it, so the two end up
+	   different heights instead of matching. grid-auto-rows: 1fr already
+	   equalizes every tile in a row to the tallest one's content. */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
