@@ -40,7 +40,7 @@
 		"settings": {
 			"myRealm": "Syrtis",
 			"lang": "pt",
-			"fortCapturedAlerts": true,
+			"fortCapturedAlerts": false,
 			"fortLostAlerts": true,
 			"fortRecoveredAlerts": true,
 			"wallCapturedAlerts": false,
@@ -51,6 +51,6 @@
 			"gemRecoveredAlerts": false,
 			"bossAlertMinutes": []
 		},
-		"updatedAt": 1788405145890
+		"updatedAt": 1788405147965
 	}
 ]
