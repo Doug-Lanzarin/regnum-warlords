@@ -49,10 +49,16 @@ export interface WzStatsForts {
 	most_captured: { name: string; count: number };
 }
 
-/** One realm's pre-aggregated stats for a report window. Only `forts` is
- *  typed in full — that's all this app currently reads. */
+export interface WzStatsWishes {
+	count: number;
+	last: number;
+}
+
+/** One realm's pre-aggregated stats for a report window. Only `forts` and
+ *  `wishes` are typed in full — that's all this app currently reads. */
 export interface WzStatsRealmReport {
 	forts: WzStatsForts;
+	wishes: WzStatsWishes;
 	[extra: string]: unknown;
 }
 

@@ -5,6 +5,7 @@ import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortHistoryModal } from "../features/wz/FortHistoryModal";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
+import { WishActivityChart, type WishActivityRange } from "../features/wz/WishActivityChart";
 import { useEventsDump } from "../features/wz/useEventsDump";
 import { useWzStats } from "../features/wz/useWzStats";
 import { useWzStatus } from "../features/wz/useWzStatus";
@@ -18,11 +19,15 @@ import {
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	computeFortHistory,
+	computeWishActivityByRealm,
+	computeWishActivityFromStats,
 	type RealmActivityCount,
 } from "../features/wz/wzEventsEngine";
 import { formatHourMinuteSecond } from "../utils/time";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function WzStatusPage() {
 	const { lang } = useLanguage();
@@ -48,6 +53,18 @@ export function WzStatusPage() {
 	const fortHistory = useMemo(
 		() => (selectedFort ? computeFortHistory(eventsDump, selectedFort.name, lang) : []),
 		[eventsDump, selectedFort, lang],
+	);
+	const wishActivityRanges = useMemo<Record<WishActivityRange, RealmActivityCount[] | null>>(
+		() => ({
+			"1d": computeWishActivityByRealm(eventsDump, DAY_MS, now),
+			"3d": computeWishActivityByRealm(eventsDump, 3 * DAY_MS, now),
+			"5d": computeWishActivityByRealm(eventsDump, 5 * DAY_MS, now),
+			"7d": reports ? computeWishActivityFromStats(reports.sevenDay) : null,
+			"10d": computeWishActivityByRealm(eventsDump, 10 * DAY_MS, now),
+			"30d": reports ? computeWishActivityFromStats(reports.thirtyDay) : null,
+			"90d": reports ? computeWishActivityFromStats(reports.ninetyDay) : null,
+		}),
+		[eventsDump, now, reports],
 	);
 
 	if (loading && !data) {
@@ -103,6 +120,7 @@ export function WzStatusPage() {
 			<EventsLogSection events={events} now={now} />
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
+			<WishActivityChart rangeData={wishActivityRanges} />
 		</div>
 	);
 }
