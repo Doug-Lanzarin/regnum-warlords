@@ -7,16 +7,30 @@ const pt = {
 	"nav.wz": "Warzone",
 	"nav.bosses": "Épicos",
 	"nav.trainer": "Treinador",
+	"nav.tools": "Ferramentas",
 	"nav.notifications": "Notificações",
 	"layout.footerPrefix": "Desenvolvido por Douglas Lanzarin - Fork do projeto",
 	"layout.footerSuffix": "",
 	"layout.languageLabel": "Idioma",
+
+	// -- tools hub --
+	"tools.title": "Ferramentas",
+	"tools.subtitle": "Calculadoras pra montar e planejar seu personagem.",
+	"tools.trainerDesc": "Build de disciplinas e habilidades por pontos de poder.",
+	"tools.armorLabel": "Calculadora de Armadura",
+	"tools.armorDesc": "Pontos de proteção por tipo de dano a partir da sua armadura.",
+
+	// -- armor calculator (placeholder) --
+	"armor.title": "Calculadora de Armadura",
+	"armor.comingSoonBadge": "Em construção",
+	"armor.comingSoonBody": "Essa calculadora ainda está sendo construída — em breve você vai poder calcular pontos de proteção por tipo de dano a partir da sua armadura equipada.",
 
 	// -- common --
 	"common.tryAgain": "Tentar novamente",
 	"common.openInCort": "Abrir no CoRT ↗",
 	"common.liveDataUnavailable": "Dados ao vivo indisponíveis",
 	"common.unavailable": "Indisponível",
+	"common.back": "Voltar",
 
 	// -- time (relative past) --
 	"time.now": "agora",

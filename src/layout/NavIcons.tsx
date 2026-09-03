@@ -43,3 +43,21 @@ export function NotificationsTabIcon({ className }: IconProps) {
 		</svg>
 	);
 }
+
+/** Tools hub (Trainer, Armor Calculator, ...) — a wrench. */
+export function ToolsTabIcon({ className }: IconProps) {
+	return (
+		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+			<path d="M14.7 6.3a4 4 0 0 0-5.6 4.9L3 17.3V21h3.7l6.1-6.1a4 4 0 0 0 4.9-5.6l-2.8 2.8-2.1-2.1z" />
+		</svg>
+	);
+}
+
+/** Armor calculator — a shield. */
+export function ArmorToolIcon({ className }: IconProps) {
+	return (
+		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+			<path d="M12 3 5 6v5c0 4.6 3 8.4 7 10 4-1.6 7-5.4 7-10V6z" />
+		</svg>
+	);
+}
