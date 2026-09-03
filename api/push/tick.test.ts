@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { buildMessagesFor, eventDisplayName, isAuthorized, type VercelLikeRequest } from "./tick";
+import { buildMessagesFor, eventDisplayName, isAuthorized, type VercelLikeRequest, type WallVulnerableEvent } from "./tick";
 import type { CategoryEvent, CategoryEvents } from "../_push/diff";
 import type { BossEvent } from "../_push/boss";
 import type { AlertSettings } from "../../src/types/alertSettings";
@@ -14,6 +14,8 @@ function settings(overrides: Partial<AlertSettings>): AlertSettings {
 		wallCapturedAlerts: false,
 		wallLostAlerts: false,
 		wallRecoveredAlerts: false,
+		wallVulnerableMineAlerts: false,
+		wallVulnerableEnemyAlerts: false,
 		gemCapturedAlerts: false,
 		gemLostAlerts: false,
 		gemRecoveredAlerts: false,
@@ -46,14 +48,14 @@ describe("buildMessagesFor", () => {
 		const s = settings({ myRealm: null, fortCapturedAlerts: true });
 		const events = emptyEventsByRealm();
 		events.Ignis.fortCaptured = [{ name: "Imperia Castle (1)", otherRealm: "Syrtis" }];
-		expect(buildMessagesFor(s, events, [])).toEqual([]);
+		expect(buildMessagesFor(s, events, [], [])).toEqual([]);
 	});
 
 	it("builds nothing for a category the subscriber didn't opt into", () => {
 		const s = settings({ fortCapturedAlerts: false });
 		const events = emptyEventsByRealm();
 		events.Ignis.fortCaptured = [{ name: "Imperia Castle (1)", otherRealm: "Syrtis" }];
-		expect(buildMessagesFor(s, events, [])).toEqual([]);
+		expect(buildMessagesFor(s, events, [], [])).toEqual([]);
 	});
 
 	it("builds a localized 'captured' message only for the subscriber's own realm", () => {
@@ -62,7 +64,7 @@ describe("buildMessagesFor", () => {
 		events.Ignis.fortCaptured = [{ name: "Imperia Castle (1)", otherRealm: "Syrtis" }];
 		events.Alsius.fortCaptured = [{ name: "Some Other Fort (2)", otherRealm: "Syrtis" }];
 
-		const messages = buildMessagesFor(s, events, []);
+		const messages = buildMessagesFor(s, events, [], []);
 		expect(messages).toEqual([{ title: "Ignis captured Imperia Castle", body: "", url: "/" }]);
 	});
 
@@ -71,7 +73,7 @@ describe("buildMessagesFor", () => {
 		const events = emptyEventsByRealm();
 		events.Syrtis.fortLost = [{ name: "Imperia Castle (1)", otherRealm: "Ignis" }];
 
-		expect(buildMessagesFor(s, events, [])).toEqual([{ title: "Syrtis perdeu Imperia Castle para Ignis", body: "", url: "/" }]);
+		expect(buildMessagesFor(s, events, [], [])).toEqual([{ title: "Syrtis perdeu Imperia Castle para Ignis", body: "", url: "/" }]);
 	});
 
 	it("builds a gem-lost message without an owner clause when the gem has no owner", () => {
@@ -79,7 +81,7 @@ describe("buildMessagesFor", () => {
 		const events = emptyEventsByRealm();
 		events.Alsius.gemLost = [{ name: "", gemIndex: 0, otherRealm: null }];
 
-		expect(buildMessagesFor(s, events, [])).toEqual([{ title: "Alsius perdeu Gema 1", body: "", url: "/" }]);
+		expect(buildMessagesFor(s, events, [], [])).toEqual([{ title: "Alsius perdeu Gema 1", body: "", url: "/" }]);
 	});
 
 	it("builds a wall message via the Great Wall translation, per subscriber language", () => {
@@ -87,7 +89,7 @@ describe("buildMessagesFor", () => {
 		const events = emptyEventsByRealm();
 		events.Alsius.wallCaptured = [{ name: "Great Wall of Syrtis (2)", otherRealm: "Syrtis" }];
 
-		expect(buildMessagesFor(s, events, [])).toEqual([
+		expect(buildMessagesFor(s, events, [], [])).toEqual([
 			{ title: "Alsius capturó Gran Muralla de Syrtis", body: "", url: "/" },
 		]);
 	});
@@ -97,7 +99,7 @@ describe("buildMessagesFor", () => {
 		const events = emptyEventsByRealm();
 		events.Ignis.fortRecovered = [{ name: "Imperia Castle (1)", otherRealm: null }];
 
-		expect(buildMessagesFor(s, events, [])).toEqual([{ title: "Ignis recovered Imperia Castle", body: "", url: "/" }]);
+		expect(buildMessagesFor(s, events, [], [])).toEqual([{ title: "Ignis recovered Imperia Castle", body: "", url: "/" }]);
 	});
 
 	it("builds boss messages only for thresholds the subscriber opted into", () => {
@@ -106,7 +108,7 @@ describe("buildMessagesFor", () => {
 			{ bossKey: "daen", minutes: 60, spawnSeconds: 1_000_000 },
 			{ bossKey: "daen", minutes: 30, spawnSeconds: 1_000_000 },
 		];
-		const messages = buildMessagesFor(s, emptyEventsByRealm(), bossEvents);
+		const messages = buildMessagesFor(s, emptyEventsByRealm(), bossEvents, []);
 		expect(messages).toHaveLength(1);
 		expect(messages[0].title).toBe("Daen Rha nasce em 30 min");
 		expect(messages[0].url).toBe("/bosses");
@@ -119,7 +121,35 @@ describe("buildMessagesFor", () => {
 			{ name: "Fort A (1)", otherRealm: "Alsius" },
 			{ name: "Fort B (2)", otherRealm: "Syrtis" },
 		];
-		expect(buildMessagesFor(s, events, [])).toHaveLength(2);
+		expect(buildMessagesFor(s, events, [], [])).toHaveLength(2);
+	});
+
+	it("builds the defensive message when my own realm's wall becomes vulnerable", () => {
+		const s = settings({ myRealm: "Syrtis", wallVulnerableMineAlerts: true, lang: "pt" });
+		const wallEvents: WallVulnerableEvent[] = [{ homeRealm: "Syrtis", aggressor: "Ignis" }];
+		expect(buildMessagesFor(s, emptyEventsByRealm(), [], wallEvents)).toEqual([
+			{ title: "Muralha de Syrtis vulnerável — Ignis pode invadir!", body: "", url: "/" },
+		]);
+	});
+
+	it("builds the offensive message when I'm the one who made another realm's wall vulnerable", () => {
+		const s = settings({ myRealm: "Ignis", wallVulnerableEnemyAlerts: true, lang: "pt" });
+		const wallEvents: WallVulnerableEvent[] = [{ homeRealm: "Syrtis", aggressor: "Ignis" }];
+		expect(buildMessagesFor(s, emptyEventsByRealm(), [], wallEvents)).toEqual([
+			{ title: "Você deixou a muralha de Syrtis vulnerável!", body: "", url: "/" },
+		]);
+	});
+
+	it("stays silent on a wall-vulnerable event that's neither mine nor caused by me", () => {
+		const s = settings({ myRealm: "Alsius", wallVulnerableMineAlerts: true, wallVulnerableEnemyAlerts: true });
+		const wallEvents: WallVulnerableEvent[] = [{ homeRealm: "Syrtis", aggressor: "Ignis" }];
+		expect(buildMessagesFor(s, emptyEventsByRealm(), [], wallEvents)).toEqual([]);
+	});
+
+	it("builds nothing for a wall-vulnerable event when the matching toggle is off", () => {
+		const s = settings({ myRealm: "Syrtis", wallVulnerableMineAlerts: false });
+		const wallEvents: WallVulnerableEvent[] = [{ homeRealm: "Syrtis", aggressor: "Ignis" }];
+		expect(buildMessagesFor(s, emptyEventsByRealm(), [], wallEvents)).toEqual([]);
 	});
 });
 

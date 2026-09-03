@@ -1,4 +1,5 @@
 import type { PushSubscription } from "@block65/webcrypto-web-push";
+import type { Realm } from "../../src/data/realms";
 import type { AlertSettings } from "../../src/types/alertSettings";
 import { emptyCategorySets, type CategorySets } from "./diff.js";
 import type { BossState } from "./boss";
@@ -12,10 +13,21 @@ export interface SubscriberRecord {
 export interface PushState {
 	categories: CategorySets;
 	boss: BossState;
+	/** Whether each realm's wall was vulnerable as of the previous tick —
+	 *  compared against the freshly-computed value each tick to fire only on
+	 *  the false->true transition, same idea as `categories`. Optional so
+	 *  state persisted before this field existed still parses (`tick.ts`
+	 *  falls back to all-false when absent). */
+	wallVulnerable?: Record<Realm, boolean>;
 	lastTickAt: number | null;
 }
 
-export const DEFAULT_PUSH_STATE: PushState = { categories: emptyCategorySets(), boss: { alerted: [] }, lastTickAt: null };
+export const DEFAULT_PUSH_STATE: PushState = {
+	categories: emptyCategorySets(),
+	boss: { alerted: [] },
+	wallVulnerable: { Alsius: false, Ignis: false, Syrtis: false },
+	lastTickAt: null,
+};
 
 // Same "GitHub as a database" trick `api/notifications.ts` already uses —
 // no Postgres/Redis to provision, and it's one less account for whoever

@@ -22,6 +22,8 @@ const EVENT_ALERT_OPTIONS: { key: BooleanAlertKey; labelKey: TranslationKey }[] 
 	{ key: "wallCapturedAlerts", labelKey: "alerts.optWallCaptured" },
 	{ key: "wallLostAlerts", labelKey: "alerts.optWallLost" },
 	{ key: "wallRecoveredAlerts", labelKey: "alerts.optWallRecovered" },
+	{ key: "wallVulnerableMineAlerts", labelKey: "alerts.optWallVulnerableMine" },
+	{ key: "wallVulnerableEnemyAlerts", labelKey: "alerts.optWallVulnerableEnemy" },
 	{ key: "gemCapturedAlerts", labelKey: "alerts.optGemCaptured" },
 	{ key: "gemLostAlerts", labelKey: "alerts.optGemLost" },
 	{ key: "gemRecoveredAlerts", labelKey: "alerts.optGemRecovered" },
