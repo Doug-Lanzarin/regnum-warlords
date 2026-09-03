@@ -1,7 +1,9 @@
 {
 	"categories": {
 		"fortLost": {
-			"Alsius": [],
+			"Alsius": [
+				"Fort Aggersborg (2)"
+			],
 			"Ignis": [
 				"Shaanarid Castle (7)"
 			],
@@ -13,7 +15,9 @@
 			"Alsius": [
 				"Fort Herbred (10)"
 			],
-			"Ignis": [],
+			"Ignis": [
+				"Fort Aggersborg (2)"
+			],
 			"Syrtis": [
 				"Shaanarid Castle (7)"
 			]
@@ -21,7 +25,6 @@
 		"fortRecovered": {
 			"Alsius": [
 				"Imperia Castle (1)",
-				"Fort Aggersborg (2)",
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
@@ -97,5 +100,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788395104630
+	"lastTickAt": 1788395582701
 }
