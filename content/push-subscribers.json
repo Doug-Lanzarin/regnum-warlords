@@ -37,8 +37,8 @@
 			"myRealm": "Syrtis",
 			"lang": "pt",
 			"fortCapturedAlerts": false,
-			"fortLostAlerts": true,
-			"fortRecoveredAlerts": true,
+			"fortLostAlerts": false,
+			"fortRecoveredAlerts": false,
 			"wallCapturedAlerts": true,
 			"wallLostAlerts": true,
 			"wallRecoveredAlerts": true,
@@ -51,6 +51,6 @@
 				15
 			]
 		},
-		"updatedAt": 1788429756607
+		"updatedAt": 1788429757714
 	}
 ]
