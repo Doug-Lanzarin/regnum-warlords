@@ -8,11 +8,11 @@
 			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [
-				"Fort Samal (6)"
-			],
+			"Alsius": [],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Fort Samal (6)"
+			]
 		},
 		"fortRecovered": {
 			"Alsius": [
@@ -96,5 +96,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788427810026
+	"lastTickAt": 1788429662650
 }
