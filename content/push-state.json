@@ -5,22 +5,16 @@
 				"Fort Aggersborg (2)"
 			],
 			"Ignis": [
-				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
-			"Syrtis": [
-				"Fort Herbred (10)"
-			]
+			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [
-				"Fort Herbred (10)"
-			],
+			"Alsius": [],
 			"Ignis": [
 				"Fort Aggersborg (2)"
 			],
 			"Syrtis": [
-				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			]
 		},
@@ -30,10 +24,12 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
-				"Fort Menirah (5)"
+				"Fort Menirah (5)",
+				"Fort Samal (6)"
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
+				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
 		},
@@ -105,5 +101,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788402843075
+	"lastTickAt": 1788403323092
 }
