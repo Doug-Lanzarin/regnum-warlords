@@ -11,9 +11,11 @@ const TABS: { to: string; labelKey: TranslationKey; Icon: typeof WzTabIcon; end:
 	{ to: "/notificacoes", labelKey: "nav.notifications", Icon: NotificationsTabIcon, end: false },
 ];
 
-/** Fixed bottom tab bar shown only on phones (see the `desktop`-hiding media
- *  query in the CSS module) — replaces the header's nav row there so there's
- *  only one navigation surface on small screens. */
+/** The app's only navigation surface (the header was removed) — docked to
+ *  the bottom edge on phones exactly as a native app's tab bar would; on
+ *  tablet/desktop widths it becomes a fixed bar at the top instead (see the
+ *  `min-width: 641px` block in the CSS module), which reads more like a
+ *  normal desktop nav than a floating mobile-style pill would. */
 export function BottomTabBar() {
 	const t = useT();
 	return (

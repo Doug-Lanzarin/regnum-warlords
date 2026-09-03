@@ -16,14 +16,21 @@
 	color: var(--faded);
 	font-size: 0.85rem;
 	border-top: 1px solid var(--border);
-	/* Room for the fixed BottomTabBar, the app's only nav now that the
-	   header is gone — floats a bit higher on wider screens than it docks
-	   on phones, hence the different value below 641px. */
-	padding-bottom: calc(var(--space-5) + 86px);
 }
 
+/* Phones: BottomTabBar docks to the bottom edge, so the footer needs extra
+   room below to clear it. */
 @media (max-width: 640px) {
 	.footer {
 		padding-bottom: calc(var(--space-5) + 56px + env(safe-area-inset-bottom, 0px));
+	}
+}
+
+/* Tablet/desktop: BottomTabBar is a fixed bar at the top instead, so main
+   needs extra room above to clear it (the footer no longer needs any —
+   nothing floats over it down here anymore). */
+@media (min-width: 641px) {
+	.main {
+		padding-top: calc(var(--space-5) + 56px);
 	}
 }

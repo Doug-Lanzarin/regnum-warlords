@@ -9,6 +9,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 	const t = useT();
 	return (
 		<div className={styles.shell}>
+			<BottomTabBar />
 			<main className={`container ${styles.main}`}>{children}</main>
 			<footer className={`container ${styles.footer}`}>
 				<LanguagePicker />
@@ -20,7 +21,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 					{t("layout.footerSuffix")}
 				</p>
 			</footer>
-			<BottomTabBar />
 			<AlertsWatcher />
 		</div>
 	);
