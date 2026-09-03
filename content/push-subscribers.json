@@ -42,6 +42,8 @@
 			"wallCapturedAlerts": true,
 			"wallLostAlerts": true,
 			"wallRecoveredAlerts": true,
+			"wallVulnerableMineAlerts": false,
+			"wallVulnerableEnemyAlerts": false,
 			"gemCapturedAlerts": true,
 			"gemLostAlerts": true,
 			"gemRecoveredAlerts": true,
@@ -51,6 +53,6 @@
 				15
 			]
 		},
-		"updatedAt": 1788448474699
+		"updatedAt": 1788452683593
 	}
 ]
