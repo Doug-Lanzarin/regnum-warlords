@@ -3,11 +3,15 @@
 		"fortLost": {
 			"Alsius": [],
 			"Ignis": [],
-			"Syrtis": []
+			"Syrtis": [
+				"Fort Herbred (10)"
+			]
 		},
 		"fortCaptured": {
 			"Alsius": [],
-			"Ignis": [],
+			"Ignis": [
+				"Fort Herbred (10)"
+			],
 			"Syrtis": []
 		},
 		"fortRecovered": {
@@ -23,7 +27,6 @@
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
 		},
@@ -93,5 +96,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788416283277
+	"lastTickAt": 1788416407132
 }
