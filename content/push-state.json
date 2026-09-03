@@ -3,7 +3,6 @@
 		"fortLost": {
 			"Alsius": [],
 			"Ignis": [
-				"Fort Menirah (5)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": []
@@ -12,7 +11,6 @@
 			"Alsius": [],
 			"Ignis": [],
 			"Syrtis": [
-				"Fort Menirah (5)",
 				"Shaanarid Castle (7)"
 			]
 		},
@@ -23,6 +21,7 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
+				"Fort Menirah (5)",
 				"Fort Samal (6)"
 			],
 			"Syrtis": [
@@ -97,5 +96,5 @@
 			"evendim:1788400487:60"
 		]
 	},
-	"lastTickAt": 1788398283741
+	"lastTickAt": 1788398523493
 }
