@@ -5,6 +5,7 @@
 				"Fort Trelleborg (3)"
 			],
 			"Ignis": [
+				"Fort Menirah (5)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": []
@@ -14,6 +15,7 @@
 			"Ignis": [],
 			"Syrtis": [
 				"Fort Trelleborg (3)",
+				"Fort Menirah (5)",
 				"Shaanarid Castle (7)"
 			]
 		},
@@ -23,7 +25,6 @@
 				"Fort Aggersborg (2)"
 			],
 			"Ignis": [
-				"Fort Menirah (5)",
 				"Fort Samal (6)"
 			],
 			"Syrtis": [
@@ -98,5 +99,5 @@
 			"evendim:1788400487:60"
 		]
 	},
-	"lastTickAt": 1788397622982
+	"lastTickAt": 1788397982683
 }
