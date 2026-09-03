@@ -19,6 +19,7 @@ import {
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	computeFortHistory,
+	computeWallVulnerability,
 	computeWishActivityByRealm,
 	computeWishActivityFromStats,
 	type RealmActivityCount,
@@ -39,6 +40,7 @@ export function WzStatusPage() {
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
+	const wallVulnerability = useMemo(() => computeWallVulnerability(forts, eventsDump, now), [forts, eventsDump, now]);
 	const events = useMemo(() => (data ? computeEventLog(data, lang) : []), [data, lang]);
 	const wishes = useMemo(() => computeDragonWishes(eventsDump, lang), [eventsDump, lang]);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
@@ -102,7 +104,7 @@ export function WzStatusPage() {
 				{error && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
 				{lastUpdated && <span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated, lang) })}</span>}
 			</div>
-			<WzMap forts={forts} onSelectFort={setSelectedFort} />
+			<WzMap forts={forts} wallVulnerability={wallVulnerability} now={now} onSelectFort={setSelectedFort} />
 			{selectedFort && (
 				<FortHistoryModal
 					fortName={selectedFort.name}
@@ -112,7 +114,7 @@ export function WzStatusPage() {
 					onClose={() => setSelectedFort(null)}
 				/>
 			)}
-			<FortsSection forts={forts} now={now} />
+			<FortsSection forts={forts} wallVulnerability={wallVulnerability} now={now} />
 			<GemsSection gems={gems} />
 			{wishes.length > 0 && (
 				<EventsLogSection events={wishes} now={now} title={t("wz.dragonWishesTitle")} countLabel={t("wz.dragonWishesCountLabel")} />

@@ -3,6 +3,24 @@ import { translate } from "../i18n/translate";
 
 const LOCALE: Record<Lang, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 
+/** Compact "3h 20m" / "5m 30s" duration label — shows only the precision
+ *  that matters at that distance (no jittery seconds ticker for something
+ *  days away). Pure formatting, no "reached zero" handling — callers decide
+ *  their own copy for `ms <= 0` (see `formatCountdown` in
+ *  `features/bosses/countdown.ts` for a boss-specific example). */
+export function formatDuration(ms: number): string {
+	const totalSeconds = Math.floor(ms / 1000);
+	const days = Math.floor(totalSeconds / 86400);
+	const hours = Math.floor((totalSeconds % 86400) / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+	if (hours > 0) return `${hours}h ${minutes}m`;
+	if (minutes > 0) return `${minutes}m ${seconds}s`;
+	return `${seconds}s`;
+}
+
 /** "há 2d 3h" style relative-past label, for "last seen"/"since" timestamps. */
 export function formatRelativePast(ms: number, lang: Lang): string {
 	if (ms <= 0) return translate(lang, "time.now");

@@ -1,17 +1,20 @@
-import { formatFortLabel } from "../../data/fortKind";
+import { formatFortLabel, getFortKind } from "../../data/fortKind";
 import { REALMS, REALM_COLOR, type Realm } from "../../data/realms";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
-import { formatRelativePast } from "../../utils/time";
+import { formatDuration, formatRelativePast } from "../../utils/time";
 import type { FortStatus } from "./wzEngine";
+import type { WallVulnerability } from "./wzEventsEngine";
 import styles from "./FortsSection.module.css";
 
 interface Props {
 	forts: FortStatus[];
+	/** One entry per realm — see `computeWallVulnerability`. */
+	wallVulnerability: WallVulnerability[];
 	now: number;
 }
 
-export function FortsSection({ forts, now }: Props) {
+export function FortsSection({ forts, wallVulnerability, now }: Props) {
 	const { lang } = useLanguage();
 	const t = useT();
 	return (
@@ -32,25 +35,39 @@ export function FortsSection({ forts, now }: Props) {
 								<span className={styles.held}>{t("wz.fortsHeld", { held, total: realmForts.length })}</span>
 							</div>
 							<ul className={styles.list}>
-								{realmForts.map((fort) => (
-									<li key={fort.name} className={`${styles.row} ${fort.captured ? styles.rowCaptured : ""}`}>
-										<div className={styles.rowMain}>
-											<span className={styles.fortName}>{formatFortLabel(fort.name, lang)}</span>
-											<span
-												className={styles.ownerBadge}
-												style={{ "--owner-color": REALM_COLOR[fort.owner as Realm] } as React.CSSProperties}
-											>
-												{fort.owner}
-											</span>
-										</div>
-										{fort.captured && (
-											<span className={styles.capturedNote}>
-												{t("wz.fortInvadedNote")}
-												{fort.since ? ` ${formatRelativePast(now - fort.since * 1000, lang)}` : ""}
-											</span>
-										)}
-									</li>
-								))}
+								{realmForts.map((fort) => {
+									const vulnerability =
+										getFortKind(fort.name) === "wall" ? wallVulnerability.find((w) => w.homeRealm === fort.home) : undefined;
+									const isVulnerable = !!vulnerability?.isVulnerable;
+									return (
+										<li
+											key={fort.name}
+											className={`${styles.row} ${fort.captured ? styles.rowCaptured : ""} ${isVulnerable ? styles.rowVulnerable : ""}`}
+										>
+											<div className={styles.rowMain}>
+												<span className={styles.fortName}>{formatFortLabel(fort.name, lang)}</span>
+												<span
+													className={styles.ownerBadge}
+													style={{ "--owner-color": REALM_COLOR[fort.owner as Realm] } as React.CSSProperties}
+												>
+													{fort.owner}
+												</span>
+											</div>
+											{fort.captured && (
+												<span className={styles.capturedNote}>
+													{t("wz.fortInvadedNote")}
+													{fort.since ? ` ${formatRelativePast(now - fort.since * 1000, lang)}` : ""}
+												</span>
+											)}
+											{!fort.captured && isVulnerable && <span className={styles.vulnerableNote}>{t("wz.wallVulnerableNow")}</span>}
+											{!fort.captured && !isVulnerable && vulnerability?.vulnerableAtMs != null && (
+												<span className={styles.vulnerableNote}>
+													{t("wz.wallVulnerableIn", { time: formatDuration(vulnerability.vulnerableAtMs - now) })}
+												</span>
+											)}
+										</li>
+									);
+								})}
 							</ul>
 						</div>
 					);
