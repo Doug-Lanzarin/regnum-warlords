@@ -4,7 +4,9 @@
 			"Alsius": [
 				"Fort Aggersborg (2)"
 			],
-			"Ignis": [],
+			"Ignis": [
+				"Fort Samal (6)"
+			],
 			"Syrtis": []
 		},
 		"fortCaptured": {
@@ -12,7 +14,9 @@
 			"Ignis": [
 				"Fort Aggersborg (2)"
 			],
-			"Syrtis": []
+			"Syrtis": [
+				"Fort Samal (6)"
+			]
 		},
 		"fortRecovered": {
 			"Alsius": [
@@ -21,7 +25,6 @@
 			],
 			"Ignis": [
 				"Fort Menirah (5)",
-				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
@@ -94,5 +97,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788393304817
+	"lastTickAt": 1788394206903
 }
