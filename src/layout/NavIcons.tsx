@@ -23,13 +23,14 @@ export function BossesTabIcon({ className }: IconProps) {
 	);
 }
 
-/** Trainer build calculator — a sword. */
+/** Trainer build calculator — a diagonal sword (blade, crossguard, hilt, pommel). */
 export function TrainerTabIcon({ className }: IconProps) {
 	return (
 		<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-			<path d="m14.5 3.5 6 6-8.5 8.5-6-6z" />
-			<path d="M12 15 4.5 22.5" />
-			<path d="m17 6-2 2" />
+			<path d="M14.5 17.5 3 6V3h3l11.5 11.5" />
+			<path d="M13 19l6-6" />
+			<path d="M16 16l4 4" />
+			<path d="M19 21l2-2" />
 		</svg>
 	);
 }
