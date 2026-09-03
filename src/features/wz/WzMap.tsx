@@ -3,23 +3,32 @@ import { REALM_COLOR } from "../../data/realms";
 import { FORT_MAP_POSITIONS, WZ_MAP_IMAGE, WZ_MAP_SIZE } from "../../data/wzMapConstants";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
+import { formatDuration } from "../../utils/time";
 import type { FortStatus } from "./wzEngine";
+import type { WallVulnerability } from "./wzEventsEngine";
 import { FORT_ICON_PATHS, getFortKind } from "./wzIcons";
 import styles from "./WzMap.module.css";
 
 interface Props {
 	/** In `WzStatusData.forts` order — index i matches `FORT_MAP_POSITIONS[i]`. */
 	forts: FortStatus[];
+	/** One entry per realm — see `computeWallVulnerability`. */
+	wallVulnerability: WallVulnerability[];
+	now: number;
 	/** Called with the fort's raw name when a fort icon is clicked/activated. */
 	onSelectFort?: (fort: FortStatus) => void;
 }
 
 const ICON_SIZE = 32;
+/** Dark goldenrod — distinct from the map's already-bright yellow "(n)"
+ *  index labels (`#eed202`), so a vulnerable wall doesn't read as the same
+ *  color as that unrelated UI element. */
+const WALL_VULNERABLE_COLOR = "#b8860b";
 
 /** The war zone map with the 12 forts placed on top, ported from CoRT's
  *  canvas-based `wz-map` (same base image and hand-placed coordinates),
  *  redrawn as SVG so each fort can be a hoverable, keyboard-reachable node. */
-export function WzMap({ forts, onSelectFort }: Props) {
+export function WzMap({ forts, wallVulnerability, now, onSelectFort }: Props) {
 	const { lang } = useLanguage();
 	const t = useT();
 	return (
@@ -29,13 +38,23 @@ export function WzMap({ forts, onSelectFort }: Props) {
 				{forts.map((fort, i) => {
 					const pos = FORT_MAP_POSITIONS[i];
 					if (!pos) return null;
-					const color = REALM_COLOR[fort.owner];
 					const kind = getFortKind(fort.name);
+					const vulnerability = kind === "wall" ? wallVulnerability.find((w) => w.homeRealm === fort.home) : undefined;
+					const isVulnerable = !!vulnerability?.isVulnerable;
+					const color = isVulnerable ? WALL_VULNERABLE_COLOR : REALM_COLOR[fort.owner];
 					const label = formatFortLabel(fort.name, lang);
+
+					let vulnerabilityTooltip = "";
+					if (isVulnerable) {
+						vulnerabilityTooltip = ` ${t("wz.wallVulnerableTooltip")}`;
+					} else if (vulnerability?.vulnerableAtMs != null) {
+						vulnerabilityTooltip = ` ${t("wz.wallVulnerableIn", { time: formatDuration(vulnerability.vulnerableAtMs - now) })}`;
+					}
+
 					return (
 						<g
 							key={fort.name}
-							className={`${styles.fort} ${fort.captured ? styles.fortCaptured : ""}`}
+							className={`${styles.fort} ${fort.captured ? styles.fortCaptured : ""} ${isVulnerable ? styles.wallVulnerable : ""}`}
 							role={onSelectFort ? "button" : undefined}
 							tabIndex={onSelectFort ? 0 : undefined}
 							onClick={onSelectFort ? () => onSelectFort(fort) : undefined}
@@ -53,6 +72,7 @@ export function WzMap({ forts, onSelectFort }: Props) {
 							<title>
 								{t("wz.fortTooltip", { label, owner: fort.owner })}
 								{fort.captured ? t("wz.fortTooltipCapturedSuffix", { home: fort.home }) : ""}
+								{vulnerabilityTooltip}
 							</title>
 							{fort.captured && (
 								<circle

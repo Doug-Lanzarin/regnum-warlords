@@ -121,6 +121,34 @@
 	color: var(--red);
 }
 
+.vulnerableNote {
+	font-size: 0.74rem;
+	font-weight: 600;
+	color: #b8860b;
+}
+
+@keyframes row-vulnerable-blink {
+	0%,
+	100% {
+		border-color: var(--border);
+		background: var(--card-background-alt);
+	}
+	50% {
+		border-color: #b8860b;
+		background: color-mix(in srgb, #b8860b 16%, var(--card-background-alt));
+	}
+}
+.rowVulnerable {
+	animation: row-vulnerable-blink 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.rowVulnerable {
+		animation: none;
+		border-color: #b8860b;
+		background: color-mix(in srgb, #b8860b 16%, var(--card-background-alt));
+	}
+}
+
 @media (max-width: 640px) {
 	.grid {
 		grid-template-columns: 1fr;
