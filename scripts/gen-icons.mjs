@@ -9,7 +9,7 @@ mkdirSync(outDir, { recursive: true });
 
 // Sampled from the source artwork's own edge so the maskable padding blends
 // in instead of showing a visible seam around the safe-zone circle.
-const MASKABLE_BG = { r: 40, g: 111, b: 31 };
+const MASKABLE_BG = { r: 7, g: 8, b: 6 };
 
 const PNG_OPTS = { compressionLevel: 9, palette: true, quality: 90, effort: 10 };
 
