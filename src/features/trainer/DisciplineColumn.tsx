@@ -3,7 +3,7 @@ import { MAX_CHAR_LEVEL, MAX_DISCIPLINE_LEVEL, MIN_DISCIPLINE_LEVEL } from "../.
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
 import type { AdvancedClass, DisciplineState, TrainerData } from "../../types/trainer";
-import { charLevelRequiredFor, isSingleTierSpell, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
+import { charLevelRequiredFor, isPlaceholderSpell, isSingleTierSpell, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
 import { disciplineName as formatDisciplineName, spellName } from "./spellFormat";
 import { SkillIcon } from "./SkillIcon";
 import { SpellRow } from "./SpellRow";
@@ -53,10 +53,11 @@ export function DisciplineColumn({
 	const blockedByWarMastery = isWarMastery && charLevel !== MAX_CHAR_LEVEL;
 	const canRaise = state.level < MAX_DISCIPLINE_LEVEL && nextRequiredLevel <= charLevel && !blockedByWarMastery;
 	const levelPct = (state.level / MAX_DISCIPLINE_LEVEL) * 100;
-	// Excludes single-tier (War Mastery) spells — unlocking those doesn't
-	// spend power points, so they shouldn't count as "invested" here either.
+	// Single-tier (War Mastery) spells aren't individually ranked — count
+	// their cost from slot availability instead of stored rank, same as
+	// computeTotalsForBuild.
 	const pointsInvested = discipline.spells.reduce((sum, spell, idx) => {
-		if (isSingleTierSpell(spell)) return sum;
+		if (isSingleTierSpell(spell)) return sum + maxSpellRank(trainerData, state.level, isFirstDiscipline && idx === 0, spell, idx);
 		return sum + (state.spellRanks[idx] ?? 0);
 	}, 0);
 
@@ -65,7 +66,7 @@ export function DisciplineColumn({
 
 	const visibleSpells = discipline.spells
 		.map((spell, idx) => ({ spell, idx }))
-		.filter(({ spell }) => !/^undefined\d*$/.test(spell.name.en))
+		.filter(({ spell }) => !isPlaceholderSpell(spell))
 		.filter(({ spell }) => disciplineMatches || spellName(spell, lang).toLowerCase().includes(normalizedFilter));
 
 	if (normalizedFilter && visibleSpells.length === 0) return null;

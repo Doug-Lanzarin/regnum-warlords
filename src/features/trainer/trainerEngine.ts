@@ -79,12 +79,23 @@ export function charLevelRequiredFor(trainerData: TrainerData, disciplineLevel: 
 	return trainerData.required.level[disciplineLevel - 1] ?? Infinity;
 }
 
+/** War Mastery's raw 10-slot spell array interleaves its 5 real skills with
+ *  5 unused "undefined"/"undefinedN" placeholder entries (CoRT's
+ *  `load_tree()` skips factory() calls for these via `spellpos % 2 == 1`) —
+ *  they must never be treated as real, costed skills, even though their
+ *  shape (scalar `mana: 0`, no buffs/debuffs/damage/heal) would otherwise
+ *  satisfy isSingleTierSpell's heuristic below. */
+export function isPlaceholderSpell(spell: Spell): boolean {
+	return /^undefined\d*$/.test(spell.name.en);
+}
+
 /** War Mastery ("WM") disciplines' spells don't scale with rank at all in
  *  the data — no array-valued mana/buff/debuff/damage/heal anywhere, just a
  *  single flat effect. They only need to be unlocked (rank 0→1) once the
  *  discipline is leveled up enough, not ranked with power points like every
  *  other spell in the game. */
 export function isSingleTierSpell(spell: Spell): boolean {
+	if (isPlaceholderSpell(spell)) return false;
 	if (Array.isArray(spell.mana)) return false;
 	const keys = ["buffs", "debuffs", "damage", "heal"] as const;
 	for (const key of keys) {
@@ -98,8 +109,12 @@ export function isSingleTierSpell(spell: Spell): boolean {
 }
 
 /** Max rank obtainable for a spell at the discipline's current level.
- *  Single-tier spells (see `isSingleTierSpell`) cap at 1 regardless of
- *  discipline level, since there's nothing beyond "unlocked" for them.
+ *  Single-tier spells (see `isSingleTierSpell`) don't have the normal 1-5
+ *  incremental ranks to buy into — there's a single flat effect, so once
+ *  their slot is unlocked they're granted at the full `MAX_SPELL_RANK`
+ *  straight away (paying for it the same as maxing a normal spell would),
+ *  bypassing the level-based power-point ceiling below that gates normal
+ *  spells' ranks.
  *
  *  A discipline only opens `required.available[level-1]` of its 10 spell
  *  slots at a time (1 at the lowest level, growing to all 10 by level 19,
@@ -116,10 +131,10 @@ export function maxSpellRank(
 ): number {
 	const available = trainerData.required.available[disciplineLevel - 1] ?? 0;
 	if (spellIndex + 1 > available) return 0;
+	if (spell && isSingleTierSpell(spell)) return MAX_SPELL_RANK;
 	let m = trainerData.required.power[disciplineLevel - 1] ?? 0;
 	if (disciplineLevel === MIN_DISCIPLINE_LEVEL && isFirstSpellOfTree) m += 1;
-	const cap = spell && isSingleTierSpell(spell) ? 1 : MAX_SPELL_RANK;
-	return Math.min(m, cap);
+	return Math.min(m, MAX_SPELL_RANK);
 }
 
 export function emptyDisciplineState(spellCount: number): DisciplineState {
@@ -147,14 +162,22 @@ export function computeTotalsForBuild(trainerData: TrainerData, build: TrainerBu
 		return { dpointsTotal: 0, dpointsSpent: 0, dpointsLeft: 0, ppointsTotal: 0, ppointsSpent: 0, ppointsLeft: 0 };
 	}
 	const { dpointsTotal, ppointsTotal } = computeTotals(trainerData, build.clas, build.level, build.necroGem);
+	const trees = getTreeNames(trainerData, build.clas);
 	let dpointsSpent = 0;
 	let ppointsSpent = 0;
 	for (const [name, state] of Object.entries(build.disciplines)) {
 		dpointsSpent += disciplineCost(trainerData, MIN_DISCIPLINE_LEVEL, state.level);
 		const spells = trainerData.disciplines[name]?.spells ?? [];
+		const isFirst = trees[0] === name;
 		state.spellRanks.forEach((rank, idx) => {
 			const spell = spells[idx];
-			if (spell && isSingleTierSpell(spell)) return; // unlocking is free — see isSingleTierSpell
+			if (spell && isSingleTierSpell(spell)) {
+				// Single-tier (War Mastery) spells aren't individually ranked —
+				// their cost is derived from whether the discipline level has
+				// unlocked their slot, not from stored rank (see maxSpellRank).
+				ppointsSpent += maxSpellRank(trainerData, state.level, isFirst && idx === 0, spell, idx);
+				return;
+			}
 			ppointsSpent += rank;
 		});
 	}
@@ -206,6 +229,14 @@ export function canSetDisciplineLevel(
 	const totals = computeTotalsForBuild(trainerData, build);
 	if (cost > totals.dpointsLeft) {
 		return { ok: false, reason: translate(lang, "trainer.errInsufficientDisciplinePoints") };
+	}
+	// Raising the level can auto-unlock single-tier (War Mastery) spells,
+	// each costing MAX_SPELL_RANK power points the instant their slot opens
+	// (see maxSpellRank) — check the resulting total, the same way a normal
+	// spell rank increase already checks ppointsLeft before applying.
+	const afterRaise: TrainerBuild = { ...build, disciplines: { ...build.disciplines, [disciplineName]: { ...state, level: newLevel } } };
+	if (computeTotalsForBuild(trainerData, afterRaise).ppointsLeft < 0) {
+		return { ok: false, reason: translate(lang, "trainer.errInsufficientPowerPoints") };
 	}
 	return { ok: true };
 }

@@ -156,8 +156,6 @@ const es: Record<TranslationKey, string> = {
 	"trainer.hide": "Ocultar",
 	"trainer.view": "Ver",
 	"trainer.spellDetailsAriaLabel": "{action} detalles de {spell}",
-	"trainer.free": "gratis",
-	"trainer.freeTooltip": "No consume puntos de poder — solo depende del nivel de la disciplina",
 	"trainer.maxed": "máx",
 	"trainer.decreaseRank": "Disminuir rango de {spell}",
 	"trainer.increaseRank": "Aumentar rango de {spell}",

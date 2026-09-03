@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Discipline, Spell, TrainerBuild, TrainerData } from "../../types/trainer";
-import { canSetDisciplineLevel, createEmptyBuild, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
+import { canSetDisciplineLevel, computeTotalsForBuild, createEmptyBuild, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
 
 /** Small hand-built fixture, shaped like the real bundled trainerdata.json
  *  (public/data/trainer/1.35.19/trainerdata.json, itself a copy of CoRT's)
@@ -129,9 +129,89 @@ describe("maxSpellRank — available slot gate", () => {
 		expect(maxSpellRank(trainerData, 7, false, spell, 4)).toBe(0);
 	});
 
-	it("applies the same gate to single-tier (War Mastery) spells", () => {
+	it("applies the same slot gate to single-tier (War Mastery) spells, but grants MAX_SPELL_RANK once unlocked instead of ranking incrementally", () => {
 		const singleTier: Spell = { ...spell, mana: 0 };
 		expect(maxSpellRank(trainerData, 1, false, singleTier, 1)).toBe(0);
-		expect(maxSpellRank(trainerData, 3, false, singleTier, 1)).toBe(1);
+		expect(maxSpellRank(trainerData, 3, false, singleTier, 1)).toBe(5);
+	});
+});
+
+describe("computeTotalsForBuild — War Mastery costs power points", () => {
+	it("charges MAX_SPELL_RANK power points for an unlocked single-tier spell, not 0", () => {
+		const trainerData = makeTrainerData();
+		const build = buildAtLevel(trainerData, 60);
+		// "Hunter WM" (level 1, available[0]=1) already has its one real
+		// skill (raw index 0) unlocked from the start.
+		const totals = computeTotalsForBuild(trainerData, build);
+		expect(totals.ppointsSpent).toBe(5);
+	});
+
+	it("charges nothing for a single-tier spell whose slot isn't unlocked yet", () => {
+		const trainerData = makeTrainerData();
+		// A discipline whose single-tier skill sits at raw index 1 needs
+		// available >= 2 (discipline level 3) before it's granted — raw
+		// index 0 is an ordinary (non-single-tier) spell, untouched (rank 0
+		// by default), so it can't contribute any cost of its own here.
+		trainerData.disciplines["Hunter WM"] = {
+			class: "Hunter",
+			display_name: { en: "Hunter WM" },
+			spells: [
+				{ name: { en: "filler" }, description: { en: "" }, mana: [10, 20, 30, 40, 50], type: "Active", cast: 1, gcd: "Short", cooldown: 0 },
+				{ name: { en: "Real Skill" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+			],
+		};
+		const build = buildAtLevel(trainerData, 60);
+		expect(computeTotalsForBuild(trainerData, build).ppointsSpent).toBe(0);
+	});
+});
+
+describe("computeTotalsForBuild — placeholder War Mastery slots are never charged", () => {
+	it("does not charge power points for an 'undefined' placeholder slot even once its raw index is unlocked", () => {
+		const trainerData = makeTrainerData();
+		// Mirrors the real trainerdata.json shape: raw index 0 is an unused
+		// placeholder (shares the single-tier shape — scalar mana: 0, no
+		// buffs/debuffs/damage/heal — but must never be treated as a real,
+		// costed skill), the real single-tier skill sits at raw index 1.
+		trainerData.disciplines["Hunter WM"] = {
+			class: "Hunter",
+			display_name: { en: "Hunter WM" },
+			spells: [
+				{ name: { en: "undefined" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+				{ name: { en: "Real Skill" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+			],
+		};
+		const build = buildAtLevel(trainerData, 60);
+		// level 1 -> available[0] = 1: only raw index 0 (the placeholder) is
+		// "unlocked" — the real skill at raw index 1 stays locked, and the
+		// placeholder itself must contribute nothing.
+		expect(computeTotalsForBuild(trainerData, build).ppointsSpent).toBe(0);
+	});
+});
+
+describe("canSetDisciplineLevel — power points gate on auto-unlocked War Mastery skills", () => {
+	function makeLowPowerTrainerData(): TrainerData {
+		const trainerData = makeTrainerData();
+		// Barely enough power points for one 5-point skill, nowhere near two.
+		trainerData.points.power["80"] = Array.from({ length: 60 }, () => 5);
+		return trainerData;
+	}
+
+	it("blocks raising the discipline level when it would auto-unlock more War Mastery skills than there are power points left", () => {
+		const trainerData = makeLowPowerTrainerData();
+		trainerData.disciplines["Hunter WM"] = {
+			class: "Hunter",
+			display_name: { en: "Hunter WM" },
+			spells: [
+				{ name: { en: "First" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+				{ name: { en: "filler" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+				{ name: { en: "Second" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 },
+			],
+		};
+		const build = buildAtLevel(trainerData, 60);
+		// level 1->3 raises available from 1 to 2, granting the 2nd skill
+		// (raw index 2) on top of the 1st (raw index 0) already active —
+		// 10 power points needed, only 5 available.
+		const check = canSetDisciplineLevel(trainerData, build, "Hunter WM", 3, "en");
+		expect(check.ok).toBe(false);
 	});
 });

@@ -159,8 +159,6 @@ const pt = {
 	"trainer.hide": "Ocultar",
 	"trainer.view": "Ver",
 	"trainer.spellDetailsAriaLabel": "{action} detalhes de {spell}",
-	"trainer.free": "grátis",
-	"trainer.freeTooltip": "Não consome pontos de poder — só depende do nível da disciplina",
 	"trainer.maxed": "máx",
 	"trainer.decreaseRank": "Diminuir rank de {spell}",
 	"trainer.increaseRank": "Aumentar rank de {spell}",

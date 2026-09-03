@@ -156,8 +156,6 @@ const en: Record<TranslationKey, string> = {
 	"trainer.hide": "Hide",
 	"trainer.view": "View",
 	"trainer.spellDetailsAriaLabel": "{action} details of {spell}",
-	"trainer.free": "free",
-	"trainer.freeTooltip": "Doesn't cost power points — only depends on the discipline's level",
 	"trainer.maxed": "max",
 	"trainer.decreaseRank": "Decrease rank of {spell}",
 	"trainer.increaseRank": "Increase rank of {spell}",

@@ -28,10 +28,7 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 	const effectRows = spellEffectRows(spell, lang);
 	const activeCol = rank > 0 ? rank - 1 : 0;
 	const singleTier = isSingleTierSpell(spell);
-	// "Maxed" doesn't mean anything extra for a War Mastery skill — it's
-	// either granted or not, there's no further rank to chase — so the tag
-	// would just be a confusing duplicate of the free/granted state.
-	const maxed = !singleTier && maxRank > 0 && rank >= maxRank;
+	const maxed = maxRank > 0 && rank >= maxRank;
 
 	return (
 		<div
@@ -49,25 +46,25 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 					›
 				</span>
 				<span className={styles.spellName}>{name}</span>
-				{singleTier && (
-					<span className={styles.freeTag} title={t("trainer.freeTooltip")}>
-						{t("trainer.free")}
-					</span>
-				)}
 				{maxed && <span className={styles.maxedTag}>{t("trainer.maxed")}</span>}
 			</button>
 
-			{/* War Mastery skills have nothing to step through — they're
-			    granted automatically, not chosen/ranked (see the `rank`
-			    derivation in DisciplineColumn.tsx). */}
-			{!singleTier && (
-				<div className={styles.controlLine}>
-					<div className={styles.pips} aria-hidden>
-						{Array.from({ length: Math.max(maxRank, 1) }).map((_, i) => (
-							<span key={i} className={`${styles.pip} ${i < rank ? styles.pipFilled : ""}`} />
-						))}
-					</div>
+			<div className={styles.controlLine}>
+				<div className={styles.pips} aria-hidden>
+					{Array.from({ length: Math.max(maxRank, 1) }).map((_, i) => (
+						<span key={i} className={`${styles.pip} ${i < rank ? styles.pipFilled : ""}`} />
+					))}
+				</div>
 
+				{/* War Mastery skills have nothing to step through — the game
+				    grants them automatically at full rank once the discipline
+				    level unlocks their slot (see DisciplineColumn.tsx), it's
+				    not a per-click choice like a normal spell's rank is. */}
+				{singleTier ? (
+					<span className={styles.rankValue}>
+						{rank}/{maxRank}
+					</span>
+				) : (
 					<div className={styles.stepper}>
 						<button
 							type="button"
@@ -91,8 +88,8 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 							+
 						</button>
 					</div>
-				</div>
-			)}
+				)}
+			</div>
 
 			{open && (
 				<div className={styles.details}>
