@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./layout/AppLayout";
 import { TrainerPage } from "./pages/TrainerPage";
+import { ArmorPage } from "./pages/ArmorPage";
+import { ToolsPage } from "./pages/ToolsPage";
 import { BossesPage } from "./pages/BossesPage";
 import { WzStatusPage } from "./pages/WzStatusPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -14,7 +16,9 @@ export default function App() {
 				<Route path="/" element={<WzStatusPage />} />
 				{/* Kept as a redirect so old bookmarks/links to /wz still land somewhere. */}
 				<Route path="/wz" element={<Navigate to="/" replace />} />
+				<Route path="/ferramentas" element={<ToolsPage />} />
 				<Route path="/trainer" element={<TrainerPage />} />
+				<Route path="/armadura" element={<ArmorPage />} />
 				<Route path="/bosses" element={<BossesPage />} />
 				<Route path="/notificacoes" element={<NotificationsPage />} />
 				<Route path="/warlords/gerenciamento/notificacoes" element={<NotificationsAdminPage />} />

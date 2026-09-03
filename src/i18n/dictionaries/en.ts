@@ -6,16 +6,30 @@ const en: Record<TranslationKey, string> = {
 	"nav.wz": "Warzone",
 	"nav.bosses": "Epics",
 	"nav.trainer": "Trainer",
+	"nav.tools": "Tools",
 	"nav.notifications": "Notifications",
 	"layout.footerPrefix": "Built by Douglas Lanzarin - Fork of the",
 	"layout.footerSuffix": "project",
 	"layout.languageLabel": "Language",
+
+	// -- tools hub --
+	"tools.title": "Tools",
+	"tools.subtitle": "Calculators to plan and build your character.",
+	"tools.trainerDesc": "Discipline and skill build by power points.",
+	"tools.armorLabel": "Armor Calculator",
+	"tools.armorDesc": "Protection points per damage type from your armor.",
+
+	// -- armor calculator (placeholder) --
+	"armor.title": "Armor Calculator",
+	"armor.comingSoonBadge": "In progress",
+	"armor.comingSoonBody": "This calculator is still being built — soon you'll be able to work out protection points per damage type from your equipped armor.",
 
 	// -- common --
 	"common.tryAgain": "Try again",
 	"common.openInCort": "Open in CoRT ↗",
 	"common.liveDataUnavailable": "Live data unavailable",
 	"common.unavailable": "Unavailable",
+	"common.back": "Back",
 
 	// -- time (relative past) --
 	"time.now": "now",

@@ -6,16 +6,30 @@ const es: Record<TranslationKey, string> = {
 	"nav.wz": "Warzone",
 	"nav.bosses": "Épicos",
 	"nav.trainer": "Entrenador",
+	"nav.tools": "Herramientas",
 	"nav.notifications": "Notificaciones",
 	"layout.footerPrefix": "Desarrollado por Douglas Lanzarin - Fork del proyecto",
 	"layout.footerSuffix": "",
 	"layout.languageLabel": "Idioma",
+
+	// -- tools hub --
+	"tools.title": "Herramientas",
+	"tools.subtitle": "Calculadoras para planear y armar tu personaje.",
+	"tools.trainerDesc": "Build de disciplinas y habilidades por puntos de poder.",
+	"tools.armorLabel": "Calculadora de Armadura",
+	"tools.armorDesc": "Puntos de protección por tipo de daño según tu armadura.",
+
+	// -- armor calculator (placeholder) --
+	"armor.title": "Calculadora de Armadura",
+	"armor.comingSoonBadge": "En construcción",
+	"armor.comingSoonBody": "Esta calculadora todavía se está construyendo — pronto vas a poder calcular puntos de protección por tipo de daño a partir de tu armadura equipada.",
 
 	// -- common --
 	"common.tryAgain": "Intentar de nuevo",
 	"common.openInCort": "Abrir en CoRT ↗",
 	"common.liveDataUnavailable": "Datos en vivo no disponibles",
 	"common.unavailable": "No disponible",
+	"common.back": "Volver",
 
 	// -- time (relative past) --
 	"time.now": "ahora",

@@ -1,0 +1,35 @@
+.wrap {
+	padding: var(--space-6);
+	max-width: 520px;
+	margin: var(--space-6) auto;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.icon {
+	width: 56px;
+	height: 56px;
+	border-radius: var(--radius-full);
+	background: var(--forms);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--links);
+}
+
+.iconSvg {
+	width: 28px;
+	height: 28px;
+}
+
+.wrap h1 {
+	margin: 0;
+}
+
+.wrap p {
+	color: var(--faded);
+	margin: 0;
+}
