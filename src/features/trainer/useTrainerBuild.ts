@@ -54,7 +54,11 @@ export function useTrainerBuild(initialVersion: string = DEFAULT_DATASET_VERSION
 				setBuild((prev) => {
 					if (prev) return prev;
 					const restored = loadBuildFromLocalStorage();
-					if (restored && restored.clas) return restored;
+					// Re-clamp on load too, not just on a live level change — a
+					// build saved before a rule tightened (e.g. a discipline
+					// level's available-skill-slot cap) could otherwise come
+					// back with a spell rank above what's now allowed.
+					if (restored && restored.clas) return clampBuildToLevel(data, restored);
 					return createEmptyBuild(data, "knight", 60, false, version);
 				});
 			})

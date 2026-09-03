@@ -99,13 +99,23 @@ export function isSingleTierSpell(spell: Spell): boolean {
 
 /** Max rank obtainable for a spell at the discipline's current level.
  *  Single-tier spells (see `isSingleTierSpell`) cap at 1 regardless of
- *  discipline level, since there's nothing beyond "unlocked" for them. */
+ *  discipline level, since there's nothing beyond "unlocked" for them.
+ *
+ *  A discipline only opens `required.available[level-1]` of its 10 spell
+ *  slots at a time (1 at the lowest level, growing to all 10 by level 19,
+ *  ported from CoRT's `update_tree()`: `if (i > requirements["available"]
+ *  [dlvl - 1]) maxslvl = 0`) — slots beyond that are locked (rank 0)
+ *  regardless of the power-point cap below, `spellIndex` (0-based) is what
+ *  that's checked against. */
 export function maxSpellRank(
 	trainerData: TrainerData,
 	disciplineLevel: number,
 	isFirstSpellOfTree: boolean,
-	spell?: Spell,
+	spell: Spell | undefined,
+	spellIndex: number,
 ): number {
+	const available = trainerData.required.available[disciplineLevel - 1] ?? 0;
+	if (spellIndex + 1 > available) return 0;
 	let m = trainerData.required.power[disciplineLevel - 1] ?? 0;
 	if (disciplineLevel === MIN_DISCIPLINE_LEVEL && isFirstSpellOfTree) m += 1;
 	const cap = spell && isSingleTierSpell(spell) ? 1 : MAX_SPELL_RANK;
@@ -186,7 +196,7 @@ export function canSetDisciplineLevel(
 		const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
 		const isFirst = trees[0] === disciplineName;
 		const spells = trainerData.disciplines[disciplineName]?.spells ?? [];
-		const exceedsCap = state.spellRanks.some((r, idx) => r > maxSpellRank(trainerData, newLevel, isFirst && idx === 0, spells[idx]));
+		const exceedsCap = state.spellRanks.some((r, idx) => r > maxSpellRank(trainerData, newLevel, isFirst && idx === 0, spells[idx], idx));
 		if (exceedsCap) {
 			return { ok: false, reason: translate(lang, "trainer.errLowerSkillsFirst") };
 		}
@@ -214,7 +224,7 @@ export function canSetSpellRank(
 	const trees = build.clas ? getTreeNames(trainerData, build.clas) : [];
 	const isFirstTree = trees[0] === disciplineName;
 	const spell = trainerData.disciplines[disciplineName]?.spells[spellIndex];
-	const cap = maxSpellRank(trainerData, state.level, isFirstTree && spellIndex === 0, spell);
+	const cap = maxSpellRank(trainerData, state.level, isFirstTree && spellIndex === 0, spell, spellIndex);
 	if (newRank > cap) {
 		return { ok: false, reason: translate(lang, "trainer.errMaxRank", { cap }) };
 	}
@@ -257,7 +267,7 @@ export function clampBuildToLevel(trainerData: TrainerData, build: TrainerBuild)
 		const isFirst = trees[0] === name;
 		const spells = trainerData.disciplines[name]?.spells ?? [];
 		const spellRanks = state.spellRanks.map((rank, idx) =>
-			Math.min(rank, maxSpellRank(trainerData, level, isFirst && idx === 0, spells[idx])),
+			Math.min(rank, maxSpellRank(trainerData, level, isFirst && idx === 0, spells[idx], idx)),
 		);
 		disciplines[name] = { level, spellRanks };
 	}

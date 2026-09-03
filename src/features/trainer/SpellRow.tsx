@@ -27,8 +27,11 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 	const scalarRows = spellScalarRows(spell, lang);
 	const effectRows = spellEffectRows(spell, lang);
 	const activeCol = rank > 0 ? rank - 1 : 0;
-	const maxed = maxRank > 0 && rank >= maxRank;
 	const singleTier = isSingleTierSpell(spell);
+	// "Maxed" doesn't mean anything extra for a War Mastery skill — it's
+	// either granted or not, there's no further rank to chase — so the tag
+	// would just be a confusing duplicate of the free/granted state.
+	const maxed = !singleTier && maxRank > 0 && rank >= maxRank;
 
 	return (
 		<div
@@ -54,37 +57,42 @@ export function SpellRow({ spell, rank, maxRank, locked, spriteUrl, spellIndex, 
 				{maxed && <span className={styles.maxedTag}>{t("trainer.maxed")}</span>}
 			</button>
 
-			<div className={styles.controlLine}>
-				<div className={styles.pips} aria-hidden>
-					{Array.from({ length: Math.max(maxRank, 1) }).map((_, i) => (
-						<span key={i} className={`${styles.pip} ${i < rank ? styles.pipFilled : ""}`} />
-					))}
-				</div>
+			{/* War Mastery skills have nothing to step through — they're
+			    granted automatically, not chosen/ranked (see the `rank`
+			    derivation in DisciplineColumn.tsx). */}
+			{!singleTier && (
+				<div className={styles.controlLine}>
+					<div className={styles.pips} aria-hidden>
+						{Array.from({ length: Math.max(maxRank, 1) }).map((_, i) => (
+							<span key={i} className={`${styles.pip} ${i < rank ? styles.pipFilled : ""}`} />
+						))}
+					</div>
 
-				<div className={styles.stepper}>
-					<button
-						type="button"
-						className={styles.stepBtn}
-						disabled={locked || rank <= 0}
-						onClick={() => onChange(rank - 1)}
-						aria-label={t("trainer.decreaseRank", { spell: name })}
-					>
-						−
-					</button>
-					<span className={styles.rankValue}>
-						{rank}/{maxRank}
-					</span>
-					<button
-						type="button"
-						className={styles.stepBtn}
-						disabled={locked || rank >= maxRank}
-						onClick={() => onChange(rank + 1)}
-						aria-label={t("trainer.increaseRank", { spell: name })}
-					>
-						+
-					</button>
+					<div className={styles.stepper}>
+						<button
+							type="button"
+							className={styles.stepBtn}
+							disabled={locked || rank <= 0}
+							onClick={() => onChange(rank - 1)}
+							aria-label={t("trainer.decreaseRank", { spell: name })}
+						>
+							−
+						</button>
+						<span className={styles.rankValue}>
+							{rank}/{maxRank}
+						</span>
+						<button
+							type="button"
+							className={styles.stepBtn}
+							disabled={locked || rank >= maxRank}
+							onClick={() => onChange(rank + 1)}
+							aria-label={t("trainer.increaseRank", { spell: name })}
+						>
+							+
+						</button>
+					</div>
 				</div>
-			</div>
+			)}
 
 			{open && (
 				<div className={styles.details}>

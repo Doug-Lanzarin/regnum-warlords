@@ -117,12 +117,18 @@ export function DisciplineColumn({
 
 			<div className={styles.spells}>
 				{visibleSpells.map(({ spell, idx }) => {
-					const cap = maxSpellRank(trainerData, state.level, isFirstDiscipline && idx === 0, spell);
+					const cap = maxSpellRank(trainerData, state.level, isFirstDiscipline && idx === 0, spell, idx);
+					// War Mastery skills aren't a build choice — the game (and
+					// CoRT: no skillspinner is ever rendered for a WM row's
+					// member skills) grants them automatically the moment the
+					// discipline level unlocks that slot, so their shown rank
+					// tracks availability directly instead of stored state.
+					const rank = isSingleTierSpell(spell) ? cap : (state.spellRanks[idx] ?? 0);
 					return (
 						<SpellRow
 							key={spell.name.en + idx}
 							spell={spell}
-							rank={state.spellRanks[idx] ?? 0}
+							rank={rank}
 							maxRank={cap}
 							locked={cap <= 0}
 							spriteUrl={spriteUrl}

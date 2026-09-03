@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Discipline, TrainerBuild, TrainerData } from "../../types/trainer";
-import { canSetDisciplineLevel, createEmptyBuild, isWarMasteryDiscipline } from "./trainerEngine";
+import type { Discipline, Spell, TrainerBuild, TrainerData } from "../../types/trainer";
+import { canSetDisciplineLevel, createEmptyBuild, isWarMasteryDiscipline, maxSpellRank } from "./trainerEngine";
 
 /** Small hand-built fixture, shaped like the real bundled trainerdata.json
  *  (public/data/trainer/1.35.19/trainerdata.json, itself a copy of CoRT's)
@@ -106,5 +106,32 @@ describe("canSetDisciplineLevel — War Mastery level-60 gate", () => {
 		const build = buildAtLevel(trainerData, 37);
 		const check = canSetDisciplineLevel(trainerData, build, "Scouting", 3, "en");
 		expect(check.ok).toBe(true);
+	});
+});
+
+describe("maxSpellRank — available slot gate", () => {
+	// Real trainerdata.json interleaves War Mastery's actual skills with
+	// placeholder "undefined" spells (raw indices 1, 3, 5 here mirror that:
+	// CoRT's own update_tree() walks all 10 raw slot positions, placeholders
+	// included, so unlocking N slots doesn't unlock N *real* skills).
+	const spell: Spell = { name: { en: "s" }, description: { en: "" }, mana: 0, type: "Passive", cast: 0, gcd: "Short", cooldown: 0 };
+	const trainerData = makeTrainerData();
+
+	it("locks a slot whose index is beyond the discipline level's available count", () => {
+		// level 1 -> available[0] = 1, so only raw slot index 0 is open.
+		expect(maxSpellRank(trainerData, 1, false, spell, 0)).toBeGreaterThan(0);
+		expect(maxSpellRank(trainerData, 1, false, spell, 1)).toBe(0);
+	});
+
+	it("opens later slots as the discipline level (and its available count) rises", () => {
+		// level 7 -> available[6] = 4: slots 0-3 open, slot 4 still locked.
+		expect(maxSpellRank(trainerData, 7, false, spell, 3)).toBeGreaterThan(0);
+		expect(maxSpellRank(trainerData, 7, false, spell, 4)).toBe(0);
+	});
+
+	it("applies the same gate to single-tier (War Mastery) spells", () => {
+		const singleTier: Spell = { ...spell, mana: 0 };
+		expect(maxSpellRank(trainerData, 1, false, singleTier, 1)).toBe(0);
+		expect(maxSpellRank(trainerData, 3, false, singleTier, 1)).toBe(1);
 	});
 });
