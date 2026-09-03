@@ -5,14 +5,10 @@
 			"Ignis": [
 				"Fort Samal (6)"
 			],
-			"Syrtis": [
-				"Fort Herbred (10)"
-			]
+			"Syrtis": []
 		},
 		"fortCaptured": {
-			"Alsius": [
-				"Fort Herbred (10)"
-			],
+			"Alsius": [],
 			"Ignis": [],
 			"Syrtis": [
 				"Fort Samal (6)"
@@ -30,6 +26,7 @@
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
+				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
 		},
@@ -99,5 +96,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788431283580
+	"lastTickAt": 1788432662681
 }
