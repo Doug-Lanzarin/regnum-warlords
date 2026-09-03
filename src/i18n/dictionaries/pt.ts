@@ -50,7 +50,6 @@ const pt = {
 	"wz.realmSummaryTooltip": "{realm}: {count} fortes",
 	"wz.realmLeaderTag": "líder",
 	"wz.gemsTitle": "Gemas",
-	"wz.gemsCount": "{count} gemas",
 	"wz.gemsClaimed": "{claimed}/{total} reivindicadas",
 	"wz.gemTooltipOwned": "Gema {n}: {owner}",
 	"wz.gemTooltipUnowned": "Gema {n}: sem dono",

@@ -14,7 +14,6 @@ export function GemsSection({ gems }: Props) {
 		<section className={styles.section}>
 			<div className={styles.heading}>
 				<h2>{t("wz.gemsTitle")}</h2>
-				<span className={styles.count}>{t("wz.gemsCount", { count: gems.length })}</span>
 			</div>
 			<div className={styles.grid}>
 				{REALMS.map((realm) => {

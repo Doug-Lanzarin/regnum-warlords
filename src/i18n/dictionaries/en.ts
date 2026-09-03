@@ -48,7 +48,6 @@ const en: Record<TranslationKey, string> = {
 	"wz.realmSummaryTooltip": "{realm}: {count} forts",
 	"wz.realmLeaderTag": "leader",
 	"wz.gemsTitle": "Gems",
-	"wz.gemsCount": "{count} gems",
 	"wz.gemsClaimed": "{claimed}/{total} claimed",
 	"wz.gemTooltipOwned": "Gem {n}: {owner}",
 	"wz.gemTooltipUnowned": "Gem {n}: unowned",
