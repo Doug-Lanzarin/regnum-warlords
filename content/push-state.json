@@ -2,17 +2,17 @@
 	"categories": {
 		"fortLost": {
 			"Alsius": [],
-			"Ignis": [
-				"Shaanarid Castle (7)"
-			],
-			"Syrtis": []
-		},
-		"fortCaptured": {
-			"Alsius": [],
 			"Ignis": [],
 			"Syrtis": [
-				"Shaanarid Castle (7)"
+				"Fort Herbred (10)"
 			]
+		},
+		"fortCaptured": {
+			"Alsius": [
+				"Fort Herbred (10)"
+			],
+			"Ignis": [],
+			"Syrtis": []
 		},
 		"fortRecovered": {
 			"Alsius": [
@@ -22,11 +22,11 @@
 			],
 			"Ignis": [
 				"Fort Menirah (5)",
-				"Fort Samal (6)"
+				"Fort Samal (6)",
+				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
 				"Fort Algaros (9)",
-				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
 		},
@@ -97,5 +97,5 @@
 			"evendim:1788400487:30"
 		]
 	},
-	"lastTickAt": 1788398704759
+	"lastTickAt": 1788398883107
 }
