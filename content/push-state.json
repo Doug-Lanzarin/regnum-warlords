@@ -57,6 +57,7 @@
 		"gemLost": {
 			"Alsius": [
 				0,
+				1,
 				2,
 				3,
 				4,
@@ -77,15 +78,14 @@
 		},
 		"gemCaptured": {
 			"Alsius": [
+				13,
 				15
 			],
 			"Ignis": [],
 			"Syrtis": []
 		},
 		"gemRecovered": {
-			"Alsius": [
-				1
-			],
+			"Alsius": [],
 			"Ignis": [
 				8,
 				10
@@ -99,5 +99,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788408483241
+	"lastTickAt": 1788408662914
 }
