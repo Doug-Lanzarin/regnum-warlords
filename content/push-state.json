@@ -93,11 +93,7 @@
 		}
 	},
 	"boss": {
-		"alerted": [
-			"evendim:1788400487:60",
-			"evendim:1788400487:30",
-			"evendim:1788400487:15"
-		]
+		"alerted": []
 	},
-	"lastTickAt": 1788407406808
+	"lastTickAt": 1788407705110
 }
