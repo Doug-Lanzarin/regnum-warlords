@@ -4,6 +4,7 @@
 			"Alsius": [],
 			"Ignis": [
 				"Fort Menirah (5)",
+				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": []
@@ -13,6 +14,7 @@
 			"Ignis": [],
 			"Syrtis": [
 				"Fort Menirah (5)",
+				"Fort Samal (6)",
 				"Shaanarid Castle (7)"
 			]
 		},
@@ -22,9 +24,7 @@
 				"Fort Aggersborg (2)",
 				"Fort Trelleborg (3)"
 			],
-			"Ignis": [
-				"Fort Samal (6)"
-			],
+			"Ignis": [],
 			"Syrtis": [
 				"Fort Algaros (9)",
 				"Fort Herbred (10)",
@@ -97,5 +97,5 @@
 	"boss": {
 		"alerted": []
 	},
-	"lastTickAt": 1788421982908
+	"lastTickAt": 1788422342670
 }
