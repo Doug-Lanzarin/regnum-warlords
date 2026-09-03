@@ -94,7 +94,9 @@
 		}
 	},
 	"boss": {
-		"alerted": []
+		"alerted": [
+			"daen:1788437385:60"
+		]
 	},
-	"lastTickAt": 1788432662681
+	"lastTickAt": 1788433807095
 }
