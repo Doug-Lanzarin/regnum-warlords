@@ -251,8 +251,6 @@ const en: Record<TranslationKey, string> = {
 	"alerts.gemLabel": "Gem {n}",
 	"alerts.bossSpawnTitle": "{boss} spawns in {minutes} min",
 	"alerts.bossSpawnBody": "Spawn expected at {time}.",
-	"alerts.regionAriaLabel": "Alerts",
-	"alerts.closeAlert": "Close alert",
 
 	// -- 404 --
 	"notFound.title": "Page not found",
