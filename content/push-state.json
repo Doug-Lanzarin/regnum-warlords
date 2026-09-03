@@ -7,10 +7,14 @@
 			"Ignis": [
 				"Fort Samal (6)"
 			],
-			"Syrtis": []
+			"Syrtis": [
+				"Fort Algaros (9)"
+			]
 		},
 		"fortCaptured": {
-			"Alsius": [],
+			"Alsius": [
+				"Fort Algaros (9)"
+			],
 			"Ignis": [
 				"Fort Aggersborg (2)"
 			],
@@ -28,7 +32,6 @@
 				"Shaanarid Castle (7)"
 			],
 			"Syrtis": [
-				"Fort Algaros (9)",
 				"Fort Herbred (10)",
 				"Eferias Castle (11)"
 			]
@@ -101,5 +104,5 @@
 			"evendim:1788400487:15"
 		]
 	},
-	"lastTickAt": 1788401822843
+	"lastTickAt": 1788402007417
 }
