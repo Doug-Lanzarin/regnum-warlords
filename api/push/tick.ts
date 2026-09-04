@@ -310,6 +310,14 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		res.status(200).json({ ok: true, sent, subscribers: subscribers.length });
 	} catch (err) {
 		console.error("push tick error:", err);
-		res.status(500).json({ error: "Erro ao processar tick." });
+		// Include the actual error in the response, not just server-side logs
+		// — this endpoint is Bearer-secret-protected (cron-job.org + whoever
+		// checks its dashboard), and cron-job.org's own "Details" view was
+		// the only way available to see what was actually throwing here
+		// after two rounds of "should be fixed" that weren't.
+		res.status(500).json({
+			error: "Erro ao processar tick.",
+			detail: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+		});
 	}
 }
