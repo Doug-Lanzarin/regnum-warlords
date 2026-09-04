@@ -29,15 +29,15 @@ afterEach(() => {
 });
 
 describe("cort-proxy handler", () => {
-	it("relays wstatus.json from cort.ovh, same-origin, with a short edge cache and no stale-while-revalidate", async () => {
-		const payload = { forts: [{ name: "Imperia Castle" }] };
+	it("relays bosses.php from cort.ovh, same-origin, with a short edge cache and no stale-while-revalidate", async () => {
+		const payload = { next_boss: "daen" };
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", {
+		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/bin/bosses/bosses.php", {
 			signal: expect.any(AbortSignal),
 			headers: { "User-Agent": "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)" },
 		});
@@ -56,14 +56,13 @@ describe("cort-proxy handler", () => {
 		expect(result.headers["Cache-Control"]).toBe("max-age=0, s-maxage=45");
 	});
 
-	it("maps 'events', 'stats' and 'bosses' to their own cort.ovh URLs", async () => {
+	it("maps 'events' and 'stats' to their own cort.ovh URLs", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
 		vi.stubGlobal("fetch", fetchMock);
 
 		for (const [endpoint, url] of [
 			["events", "https://cort.ovh/api/var/events.json"],
 			["stats", "https://cort.ovh/api/var/stats.json"],
-			["bosses", "https://cort.ovh/api/bin/bosses/bosses.php"],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
@@ -82,6 +81,17 @@ describe("cort-proxy handler", () => {
 		expect(result.status).toBe(400);
 	});
 
+	it("rejects wstatus specifically — that endpoint moved to api/wz-official.ts, not proxied to cort.ovh anymore", async () => {
+		const fetchMock = vi.fn();
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(fetchMock).not.toHaveBeenCalled();
+		expect(result.status).toBe(400);
+	});
+
 	it("rejects a missing endpoint param", async () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: {} }, res);
@@ -92,7 +102,7 @@ describe("cort-proxy handler", () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
 		expect(result.status).toBe(502);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
@@ -101,20 +111,20 @@ describe("cort-proxy handler", () => {
 		const fetchMock = vi.fn().mockRejectedValue(new Error("network down"));
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
 		expect(result.status).toBe(502);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
 	it("succeeds on the 2nd attempt after the first fails — this is the actual, observed high-failure-rate case", async () => {
-		const payload = { forts: [] };
+		const payload = { next_boss: "daen" };
 		const fetchMock = vi
 			.fn()
 			.mockRejectedValueOnce(new Error("transient network blip"))
 			.mockResolvedValueOnce({ ok: true, json: async () => payload });
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 		expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -122,74 +132,8 @@ describe("cort-proxy handler", () => {
 
 	it("only accepts GET", async () => {
 		const { res, result } = mockRes();
-		await handler({ method: "POST", query: { endpoint: "wstatus" } }, res);
+		await handler({ method: "POST", query: { endpoint: "bosses" } }, res);
 		expect(result.status).toBe(405);
 		expect(result.headers.Allow).toBe("GET");
-	});
-});
-
-describe("cort-proxy handler — wstatus fallback to the last stored snapshot", () => {
-	const ORIGINAL_TOKEN = process.env.NOTIFICATIONS_GITHUB_TOKEN;
-
-	afterEach(() => {
-		if (ORIGINAL_TOKEN === undefined) delete process.env.NOTIFICATIONS_GITHUB_TOKEN;
-		else process.env.NOTIFICATIONS_GITHUB_TOKEN = ORIGINAL_TOKEN;
-	});
-
-	function stubFetchWithGithubSnapshot(snapshot: unknown) {
-		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
-			if (url.includes("api.github.com")) {
-				return {
-					ok: true,
-					status: 200,
-					json: async () => ({ content: Buffer.from(JSON.stringify(snapshot)).toString("base64"), sha: "abc123" }),
-				};
-			}
-			throw new Error(`unexpected fetch to ${url}`);
-		});
-		vi.stubGlobal("fetch", fetchMock);
-		return fetchMock;
-	}
-
-	it("falls back to api/push/tick.ts's last saved snapshot (as an honest 200, not an error) once all 3 live attempts fail", async () => {
-		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
-		const snapshot = { wstatus: { forts: [], gems: [], generated: 111 }, savedAt: 222 };
-		stubFetchWithGithubSnapshot(snapshot);
-
-		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
-
-		expect(result.status).toBe(200);
-		expect(result.json).toEqual(snapshot.wstatus);
-		expect(result.headers["X-Cort-Proxy-Fallback"]).toBe("1");
-	});
-
-	it("falls through to the normal 502 when there's no snapshot saved yet (GitHub 404)", async () => {
-		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
-		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
-			if (url.includes("api.github.com")) return { ok: false, status: 404, json: async () => ({}) };
-			throw new Error(`unexpected fetch to ${url}`);
-		});
-		vi.stubGlobal("fetch", fetchMock);
-
-		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
-
-		expect(result.status).toBe(502);
-	});
-
-	it("never falls back for endpoints other than wstatus (events/stats/bosses have no snapshot to fall back to)", async () => {
-		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
-			throw new Error(`should never reach GitHub for a non-wstatus endpoint: ${url}`);
-		});
-		vi.stubGlobal("fetch", fetchMock);
-
-		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
-
-		expect(result.status).toBe(502);
 	});
 });

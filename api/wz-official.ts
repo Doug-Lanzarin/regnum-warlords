@@ -1,18 +1,16 @@
-// Vercel serverless function — an EXPERIMENTAL alternative to
-// api/cort-proxy.ts's `wstatus` endpoint. Instead of relaying cort.ovh's
-// wstatus.json, this scrapes championsofregnum.com's own "War Status" page
-// (index.php?l=1&sec=3) directly, parses its HTML into the same
-// WzStatusData shape, and serves that.
+// Vercel serverless function — the source of fort/gem/relic status for the
+// WZ page, scraped directly from championsofregnum.com's own "War Status"
+// page (index.php?l=1&sec=3) instead of relaying cort.ovh's wstatus.json
+// (which api/cort-proxy.ts still does for events/stats/bosses — those have
+// no official equivalent, see that file's comment).
 //
-// Why this exists: the Vercel↔cort.ovh connectivity problem documented in
-// cort-proxy.ts's own comment made a direct-from-the-source alternative
-// worth prototyping. The official page has no JSON API — it's plain HTML
-// with icon filenames encoding the actual data (same convention cort.ovh
-// itself uses, e.g. `keep_alsius.gif`, `gem_2.png` — this project's own
-// GEM_ICON_OWNER map in src/features/wz/wzEngine.ts already documents that
-// mapping, ported from CoRT's Icons.get_all_icons(), and it was confirmed
-// again here by downloading gem_0..3.png directly: 0 = neutral (black),
-// 1 = Ignis (red), 2 = Alsius (blue), 3 = Syrtis (green)).
+// The official page has no JSON API — it's plain HTML with icon filenames
+// encoding the actual data (same convention cort.ovh itself uses, e.g.
+// `keep_alsius.gif`, `gem_2.png` — this project's own GEM_ICON_OWNER map in
+// src/features/wz/wzEngine.ts already documents that mapping, ported from
+// CoRT's Icons.get_all_icons(), and it was confirmed again here by
+// downloading gem_0..3.png directly: 0 = neutral (black), 1 = Ignis (red),
+// 2 = Alsius (blue), 3 = Syrtis (green)).
 //
 // Known gaps vs. cort.ovh's wstatus.json (documented so nobody re-derives
 // this the hard way): no events_log (the page only shows current state, no
@@ -26,10 +24,11 @@
 // browser can't fetch championsofregnum.com directly either (no CORS
 // header on this page), so this has to run server-side regardless.
 //
-// Status: experimental, wired up behind a manual toggle on the WZ page —
-// not the default data source. Whether Vercel can reach
-// championsofregnum.com reliably (the whole reason this might be worth
-// finishing) hasn't been observed over time yet.
+// Polled every 10s (see WZ_OFFICIAL_REFRESH_INTERVAL_MS in
+// src/data/wzConstants.ts) — unlike cort.ovh, nothing so far suggests this
+// source is sensitive to request volume from Vercel specifically, but the
+// short edge cache below still means many concurrent visitors within the
+// same window share one upstream hit instead of one each.
 
 import type { Realm } from "../src/data/realms.js";
 import type { WzFort, WzStatusData } from "../src/types/wz";
@@ -131,7 +130,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		const html = await upstream.text();
 		const data = parseWarStatusPage(html);
 		if (data.forts.length === 0) throw new Error("parse não encontrou nenhum forte — página pode ter mudado de formato");
-		res.setHeader("Cache-Control", "max-age=0, s-maxage=30");
+		res.setHeader("Cache-Control", "max-age=0, s-maxage=10");
 		res.status(200).json(data);
 	} catch (error) {
 		console.error("wz-official: failed", error);

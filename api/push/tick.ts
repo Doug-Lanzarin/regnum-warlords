@@ -15,16 +15,8 @@ import type { WzEvent, WzEventsDumpEntry, WzStatusData } from "../../src/types/w
 import { detectBossEvents, type BossEvent } from "../_push/boss.js";
 import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff.js";
 import { sendPush, type PushNotificationPayload } from "../_push/push.js";
-import {
-	readLiveSnapshot,
-	readState,
-	readSubscribers,
-	writeLiveSnapshot,
-	writeState,
-	writeSubscribers,
-	type PushState,
-	type SubscriberRecord,
-} from "../_push/storage.js";
+import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage.js";
+import { parseWarStatusPage } from "../wz-official.js";
 
 /** A wall that just crossed from "not vulnerable" to "vulnerable" this
  *  tick — see `buildMessagesFor`'s two directions (defender vs aggressor). */
@@ -45,7 +37,10 @@ interface VercelLikeResponse {
 	setHeader(name: string, value: string): void;
 }
 
-const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
+// Fort/gem status comes straight from championsofregnum.com now, same as
+// the client (see api/wz-official.ts) — cort.ovh has no official
+// alternative for bosses/events, so those two stay put.
+const OFFICIAL_WZ_URL = "https://www.championsofregnum.com/index.php?l=1&sec=3";
 const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
 const EVENTS_URL = "https://cort.ovh/api/var/events.json";
 
@@ -53,14 +48,6 @@ const EVENTS_URL = "https://cort.ovh/api/var/events.json";
 // fetch() User-Agent looks exactly like the kind of thing a bot-detection
 // layer flags first. Costs nothing to send something identifiable instead.
 const CORT_USER_AGENT = "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)";
-
-/** How often the WZ status fallback snapshot (`content/live-snapshot.json`,
- *  read by `api/cort-proxy.ts` when cort.ovh is unreachable) gets a fresh
- *  commit. Every successful tick has a good snapshot to save, but this runs
- *  every minute — writing every time would be a commit a minute forever
- *  for no real benefit, since the snapshot only exists to give the proxy
- *  *something* recent to fall back to, not to be itself second-fresh. */
-const SNAPSHOT_MIN_INTERVAL_MS = 10 * 60 * 1000;
 
 export function isAuthorized(req: VercelLikeRequest): boolean {
 	const expected = process.env.PUSH_TICK_SECRET?.trim();
@@ -210,17 +197,18 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		let bossData: BossSpawnData;
 		try {
 			const [wzRes, bossRes] = await Promise.all([
-				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
+				fetch(OFFICIAL_WZ_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
 				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
 			]);
 			if (!wzRes.ok || !bossRes.ok) {
-				throw new Error(`cort.ovh respondeu wstatus=${wzRes.status} bosses=${bossRes.status}`);
+				throw new Error(`fetch respondeu wz=${wzRes.status} bosses=${bossRes.status}`);
 			}
-			wzData = (await wzRes.json()) as WzStatusData;
+			wzData = parseWarStatusPage(await wzRes.text());
+			if (wzData.forts.length === 0) throw new Error("parse não encontrou nenhum forte — página oficial pode ter mudado de formato");
 			bossData = (await bossRes.json()) as BossSpawnData;
 		} catch (err) {
-			console.error("push tick: cort.ovh fetch/parse failed", err);
-			res.status(502).json({ error: "cort.ovh indisponível." });
+			console.error("push tick: WZ/boss fetch/parse failed", err);
+			res.status(502).json({ error: "Fonte de dados indisponível." });
 			return;
 		}
 		// Wall vulnerability is the only thing that needs this ~10-day raw
@@ -240,18 +228,6 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		const { next: nextCategories, eventsByRealm } = diffState(forts, gems, prevState.categories);
 
 		const now = Date.now();
-
-		// Best-effort: never let a hiccup here take down the actual tick (fort/
-		// gem/boss alerts still need to go out even if this fails).
-		try {
-			const { snapshot: prevSnapshot, sha: snapshotSha } = await readLiveSnapshot();
-			const snapshotAge = prevSnapshot.savedAt ? now - prevSnapshot.savedAt : Infinity;
-			if (snapshotAge >= SNAPSHOT_MIN_INTERVAL_MS) {
-				await writeLiveSnapshot({ wstatus: wzData, savedAt: now }, snapshotSha, "push: atualiza snapshot de fallback da WZ");
-			}
-		} catch (err) {
-			console.error("push tick: failed to update live snapshot", err);
-		}
 
 		const { next: nextBossState, events: bossEvents } = detectBossEvents(bossData, now, prevState.boss);
 

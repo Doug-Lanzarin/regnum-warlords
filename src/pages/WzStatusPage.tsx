@@ -7,7 +7,6 @@ import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
 import { WishActivityChart, type WishActivityRange } from "../features/wz/WishActivityChart";
 import { useEventsDump } from "../features/wz/useEventsDump";
-import { useOfficialWzStatus } from "../features/wz/useOfficialWzStatus";
 import { useWzStats } from "../features/wz/useWzStats";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { FORT_ACTIVITY_WINDOW_MS } from "../data/wzConstants";
@@ -30,35 +29,16 @@ import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Above this age, `data.generated` (cort.ovh's own timestamp) is treated
- *  as stale even though the fetch itself succeeded — the proxy can serve a
- *  fallback snapshot (see api/cort-proxy.ts) when cort.ovh is unreachable
- *  from Vercel, and that comes back as a normal 200, so `error` alone can't
- *  tell a stale-but-successful response apart from a fresh one. Comfortably
- *  above the ~15s edge cache + normal poll interval, so this never
+/** Above this age, `data.generated` (the official page's own "Latest
+ *  update" timestamp) is treated as stale even though the fetch itself
+ *  succeeded. Comfortably above the 10s poll interval, so this never
  *  false-positives under normal operation. */
 const STALE_DATA_THRESHOLD_MS = 5 * 60 * 1000;
-
-/** EXPERIMENTAL: cort.ovh (via api/cort-proxy.ts) vs. championsofregnum.com
- *  itself (via api/wz-official.ts, scraped) — see that file's comment for
- *  what's known to differ. Only the fort/gem status source switches; the
- *  events-derived sections below (wishes, event log, activity charts, wall
- *  vulnerability) keep using cort.ovh's events.json either way, since the
- *  official page has no history to derive those from at all. */
-type WzSource = "cort" | "official";
 
 export function WzStatusPage() {
 	const { lang } = useLanguage();
 	const t = useT();
-	const [source, setSource] = useState<WzSource>("cort");
-	const cortStatus = useWzStatus();
-	const officialStatus = useOfficialWzStatus(source === "official");
-	const { now, refresh: refreshCort } = cortStatus;
-	const { data, loading, error } =
-		source === "official"
-			? { data: officialStatus.data, loading: officialStatus.loading, error: officialStatus.error }
-			: { data: cortStatus.data, loading: cortStatus.loading, error: cortStatus.error };
-	const refresh = source === "official" ? officialStatus.refresh : refreshCort;
+	const { data, loading, error, now, refresh } = useWzStatus();
 	const { events: eventsDump } = useEventsDump();
 	const { reports } = useWzStats();
 	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
@@ -94,70 +74,43 @@ export function WzStatusPage() {
 		[eventsDump, now, reports],
 	);
 
-	const generatedAt = data ? data.generated * 1000 : null;
-	const isStale = generatedAt !== null && (Boolean(error) || now - generatedAt >= STALE_DATA_THRESHOLD_MS);
-
-	// The toggle has to render no matter what state the selected source is
-	// in — otherwise switching to "official" while it's loading or erroring
-	// leaves no way back to "cort" short of reloading the page.
-	const sourceToggle = (
-		<div className={styles.sourceToggle} role="radiogroup" aria-label={t("wz.sourceLabel")}>
-			{(["cort", "official"] as const).map((s) => (
-				<button
-					key={s}
-					type="button"
-					role="radio"
-					aria-checked={source === s}
-					className={`${styles.sourceButton} ${source === s ? styles.sourceButtonActive : ""}`}
-					onClick={() => setSource(s)}
-				>
-					{s === "cort" ? t("wz.sourceCort") : t("wz.sourceOfficial")}
-				</button>
-			))}
-		</div>
-	);
-
 	if (loading && !data) {
 		return (
-			<div className={styles.wrap}>
-				{sourceToggle}
-				<div className={`card ${styles.centerMessage}`}>
-					<span className={styles.spinner} aria-hidden />
-					{t("wz.loading")}
-				</div>
+			<div className={`card ${styles.centerMessage}`}>
+				<span className={styles.spinner} aria-hidden />
+				{t("wz.loading")}
 			</div>
 		);
 	}
 
 	if (error && !data) {
 		return (
-			<div className={styles.wrap}>
-				{sourceToggle}
-				<div className={`card ${styles.centerMessage}`}>
-					<span className="badge">{t("common.liveDataUnavailable")}</span>
-					<h1 className={styles.errorTitle}>{t("wz.errorTitle")}</h1>
-					<p>{error}</p>
-					<div className={styles.actions}>
-						<button className="btn btn-primary" onClick={refresh}>
-							{t("common.tryAgain")}
-						</button>
-						<a className="btn btn-ghost" href="https://cort.ovh/wz.html" target="_blank" rel="noreferrer">
-							{t("common.openInCort")}
-						</a>
-					</div>
+			<div className={`card ${styles.centerMessage}`}>
+				<span className="badge">{t("common.liveDataUnavailable")}</span>
+				<h1 className={styles.errorTitle}>{t("wz.errorTitle")}</h1>
+				<p>{error}</p>
+				<div className={styles.actions}>
+					<button className="btn btn-primary" onClick={refresh}>
+						{t("common.tryAgain")}
+					</button>
+					<a className="btn btn-ghost" href="https://cort.ovh/wz.html" target="_blank" rel="noreferrer">
+						{t("common.openInCort")}
+					</a>
 				</div>
 			</div>
 		);
 	}
 
-	if (!data) return <div className={styles.wrap}>{sourceToggle}</div>;
+	if (!data) return null;
+
+	const generatedAt = data.generated * 1000;
+	const isStale = Boolean(error) || now - generatedAt >= STALE_DATA_THRESHOLD_MS;
 
 	return (
 		<div className={styles.wrap}>
-			{sourceToggle}
 			<div className={styles.statusRow}>
 				{isStale && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
-				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>
+				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt, lang) })}</span>
 			</div>
 			<WzMap forts={forts} wallVulnerability={wallVulnerability} now={now} onSelectFort={setSelectedFort} />
 			{selectedFort && (

@@ -1,7 +1,7 @@
 // Vercel serverless function — a thin same-origin relay for the handful of
 // cort.ovh live endpoints a browser can't fetch directly.
 //
-// var/wstatus.json, var/events.json and var/stats.json all send a *fixed*
+// var/events.json and var/stats.json send a *fixed*
 // `Access-Control-Allow-Origin: https://cort.ovh` — not our own origin, and
 // not a wildcard — no matter what Origin the request carries (verified with
 // curl -H "Origin: https://regnum-warlords.vercel.app", same result with no
@@ -21,7 +21,13 @@
 // broke direct browser fetches for every visitor regardless of network —
 // a CORS block is enforced by the browser itself, so it isn't something a
 // better connection or a different network can route around. Routed
-// through here too now, for the same reason as the other three.
+// through here too now, for the same reason as the other two.
+//
+// (var/wstatus.json used to be routed through here too — the Warzone
+// status page now sources fort/gem/relic status from
+// championsofregnum.com directly instead, see api/wz-official.ts. cort.ovh
+// stays the source for events/stats/bosses, which have no official
+// equivalent.)
 //
 // Polling the deployed endpoint directly (curl, spaced 5s apart, no
 // mocking) showed the real severity: a large fraction of individual
@@ -50,10 +56,6 @@
 //     upstream, Vercel kept quietly serving that stale copy instead of
 //     ever trying again visibly — which is almost certainly what "não
 //     está atualizando corretamente" was.
-// See also WZ_REFRESH_INTERVAL_MS (src/data/wzConstants.ts), bumped for
-// the same reason — less polling from the client side too.
-
-import { readLiveSnapshot } from "./_push/storage.js";
 
 interface VercelLikeRequest {
 	method?: string;
@@ -67,7 +69,6 @@ interface VercelLikeResponse {
 }
 
 const ENDPOINTS = {
-	wstatus: "https://cort.ovh/api/var/wstatus.json",
 	events: "https://cort.ovh/api/var/events.json",
 	stats: "https://cort.ovh/api/var/stats.json",
 	bosses: "https://cort.ovh/api/bin/bosses/bosses.php",
@@ -122,27 +123,6 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			}
 		} catch (error) {
 			console.error("cort-proxy: fetch failed", endpoint, "attempt", attempt, error);
-		}
-	}
-
-	// Every live attempt failed. For wstatus specifically, `api/push/tick.ts`
-	// keeps a periodically-refreshed full copy of the last one that worked
-	// (`content/live-snapshot.json`) — falling back to that beats a hard
-	// error, since `WzStatusData.generated` (cort.ovh's own timestamp,
-	// untouched here) already tells the client exactly how old it is rather
-	// than pretending it's current. Best-effort: if this itself fails (or
-	// there's no snapshot yet), fall through to the same 502 as before.
-	if (endpoint === "wstatus") {
-		try {
-			const { snapshot } = await readLiveSnapshot();
-			if (snapshot.wstatus) {
-				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
-				res.setHeader("X-Cort-Proxy-Fallback", "1");
-				res.status(200).json(snapshot.wstatus);
-				return;
-			}
-		} catch (error) {
-			console.error("cort-proxy: fallback snapshot read failed", endpoint, error);
 		}
 	}
 

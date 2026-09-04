@@ -1,7 +1,6 @@
 import type { PushSubscription } from "@block65/webcrypto-web-push";
 import type { Realm } from "../../src/data/realms";
 import type { AlertSettings } from "../../src/types/alertSettings";
-import type { WzStatusData } from "../../src/types/wz";
 import { emptyCategorySets, type CategorySets } from "./diff.js";
 import type { BossState } from "./boss";
 
@@ -30,19 +29,6 @@ export const DEFAULT_PUSH_STATE: PushState = {
 	lastTickAt: null,
 };
 
-/** A full copy of the last WZ status `tick.ts` managed to fetch, kept
- *  around so `api/cort-proxy.ts` has something honest to fall back to when
- *  cort.ovh is unreachable from Vercel — the client already reads
- *  `WzStatusData.generated` (cort.ovh's own timestamp, untouched by this)
- *  to tell real-time data apart from a fallback snapshot, so no separate
- *  "is this stale" flag needs to travel with it. */
-export interface LiveSnapshot {
-	wstatus: WzStatusData | null;
-	savedAt: number | null;
-}
-
-export const DEFAULT_LIVE_SNAPSHOT: LiveSnapshot = { wstatus: null, savedAt: null };
-
 // Same "GitHub as a database" trick `api/notifications.ts` already uses —
 // no Postgres/Redis to provision, and it's one less account for whoever
 // runs this fork to set up. Writes are commits, so `tick.ts` only writes
@@ -53,7 +39,6 @@ const REPO = "regnum-warlords";
 const BRANCH = "main";
 const SUBSCRIBERS_PATH = "content/push-subscribers.json";
 const STATE_PATH = "content/push-state.json";
-const SNAPSHOT_PATH = "content/live-snapshot.json";
 
 function githubToken(): string {
 	const token = process.env.NOTIFICATIONS_GITHUB_TOKEN;
@@ -114,13 +99,4 @@ export async function readState(): Promise<{ state: PushState; sha: string | nul
 
 export async function writeState(state: PushState, sha: string | null, message: string): Promise<void> {
 	await writeJsonFile(STATE_PATH, state, sha, message);
-}
-
-export async function readLiveSnapshot(): Promise<{ snapshot: LiveSnapshot; sha: string | null }> {
-	const { data, sha } = await readJsonFile<LiveSnapshot>(SNAPSHOT_PATH, DEFAULT_LIVE_SNAPSHOT);
-	return { snapshot: data, sha };
-}
-
-export async function writeLiveSnapshot(snapshot: LiveSnapshot, sha: string | null, message: string): Promise<void> {
-	await writeJsonFile(SNAPSHOT_PATH, snapshot, sha, message);
 }

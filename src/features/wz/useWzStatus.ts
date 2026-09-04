@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cortApi } from "../../api/cortApi";
-import { WZ_REFRESH_INTERVAL_MS } from "../../data/wzConstants";
+import { WZ_OFFICIAL_REFRESH_INTERVAL_MS } from "../../data/wzConstants";
 import { useT } from "../../i18n/useT";
 import type { WzStatusData } from "../../types/wz";
 
@@ -14,7 +14,9 @@ export interface UseWzStatusResult {
 }
 
 /** Same shape as useBossTimers: live-only, polled, fails soft with a clear
- *  error while keeping the last good snapshot on screen if we had one. */
+ *  error while keeping the last good snapshot on screen if we had one.
+ *  Sources fort/gem/relic status from championsofregnum.com (see
+ *  api/wz-official.ts) — not cort.ovh, hence the faster poll interval. */
 export function useWzStatus(): UseWzStatusResult {
 	const t = useT();
 	const [data, setData] = useState<WzStatusData | null>(null);
@@ -46,7 +48,7 @@ export function useWzStatus(): UseWzStatusResult {
 
 	useEffect(() => {
 		fetchData();
-		const poll = setInterval(fetchData, WZ_REFRESH_INTERVAL_MS);
+		const poll = setInterval(fetchData, WZ_OFFICIAL_REFRESH_INTERVAL_MS);
 		return () => clearInterval(poll);
 	}, [fetchData]);
 

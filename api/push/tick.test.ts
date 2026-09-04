@@ -182,7 +182,7 @@ describe("isAuthorized", () => {
 	});
 });
 
-describe("tick handler — cort.ovh fetch failures", () => {
+describe("tick handler — WZ/boss fetch failures", () => {
 	const ORIGINAL_ENV = {
 		PUSH_TICK_SECRET: process.env.PUSH_TICK_SECRET,
 		VAPID_SUBJECT: process.env.VAPID_SUBJECT,
@@ -227,9 +227,9 @@ describe("tick handler — cort.ovh fetch failures", () => {
 	// a genuine network failure (not just a non-2xx status) made fetch()
 	// itself reject, which used to fall through to the generic catch-all and
 	// come back as a 500 — read by cron-job.org as "this endpoint is broken"
-	// rather than "cort.ovh is unreachable right now", so it switched the
-	// cron off after enough of these in a row.
-	it("returns a graceful 502 — not a 500 — when the cort.ovh fetch itself rejects (timeout/connection reset)", async () => {
+	// rather than "the data source is unreachable right now", so it
+	// switched the cron off after enough of these in a row.
+	it("returns a graceful 502 — not a 500 — when the fetch itself rejects (timeout/connection reset)", async () => {
 		const fetchMock = vi.fn().mockRejectedValue(new Error("network reset"));
 		vi.stubGlobal("fetch", fetchMock);
 
@@ -239,8 +239,8 @@ describe("tick handler — cort.ovh fetch failures", () => {
 		expect(result.status).toBe(502);
 	});
 
-	it("still returns a graceful 502 when cort.ovh responds with a bad HTTP status (not rejected, just unhealthy)", async () => {
-		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
+	it("still returns a graceful 502 when a source responds with a bad HTTP status (not rejected, just unhealthy)", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, text: async () => "", json: async () => ({}) });
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
@@ -249,17 +249,16 @@ describe("tick handler — cort.ovh fetch failures", () => {
 		expect(result.status).toBe(502);
 	});
 
-	// The gap the first fix missed: a 200 whose body isn't valid JSON (a WAF
-	// challenge page, a truncated response) makes .json() itself throw —
-	// that's outside a fetch()-only try/catch, so it still fell through to
-	// the generic catch-all and came back as a 500 even after the first fix.
-	it("returns a graceful 502 — not a 500 — when cort.ovh answers 200 with a body that isn't valid JSON", async () => {
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			status: 200,
-			json: async () => {
-				throw new SyntaxError("Unexpected token < in JSON at position 0");
-			},
+	// The gap the first fix missed: a 200 whose body isn't parseable (a WAF
+	// challenge page, a truncated response, or — since the WZ status source
+	// is now parsed HTML rather than JSON — a page whose format changed
+	// enough that no forts are found) used to escape a narrower try/catch
+	// and fall through to the generic catch-all, coming back as a 500 even
+	// after the first fix.
+	it("returns a graceful 502 — not a 500 — when the official WZ page's body doesn't parse into any forts", async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("bosses.php")) return { ok: true, status: 200, json: async () => ({}) };
+			return { ok: true, status: 200, text: async () => "<html>totally different format</html>" };
 		});
 		vi.stubGlobal("fetch", fetchMock);
 

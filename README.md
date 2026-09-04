@@ -148,8 +148,9 @@ notificar mesmo com o app **fechado**, o app usa Web Push de verdade:
   guardam a *push subscription* do navegador + as preferências de alerta
   (mesma ideia do `api/notifications.ts`: GitHub como banco, sem
   Postgres/Redis — grava em `content/push-subscribers.json`).
-- `api/push/tick.ts` — a cada chamada, busca `wstatus.json`/`bosses.php` do
-  `cort.ovh`, compara com o snapshot da rodada anterior
+- `api/push/tick.ts` — a cada chamada, busca o status da Warzone direto do
+  site oficial (`championsofregnum.com`, mesmo parser de `api/wz-official.ts`)
+  e o `bosses.php` do `cort.ovh`, compara com o snapshot da rodada anterior
   (`content/push-state.json`, só reescrito quando algo de fato muda — pra
   não virar um commit por minuto), descobre o que mudou (mesmas 9
   categorias do painel de Alertas, mais os limiares de épico) e dispara o
@@ -221,7 +222,8 @@ npm uninstall sharp
 ```
 api/
   notifications.ts   Vercel Function do CRUD de notificações (GitHub como "banco")
-  cort-proxy.ts   relay same-origin pra bosses/wstatus/events/stats (ver nota de CORS abaixo)
+  cort-proxy.ts   relay same-origin pra bosses/events/stats (ver nota de CORS abaixo)
+  wz-official.ts  busca e interpreta o status da Warzone (fortes/gemas/relíquias) direto do site oficial
   _push/          lógica compartilhada do push (diff de WZ/épicos, envio VAPID, storage) — não roteável
   push/           Vercel Functions: subscribe.ts, unsubscribe.ts, tick.ts
 content/
@@ -245,67 +247,73 @@ public/
   icons/          ícones do PWA
 ```
 
-## Por que os dados ao vivo passam por um proxy (`api/cort-proxy.ts`)
+## De onde vêm os dados ao vivo
 
-`wstatus.json`, `events.json` e `stats.json` (`cort.ovh/api/var/...`) sempre
-respondem com `Access-Control-Allow-Origin: https://cort.ovh` — nunca o
-domínio deste app, nem `*`. Isso significa que o **navegador** de qualquer
-visitante bloqueia a leitura dessas respostas por CORS, não importa a
-qualidade da conexão — dava pra confundir com "internet ruim" porque o
-sintoma era só um erro genérico de "dados indisponíveis". `bosses.php`
-mandava `Access-Control-Allow-Origin: *` originalmente (por isso a página
-de Épicos não precisava disso no começo), mas em algum momento o cort.ovh
-parou de mandar esse header também — sem header nenhum de CORS agora —,
-quebrando a leitura direta pra todo mundo do mesmo jeito. Os quatro
-endpoints passam por esse proxy agora.
+Duas fontes diferentes, por motivos diferentes:
 
-A correção foi rotear esses quatro endpoints por uma Vercel Function
-própria (`api/cort-proxy.ts`, chamada via `/api/cort-proxy?endpoint=...`):
-um servidor não está sujeito a CORS (o mesmo motivo pelo qual `curl`
-funciona direto), então ela busca o JSON em nome do navegador e devolve
-same-origin — sem CORS nenhum de atravessar. Como as outras Vercel
-Functions deste projeto, isso não existe em `npm run dev` local (o Vite não
-roda Functions), então em dev essas quatro chamadas caem no estado de erro
-— só funciona depois de publicado.
+### Status da Warzone (fortes/gemas/relíquias) — direto do site oficial
+
+`api/wz-official.ts` busca a própria página "War Status" do site oficial
+de Champions of Regnum (`championsofregnum.com/index.php?l=1&sec=3`) e faz
+o parsing do HTML — não é uma API JSON, os dados vêm codificados nos nomes
+dos ícones (`keep_alsius.gif`, `gem_2.png`, etc., a mesma convenção que o
+próprio cort.ovh usa). Isso substitui o `wstatus.json` do cort.ovh como
+fonte pra essa página: sem depender de terceiros pra esse dado, direto da
+Riftline/NGD.
+
+Como a página não tem cabeçalho de CORS liberando esse domínio, o
+navegador não consegue buscar isso direto de qualquer forma — por isso
+`api/wz-official.ts` continua sendo uma Vercel Function server-side (mesmo
+motivo do `cort-proxy.ts` abaixo: um servidor não está sujeito a CORS). O
+cliente faz polling nela a cada 10s (`WZ_OFFICIAL_REFRESH_INTERVAL_MS` em
+`src/data/wzConstants.ts`), com `s-maxage=10` de cache na borda da Vercel
+pra várias abas simultâneas compartilharem uma única busca upstream por
+janela. Como as outras Functions, isso não existe em `npm run dev` local
+(o Vite não roda Functions), então em dev essa chamada cai no estado de
+erro — só funciona depois de publicado.
+
+Limitações conhecidas em relação ao `wstatus.json` do cort.ovh: a página
+oficial não expõe histórico de eventos (`events_log` sempre vazio — não dá
+pra calcular "capturado há Xh"), e não sinaliza mudanças (`map_changed`/
+`gems_changed`/`relics_changed` sempre `false`). Ver o comentário no topo
+de `api/wz-official.ts` para mais detalhes.
+
+### Épicos, estatísticas e histórico de eventos — proxy pro cort.ovh (`api/cort-proxy.ts`)
+
+`events.json`, `stats.json` e `bosses.php` (`cort.ovh/api/...`) não têm
+equivalente no site oficial — histórico de eventos, estatísticas de guerra
+e timers de chefes de mundo são dados que só o cort.ovh (comunidade)
+mantém. `events.json`/`stats.json` sempre respondem com
+`Access-Control-Allow-Origin: https://cort.ovh` — nunca o domínio deste
+app, nem `*` — e `bosses.php`, que originalmente mandava `*`, em algum
+momento também parou de mandar qualquer header de CORS. Isso significa que
+o **navegador** de qualquer visitante bloqueia a leitura dessas respostas
+diretamente, não importa a qualidade da conexão.
+
+A correção foi rotear esses três endpoints por uma Vercel Function própria
+(`api/cort-proxy.ts`, chamada via `/api/cort-proxy?endpoint=...`): um
+servidor não está sujeito a CORS (o mesmo motivo pelo qual `curl` funciona
+direto), então ela busca o JSON em nome do navegador e devolve
+same-origin. Como as outras Vercel Functions deste projeto, isso não
+existe em `npm run dev` local — só funciona depois de publicado.
 
 A function tenta 2 vezes (2.5s cada) antes de desistir, e cacheia uma
 resposta boa por 45s na borda da Vercel (`s-maxage=45`, sem
 `stale-while-revalidate` de propósito — uma primeira versão com
-`stale-while-revalidate` fez o status da WZ parar de atualizar direito
-depois de uma falha silenciosa de revalidação). Isso existe porque, à
-parte do CORS, há também um problema de conectividade real entre a rede da
-Vercel e o cort.ovh — boa parte (às vezes a totalidade) das tentativas de
-busca *server-side* feitas a partir da Vercel falham, mesmo com o cort.ovh
+`stale-while-revalidate` fez o status parar de atualizar direito depois de
+uma falha silenciosa de revalidação). Isso existe porque, à parte do CORS,
+há também um problema de conectividade real entre a rede da Vercel e o
+cort.ovh — boa parte (às vezes a totalidade) das tentativas de busca
+*server-side* feitas a partir da Vercel falham, mesmo com o cort.ovh
 saudável e respondendo rápido pra qualquer outra origem (confirmado
-rodando o mesmo código fora da Vercel).
-
-O histórico de commits automáticos (`content/push-state.json` só é
-atualizado quando `tick.ts` consegue buscar o `wstatus.json`) mostra que
-isso não é um bloqueio permanente: funcionou de forma saudável por quase
-um dia inteiro depois que esse proxy foi ao ar, e só parou de repente —
-sem nenhum deploy nosso naquele momento. O formato (funciona bem, depois
-para abruptamente após bastante tráfego acumulado) é mais compatível com
-um rate-limit/proteção anti-abuso acionado pelo volume agregado de
-requisições (o `tick.ts` sozinho já bate no cort.ovh a cada minuto, mais
-o polling de cada aba aberta) do que com uma incompatibilidade
-permanente. Por isso o cache ficou mais generoso e o retry mais
-conservador — menos pedidos no total, não só mais tentativas por pedido —
-e `WZ_REFRESH_INTERVAL_MS` (`src/data/wzConstants.ts`) foi de 30s pra
-60s pelo mesmo motivo. Isso reduz o volume mas não é uma correção
+rodando o mesmo código fora da Vercel). O histórico de commits automáticos
+mostra que isso não é um bloqueio permanente: funcionou de forma saudável
+por quase um dia inteiro antes de parar de repente, sem nenhum deploy
+nosso naquele momento — um padrão mais compatível com rate-limit/proteção
+anti-abuso acionado por volume agregado de requisições do que com uma
+incompatibilidade permanente. Por isso o cache ficou mais generoso e o
+retry mais conservador. Isso reduz o volume mas não é uma correção
 garantida — é a hipótese mais bem sustentada pelos dados até agora.
-
-**Fallback pro `wstatus`**: quando as tentativas falham, a function tenta
-servir o último snapshot bom conhecido em vez de um erro — `api/push/tick.ts`
-(o cron das notificações) já busca esse mesmo `wstatus.json` a cada minuto,
-então ele salva uma cópia completa em `content/live-snapshot.json` (a cada
-10 minutos no máximo, pra não virar um commit por minuto) sempre que
-consegue. Isso volta como uma resposta 200 normal, não um erro — o cliente
-já mostra `generated` (o timestamp que o próprio cort.ovh manda dentro dos
-dados) como "atualizado às", então um snapshot antigo aparece honestamente
-desatualizado em vez de fingir ser ao vivo. `bosses`/`events`/`stats` não
-têm esse fallback (só `wstatus` — é o que a página de Warzone mais depende
-pra não quebrar). Isso não resolve a causa raiz (o problema de rede acima),
-só evita a tela de erro enquanto ela não se resolve.
 
 ## Créditos
 
