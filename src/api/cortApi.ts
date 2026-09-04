@@ -38,6 +38,11 @@ export const cortApi = {
 	warzoneEvents: () => getJSON<WzEventsDumpEntry[]>("/api/cort-proxy?endpoint=events"),
 	warStats: () => getJSON<WzStatsDump>("/api/cort-proxy?endpoint=stats"),
 	maintenance: () => fetch(`${API_BASE}/var/maintenance.txt`, { signal: AbortSignal.timeout(6000) }).then((r) => (r.ok ? r.text() : "")),
+	// EXPERIMENTAL — see api/wz-official.ts. Scrapes championsofregnum.com's
+	// own War Status page instead of relaying cort.ovh, as a same-origin
+	// alternative source for the manual toggle on the WZ page. No events
+	// history, so fort "captured Xh ago" labels won't have anything to show.
+	warzoneStatusOfficial: () => getJSON<WzStatusData>("/api/wz-official"),
 };
 
 export class CortApiUnavailableError extends Error {}
