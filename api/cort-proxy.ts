@@ -24,28 +24,34 @@
 // through here too now, for the same reason as the other three.
 //
 // Polling the deployed endpoint directly (curl, spaced 5s apart, no
-// mocking) showed the real severity: ~80% of individual attempts to
-// cort.ovh from Vercel fail outright (measured after ruling out payload
-// size/slowness — every endpoint here answers curl in well under a
-// second). That's not occasional noise, it's a Vercel↔cort.ovh
-// reliability problem this proxy can reduce but can't fully hide.
+// mocking) showed the real severity: a large fraction of individual
+// attempts to cort.ovh from Vercel fail outright (measured after ruling
+// out payload size/slowness — every endpoint here answers curl in well
+// under a second from any other network). That's not occasional noise.
 //
-// Two mitigations, together:
-//  1. Multiple attempts per request (below), since a retry occasionally
-//     lands on a working path where the previous one didn't.
-//  2. A *short* edge cache — Cache-Control: s-maxage=15, no
-//     stale-while-revalidate. This turns "every single client request
-//     must independently beat ~80% odds" into "at least one attempt has
-//     to succeed every 15s", which is a much easier bar. Deliberately no
-//     stale-while-revalidate this time: an earlier version used
-//     max-age=30 + stale-while-revalidate=60, and once a revalidation
-//     attempt failed against this same flaky upstream, Vercel kept
-//     quietly serving that stale copy instead of ever trying again
-//     visibly — which is almost certainly what "não está atualizando
-//     corretamente" was. max-age=0 (browsers must revalidate on every
-//     request) + s-maxage=15 (Vercel's edge may reuse a fresh response
-//     for up to 15s) means a real, sustained outage surfaces as an
-//     honest error again instead of a silently frozen screen.
+// Timeline evidence points at this being throttling from *our own*
+// cumulative request volume, not a blanket Vercel-vs-cort.ovh
+// incompatibility: api/push/tick.ts polled cort.ovh cleanly, every
+// ~minute, for a full day straight after this proxy first shipped —
+// then abruptly stopped succeeding, with no code change on our side at
+// that moment. A sustained rate-limit/anti-abuse trigger tripped by
+// aggregate volume (tick.ts's own polling plus every open tab's client
+// polling, all sharing Vercel's IP pool) fits that shape far better than
+// a permanent block would. So the fix isn't just "retry harder" — it's
+// also asking cort.ovh less often in the first place:
+//  1. A couple of attempts per request (below) for the odd transient miss.
+//  2. A less aggressive edge cache — Cache-Control: s-maxage=45, no
+//     stale-while-revalidate. Long enough that many concurrent visitors
+//     share one upstream hit instead of one each, short enough that a
+//     real outage still surfaces as an honest error quickly rather than
+//     silently freezing. Deliberately no stale-while-revalidate: an
+//     earlier version used max-age=30 + stale-while-revalidate=60, and
+//     once a revalidation attempt failed against this same flaky
+//     upstream, Vercel kept quietly serving that stale copy instead of
+//     ever trying again visibly — which is almost certainly what "não
+//     está atualizando corretamente" was.
+// See also WZ_REFRESH_INTERVAL_MS (src/data/wzConstants.ts), bumped for
+// the same reason — less polling from the client side too.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 
@@ -91,10 +97,11 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	// Vercel's Node fetch most likely doesn't accept that RequestInit option
 	// the way a browser's does.
 	//
-	// 3 attempts at 2.5s each (7.5s worst case) fit comfortably inside the
-	// ~10s a Vercel Function gets on the Hobby plan while giving a real
-	// ~80%-failure-rate upstream more than one extra shot.
-	const ATTEMPTS = 3;
+	// 2 attempts at 2.5s each (5s worst case) — cut down from 3 once the
+	// failures looked like throttling from our own request volume rather
+	// than pure bad luck: retrying harder just adds to the volume that
+	// (likely) triggered this in the first place.
+	const ATTEMPTS = 2;
 	for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
 		try {
 			const upstream = await fetch(url, { signal: AbortSignal.timeout(2500) });
@@ -102,7 +109,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 				console.error("cort-proxy: upstream error", endpoint, "attempt", attempt, upstream.status);
 			} else {
 				const data = await upstream.json();
-				res.setHeader("Cache-Control", "max-age=0, s-maxage=15");
+				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
 				res.status(200).json(data);
 				return;
 			}
@@ -122,7 +129,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		try {
 			const { snapshot } = await readLiveSnapshot();
 			if (snapshot.wstatus) {
-				res.setHeader("Cache-Control", "max-age=0, s-maxage=15");
+				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
 				res.setHeader("X-Cort-Proxy-Fallback", "1");
 				res.status(200).json(snapshot.wstatus);
 				return;

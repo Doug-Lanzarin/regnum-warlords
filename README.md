@@ -268,8 +268,8 @@ Functions deste projeto, isso não existe em `npm run dev` local (o Vite não
 roda Functions), então em dev essas quatro chamadas caem no estado de erro
 — só funciona depois de publicado.
 
-A function tenta 3 vezes (2.5s cada) antes de desistir, e cacheia uma
-resposta boa por só 15s na borda da Vercel (`s-maxage=15`, sem
+A function tenta 2 vezes (2.5s cada) antes de desistir, e cacheia uma
+resposta boa por 45s na borda da Vercel (`s-maxage=45`, sem
 `stale-while-revalidate` de propósito — uma primeira versão com
 `stale-while-revalidate` fez o status da WZ parar de atualizar direito
 depois de uma falha silenciosa de revalidação). Isso existe porque, à
@@ -277,10 +277,24 @@ parte do CORS, há também um problema de conectividade real entre a rede da
 Vercel e o cort.ovh — boa parte (às vezes a totalidade) das tentativas de
 busca *server-side* feitas a partir da Vercel falham, mesmo com o cort.ovh
 saudável e respondendo rápido pra qualquer outra origem (confirmado
-rodando o mesmo código fora da Vercel). Retry e cache reduzem o impacto,
-mas não eliminam a causa — que está fora do nosso controle.
+rodando o mesmo código fora da Vercel).
 
-**Fallback pro `wstatus`**: quando as 3 tentativas falham, a function tenta
+O histórico de commits automáticos (`content/push-state.json` só é
+atualizado quando `tick.ts` consegue buscar o `wstatus.json`) mostra que
+isso não é um bloqueio permanente: funcionou de forma saudável por quase
+um dia inteiro depois que esse proxy foi ao ar, e só parou de repente —
+sem nenhum deploy nosso naquele momento. O formato (funciona bem, depois
+para abruptamente após bastante tráfego acumulado) é mais compatível com
+um rate-limit/proteção anti-abuso acionado pelo volume agregado de
+requisições (o `tick.ts` sozinho já bate no cort.ovh a cada minuto, mais
+o polling de cada aba aberta) do que com uma incompatibilidade
+permanente. Por isso o cache ficou mais generoso e o retry mais
+conservador — menos pedidos no total, não só mais tentativas por pedido —
+e `WZ_REFRESH_INTERVAL_MS` (`src/data/wzConstants.ts`) foi de 30s pra
+60s pelo mesmo motivo. Isso reduz o volume mas não é uma correção
+garantida — é a hipótese mais bem sustentada pelos dados até agora.
+
+**Fallback pro `wstatus`**: quando as tentativas falham, a function tenta
 servir o último snapshot bom conhecido em vez de um erro — `api/push/tick.ts`
 (o cron das notificações) já busca esse mesmo `wstatus.json` a cada minuto,
 então ele salva uma cópia completa em `content/live-snapshot.json` (a cada
