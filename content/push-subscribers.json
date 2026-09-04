@@ -74,12 +74,12 @@
 			"wallLostAlerts": false,
 			"wallRecoveredAlerts": false,
 			"wallVulnerableMineAlerts": false,
-			"wallVulnerableEnemyAlerts": false,
+			"wallVulnerableEnemyAlerts": true,
 			"gemCapturedAlerts": true,
-			"gemLostAlerts": false,
+			"gemLostAlerts": true,
 			"gemRecoveredAlerts": true,
 			"bossAlertMinutes": []
 		},
-		"updatedAt": 1788518077101
+		"updatedAt": 1788518078408
 	}
 ]
