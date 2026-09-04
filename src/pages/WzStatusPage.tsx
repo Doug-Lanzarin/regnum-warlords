@@ -29,11 +29,19 @@ import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Above this age, `data.generated` (cort.ovh's own timestamp) is treated
+ *  as stale even though the fetch itself succeeded — the proxy can serve a
+ *  fallback snapshot (see api/cort-proxy.ts) when cort.ovh is unreachable
+ *  from Vercel, and that comes back as a normal 200, so `error` alone can't
+ *  tell a stale-but-successful response apart from a fresh one. Comfortably
+ *  above the ~15s edge cache + normal poll interval, so this never
+ *  false-positives under normal operation. */
+const STALE_DATA_THRESHOLD_MS = 5 * 60 * 1000;
 
 export function WzStatusPage() {
 	const { lang } = useLanguage();
 	const t = useT();
-	const { data, loading, error, now, lastUpdated, refresh } = useWzStatus();
+	const { data, loading, error, now, refresh } = useWzStatus();
 	const { events: eventsDump } = useEventsDump();
 	const { reports } = useWzStats();
 	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
@@ -98,11 +106,14 @@ export function WzStatusPage() {
 
 	if (!data) return null;
 
+	const generatedAt = data.generated * 1000;
+	const isStale = Boolean(error) || now - generatedAt >= STALE_DATA_THRESHOLD_MS;
+
 	return (
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
-				{error && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
-				{lastUpdated && <span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated, lang) })}</span>}
+				{isStale && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
+				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt, lang) })}</span>
 			</div>
 			<WzMap forts={forts} wallVulnerability={wallVulnerability} now={now} onSelectFort={setSelectedFort} />
 			{selectedFort && (

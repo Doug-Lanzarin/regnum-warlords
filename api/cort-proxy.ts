@@ -47,6 +47,8 @@
 //     for up to 15s) means a real, sustained outage surfaces as an
 //     honest error again instead of a silently frozen screen.
 
+import { readLiveSnapshot } from "./_push/storage.js";
+
 interface VercelLikeRequest {
 	method?: string;
 	query: Record<string, string | string[] | undefined>;
@@ -108,5 +110,27 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			console.error("cort-proxy: fetch failed", endpoint, "attempt", attempt, error);
 		}
 	}
+
+	// Every live attempt failed. For wstatus specifically, `api/push/tick.ts`
+	// keeps a periodically-refreshed full copy of the last one that worked
+	// (`content/live-snapshot.json`) — falling back to that beats a hard
+	// error, since `WzStatusData.generated` (cort.ovh's own timestamp,
+	// untouched here) already tells the client exactly how old it is rather
+	// than pretending it's current. Best-effort: if this itself fails (or
+	// there's no snapshot yet), fall through to the same 502 as before.
+	if (endpoint === "wstatus") {
+		try {
+			const { snapshot } = await readLiveSnapshot();
+			if (snapshot.wstatus) {
+				res.setHeader("Cache-Control", "max-age=0, s-maxage=15");
+				res.setHeader("X-Cort-Proxy-Fallback", "1");
+				res.status(200).json(snapshot.wstatus);
+				return;
+			}
+		} catch (error) {
+			console.error("cort-proxy: fallback snapshot read failed", endpoint, error);
+		}
+	}
+
 	res.status(502).json({ error: "cort.ovh indisponível no momento." });
 }

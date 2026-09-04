@@ -15,7 +15,16 @@ import type { WzEvent, WzEventsDumpEntry, WzStatusData } from "../../src/types/w
 import { detectBossEvents, type BossEvent } from "../_push/boss.js";
 import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff.js";
 import { sendPush, type PushNotificationPayload } from "../_push/push.js";
-import { readState, readSubscribers, writeState, writeSubscribers, type PushState, type SubscriberRecord } from "../_push/storage.js";
+import {
+	readLiveSnapshot,
+	readState,
+	readSubscribers,
+	writeLiveSnapshot,
+	writeState,
+	writeSubscribers,
+	type PushState,
+	type SubscriberRecord,
+} from "../_push/storage.js";
 
 /** A wall that just crossed from "not vulnerable" to "vulnerable" this
  *  tick — see `buildMessagesFor`'s two directions (defender vs aggressor). */
@@ -39,6 +48,14 @@ interface VercelLikeResponse {
 const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
 const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
 const EVENTS_URL = "https://cort.ovh/api/var/events.json";
+
+/** How often the WZ status fallback snapshot (`content/live-snapshot.json`,
+ *  read by `api/cort-proxy.ts` when cort.ovh is unreachable) gets a fresh
+ *  commit. Every successful tick has a good snapshot to save, but this runs
+ *  every minute — writing every time would be a commit a minute forever
+ *  for no real benefit, since the snapshot only exists to give the proxy
+ *  *something* recent to fall back to, not to be itself second-fresh. */
+const SNAPSHOT_MIN_INTERVAL_MS = 10 * 60 * 1000;
 
 export function isAuthorized(req: VercelLikeRequest): boolean {
 	const expected = process.env.PUSH_TICK_SECRET?.trim();
@@ -195,6 +212,19 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		const { next: nextCategories, eventsByRealm } = diffState(forts, gems, prevState.categories);
 
 		const now = Date.now();
+
+		// Best-effort: never let a hiccup here take down the actual tick (fort/
+		// gem/boss alerts still need to go out even if this fails).
+		try {
+			const { snapshot: prevSnapshot, sha: snapshotSha } = await readLiveSnapshot();
+			const snapshotAge = prevSnapshot.savedAt ? now - prevSnapshot.savedAt : Infinity;
+			if (snapshotAge >= SNAPSHOT_MIN_INTERVAL_MS) {
+				await writeLiveSnapshot({ wstatus: wzData, savedAt: now }, snapshotSha, "push: atualiza snapshot de fallback da WZ");
+			}
+		} catch (err) {
+			console.error("push tick: failed to update live snapshot", err);
+		}
+
 		const { next: nextBossState, events: bossEvents } = detectBossEvents(bossData, now, prevState.boss);
 
 		const prevWallVulnerable = prevState.wallVulnerable ?? { Alsius: false, Ignis: false, Syrtis: false };

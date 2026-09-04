@@ -125,3 +125,69 @@ describe("cort-proxy handler", () => {
 		expect(result.headers.Allow).toBe("GET");
 	});
 });
+
+describe("cort-proxy handler — wstatus fallback to the last stored snapshot", () => {
+	const ORIGINAL_TOKEN = process.env.NOTIFICATIONS_GITHUB_TOKEN;
+
+	afterEach(() => {
+		if (ORIGINAL_TOKEN === undefined) delete process.env.NOTIFICATIONS_GITHUB_TOKEN;
+		else process.env.NOTIFICATIONS_GITHUB_TOKEN = ORIGINAL_TOKEN;
+	});
+
+	function stubFetchWithGithubSnapshot(snapshot: unknown) {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("api.github.com")) {
+				return {
+					ok: true,
+					status: 200,
+					json: async () => ({ content: Buffer.from(JSON.stringify(snapshot)).toString("base64"), sha: "abc123" }),
+				};
+			}
+			throw new Error(`unexpected fetch to ${url}`);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+		return fetchMock;
+	}
+
+	it("falls back to api/push/tick.ts's last saved snapshot (as an honest 200, not an error) once all 3 live attempts fail", async () => {
+		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
+		const snapshot = { wstatus: { forts: [], gems: [], generated: 111 }, savedAt: 222 };
+		stubFetchWithGithubSnapshot(snapshot);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(snapshot.wstatus);
+		expect(result.headers["X-Cort-Proxy-Fallback"]).toBe("1");
+	});
+
+	it("falls through to the normal 502 when there's no snapshot saved yet (GitHub 404)", async () => {
+		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("api.github.com")) return { ok: false, status: 404, json: async () => ({}) };
+			throw new Error(`unexpected fetch to ${url}`);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(result.status).toBe(502);
+	});
+
+	it("never falls back for endpoints other than wstatus (events/stats/bosses have no snapshot to fall back to)", async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			throw new Error(`should never reach GitHub for a non-wstatus endpoint: ${url}`);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
+
+		expect(result.status).toBe(502);
+	});
+});

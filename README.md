@@ -280,6 +280,19 @@ saudável e respondendo rápido pra qualquer outra origem (confirmado
 rodando o mesmo código fora da Vercel). Retry e cache reduzem o impacto,
 mas não eliminam a causa — que está fora do nosso controle.
 
+**Fallback pro `wstatus`**: quando as 3 tentativas falham, a function tenta
+servir o último snapshot bom conhecido em vez de um erro — `api/push/tick.ts`
+(o cron das notificações) já busca esse mesmo `wstatus.json` a cada minuto,
+então ele salva uma cópia completa em `content/live-snapshot.json` (a cada
+10 minutos no máximo, pra não virar um commit por minuto) sempre que
+consegue. Isso volta como uma resposta 200 normal, não um erro — o cliente
+já mostra `generated` (o timestamp que o próprio cort.ovh manda dentro dos
+dados) como "atualizado às", então um snapshot antigo aparece honestamente
+desatualizado em vez de fingir ser ao vivo. `bosses`/`events`/`stats` não
+têm esse fallback (só `wstatus` — é o que a página de Warzone mais depende
+pra não quebrar). Isso não resolve a causa raiz (o problema de rede acima),
+só evita a tela de erro enquanto ela não se resolve.
+
 ## Créditos
 
 Inspirado no [CoRT](https://codeberg.org/mascal/CoRT), da comunidade de

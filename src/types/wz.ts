@@ -33,7 +33,7 @@ export interface WzStatusData {
 	gems_changed: boolean;
 	relics_changed: boolean;
 	events_log: WzEvent[];
-	generated: string;
+	generated: number; // unix seconds — cort.ovh's own "as of" timestamp for this snapshot
 }
 
 /** Raw shape of https://cort.ovh/api/var/events.json — a much longer rolling
