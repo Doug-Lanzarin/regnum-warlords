@@ -80,21 +80,36 @@ describe("cort-proxy handler", () => {
 		expect(result.status).toBe(400);
 	});
 
-	it("responds 502 when cort.ovh itself errors", async () => {
-		vi.stubGlobal(
-			"fetch",
-			vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) }),
-		);
+	it("responds 502 after retrying once, when cort.ovh keeps erroring", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
+		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 		expect(result.status).toBe(502);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
-	it("responds 502 instead of throwing when the fetch itself rejects (timeout/offline)", async () => {
-		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
+	it("responds 502 after retrying once, when the fetch itself keeps rejecting (timeout/offline)", async () => {
+		const fetchMock = vi.fn().mockRejectedValue(new Error("network down"));
+		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 		expect(result.status).toBe(502);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it("retries once and succeeds if only the first attempt fails — this is the actual, observed intermittent-flakiness case", async () => {
+		const payload = { forts: [] };
+		const fetchMock = vi
+			.fn()
+			.mockRejectedValueOnce(new Error("transient network blip"))
+			.mockResolvedValueOnce({ ok: true, json: async () => payload });
+		vi.stubGlobal("fetch", fetchMock);
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(payload);
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
 	it("only accepts GET", async () => {
