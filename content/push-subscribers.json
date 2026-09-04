@@ -72,14 +72,14 @@
 			"fortRecoveredAlerts": false,
 			"wallCapturedAlerts": false,
 			"wallLostAlerts": false,
-			"wallRecoveredAlerts": false,
-			"wallVulnerableMineAlerts": false,
+			"wallRecoveredAlerts": true,
+			"wallVulnerableMineAlerts": true,
 			"wallVulnerableEnemyAlerts": true,
 			"gemCapturedAlerts": true,
 			"gemLostAlerts": true,
 			"gemRecoveredAlerts": true,
 			"bossAlertMinutes": []
 		},
-		"updatedAt": 1788518078408
+		"updatedAt": 1788518080125
 	}
 ]
