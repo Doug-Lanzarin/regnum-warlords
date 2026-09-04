@@ -16,13 +16,29 @@
 // bin/bosses/bosses.php already sends `Access-Control-Allow-Origin: *`, so
 // the Bosses page fetches it directly and doesn't need this.
 //
-// Deliberately no Cache-Control here (an earlier version cached this for
-// 30s at the edge with a 60s stale-while-revalidate window — the WZ status
-// stopped refreshing correctly for the user after that). This is a live
-// war-status feed the client already polls on its own schedule
-// (WZ_REFRESH_INTERVAL_MS); every request should hit cort.ovh fresh rather
-// than risk Vercel's edge (or an intermediate cache) serving a stale copy
-// for longer than intended.
+// Polling the deployed endpoint directly (curl, spaced 5s apart, no
+// mocking) showed the real severity: ~80% of individual attempts to
+// cort.ovh from Vercel fail outright (measured after ruling out payload
+// size/slowness — every endpoint here answers curl in well under a
+// second). That's not occasional noise, it's a Vercel↔cort.ovh
+// reliability problem this proxy can reduce but can't fully hide.
+//
+// Two mitigations, together:
+//  1. Multiple attempts per request (below), since a retry occasionally
+//     lands on a working path where the previous one didn't.
+//  2. A *short* edge cache — Cache-Control: s-maxage=15, no
+//     stale-while-revalidate. This turns "every single client request
+//     must independently beat ~80% odds" into "at least one attempt has
+//     to succeed every 15s", which is a much easier bar. Deliberately no
+//     stale-while-revalidate this time: an earlier version used
+//     max-age=30 + stale-while-revalidate=60, and once a revalidation
+//     attempt failed against this same flaky upstream, Vercel kept
+//     quietly serving that stale copy instead of ever trying again
+//     visibly — which is almost certainly what "não está atualizando
+//     corretamente" was. max-age=0 (browsers must revalidate on every
+//     request) + s-maxage=15 (Vercel's edge may reuse a fresh response
+//     for up to 15s) means a real, sustained outage surfaces as an
+//     honest error again instead of a silently frozen screen.
 
 interface VercelLikeRequest {
 	method?: string;
@@ -63,23 +79,20 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	// that differed from that proven pattern, and lines up with this
 	// endpoint going from working (if stale) to a flat 502 in production —
 	// Vercel's Node fetch most likely doesn't accept that RequestInit option
-	// the way a browser's does. The freshness that was for is already
-	// guaranteed by the response's own Cache-Control: no-store below.
+	// the way a browser's does.
 	//
-	// One retry: every endpoint here responds in well under a second when
-	// reachable at all (measured directly with curl), so a failure isn't
-	// about payload size — it's the odd genuinely-flaky round trip between
-	// Vercel and cort.ovh. A short per-attempt timeout (4s, not the 8s a
-	// single attempt used before) keeps two attempts comfortably inside the
-	// ~10s a Vercel Function gets on the Hobby plan.
-	for (let attempt = 1; attempt <= 2; attempt++) {
+	// 3 attempts at 2.5s each (7.5s worst case) fit comfortably inside the
+	// ~10s a Vercel Function gets on the Hobby plan while giving a real
+	// ~80%-failure-rate upstream more than one extra shot.
+	const ATTEMPTS = 3;
+	for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
 		try {
-			const upstream = await fetch(url, { signal: AbortSignal.timeout(4000) });
+			const upstream = await fetch(url, { signal: AbortSignal.timeout(2500) });
 			if (!upstream.ok) {
 				console.error("cort-proxy: upstream error", endpoint, "attempt", attempt, upstream.status);
 			} else {
 				const data = await upstream.json();
-				res.setHeader("Cache-Control", "no-store");
+				res.setHeader("Cache-Control", "max-age=0, s-maxage=15");
 				res.status(200).json(data);
 				return;
 			}
