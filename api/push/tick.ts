@@ -49,6 +49,11 @@ const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
 const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
 const EVENTS_URL = "https://cort.ovh/api/var/events.json";
 
+// Same reasoning as api/cort-proxy.ts's CORT_USER_AGENT: Node's default
+// fetch() User-Agent looks exactly like the kind of thing a bot-detection
+// layer flags first. Costs nothing to send something identifiable instead.
+const CORT_USER_AGENT = "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)";
+
 /** How often the WZ status fallback snapshot (`content/live-snapshot.json`,
  *  read by `api/cort-proxy.ts` when cort.ovh is unreachable) gets a fresh
  *  commit. Every successful tick has a good snapshot to save, but this runs
@@ -205,8 +210,8 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		let bossData: BossSpawnData;
 		try {
 			const [wzRes, bossRes] = await Promise.all([
-				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000) }),
-				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000) }),
+				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
+				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
 			]);
 			if (!wzRes.ok || !bossRes.ok) {
 				throw new Error(`cort.ovh respondeu wstatus=${wzRes.status} bosses=${bossRes.status}`);
@@ -222,7 +227,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		// event dump — fails soft (falls back to "no history this tick", so
 		// no wall-vulnerable events fire) rather than taking down fort/gem/
 		// boss alerts too if cort.ovh's events endpoint has a bad moment.
-		const events = await fetch(EVENTS_URL, { signal: AbortSignal.timeout(6000) })
+		const events = await fetch(EVENTS_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } })
 			.then((r) => (r.ok ? (r.json() as Promise<WzEventsDumpEntry[]>) : []))
 			.then((entries) => entries.filter((e): e is WzEvent => "type" in e))
 			.catch(() => [] as WzEvent[]);

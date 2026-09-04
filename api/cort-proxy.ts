@@ -73,6 +73,13 @@ const ENDPOINTS = {
 	bosses: "https://cort.ovh/api/bin/bosses/bosses.php",
 } as const;
 
+// Node's default fetch() User-Agent (something generic like "node") is
+// exactly the kind of thing a bot-detection layer flags first. A real,
+// identifiable one costs nothing and might be the whole difference between
+// looking like abuse traffic and looking like what this actually is: a
+// small community tool making a couple of requests a minute.
+const CORT_USER_AGENT = "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)";
+
 export default async function handler(req: VercelLikeRequest, res: VercelLikeResponse) {
 	if (req.method !== "GET") {
 		res.setHeader("Allow", "GET");
@@ -104,7 +111,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	const ATTEMPTS = 2;
 	for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
 		try {
-			const upstream = await fetch(url, { signal: AbortSignal.timeout(2500) });
+			const upstream = await fetch(url, { signal: AbortSignal.timeout(2500), headers: { "User-Agent": CORT_USER_AGENT } });
 			if (!upstream.ok) {
 				console.error("cort-proxy: upstream error", endpoint, "attempt", attempt, upstream.status);
 			} else {
