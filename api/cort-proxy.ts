@@ -57,7 +57,15 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	}
 
 	try {
-		const upstream = await fetch(url, { signal: AbortSignal.timeout(8000), cache: "no-store" });
+		// No `cache` option here — the already-working api/push/tick.ts fetches
+		// this same cort.ovh JSON with a bare fetch(url), no options at all.
+		// Adding cache: "no-store" on top of AbortSignal.timeout is the one
+		// thing that differed from that proven pattern, and lines up with this
+		// endpoint going from working (if stale) to a flat 502 in production —
+		// Vercel's Node fetch may not accept that RequestInit option the way a
+		// browser's does. The freshness this was for is already guaranteed by
+		// the response's own Cache-Control: no-store below.
+		const upstream = await fetch(url, { signal: AbortSignal.timeout(8000) });
 		if (!upstream.ok) {
 			console.error("cort-proxy: upstream error", endpoint, upstream.status);
 			res.status(502).json({ error: "cort.ovh indisponível no momento." });
