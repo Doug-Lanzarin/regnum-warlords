@@ -14,17 +14,29 @@ import type { WzEventsDumpEntry, WzStatsDump, WzStatusData } from "../types/wz";
 const API_BASE = "https://cort.ovh/api";
 
 async function getJSON<T>(url: string): Promise<T> {
-	const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+	// no-store: these are live-status polls (the WZ page re-fetches on its
+	// own schedule) — never let the browser's own heuristic HTTP cache
+	// quietly serve back a previous response instead of hitting the network.
+	const res = await fetch(url, { signal: AbortSignal.timeout(6000), cache: "no-store" });
 	if (!res.ok) throw new Error(`CoRT API respondeu ${res.status} em ${url}`);
 	return (await res.json()) as T;
 }
 
 export const cortApi = {
+	// bosses.php sends Access-Control-Allow-Origin: * — fetchable directly.
 	bosses: () => getJSON<BossSpawnData>(`${API_BASE}/bin/bosses/bosses.php`),
 	battlezone: () => getJSON<unknown>(`${API_BASE}/bin/bz/bz.php`),
-	warzoneStatus: () => getJSON<WzStatusData>(`${API_BASE}/var/wstatus.json`),
-	warzoneEvents: () => getJSON<WzEventsDumpEntry[]>(`${API_BASE}/var/events.json`),
-	warStats: () => getJSON<WzStatsDump>(`${API_BASE}/var/stats.json`),
+	// wstatus.json/events.json/stats.json send a *fixed*
+	// Access-Control-Allow-Origin: https://cort.ovh — never our own origin,
+	// so a browser fetching these directly always has the response withheld
+	// by CORS regardless of connection quality. Routed through our own
+	// same-origin proxy (api/cort-proxy.ts) instead, which fetches them
+	// server-side (not subject to CORS) and relays the JSON back — with no
+	// caching anywhere in that path, so this always reflects the current
+	// live status.
+	warzoneStatus: () => getJSON<WzStatusData>("/api/cort-proxy?endpoint=wstatus"),
+	warzoneEvents: () => getJSON<WzEventsDumpEntry[]>("/api/cort-proxy?endpoint=events"),
+	warStats: () => getJSON<WzStatsDump>("/api/cort-proxy?endpoint=stats"),
 	maintenance: () => fetch(`${API_BASE}/var/maintenance.txt`, { signal: AbortSignal.timeout(6000) }).then((r) => (r.ok ? r.text() : "")),
 };
 
