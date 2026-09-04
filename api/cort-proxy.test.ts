@@ -53,13 +53,14 @@ describe("cort-proxy handler", () => {
 		expect(result.headers["Cache-Control"]).toBe("max-age=0, s-maxage=15");
 	});
 
-	it("maps 'events' and 'stats' to their own cort.ovh URLs", async () => {
+	it("maps 'events', 'stats' and 'bosses' to their own cort.ovh URLs", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
 		vi.stubGlobal("fetch", fetchMock);
 
 		for (const [endpoint, url] of [
 			["events", "https://cort.ovh/api/var/events.json"],
 			["stats", "https://cort.ovh/api/var/stats.json"],
+			["bosses", "https://cort.ovh/api/bin/bosses/bosses.php"],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);

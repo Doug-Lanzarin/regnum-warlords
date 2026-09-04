@@ -13,8 +13,15 @@
 // `curl`), so this fetches them here and relays the JSON back same-origin,
 // where the browser has nothing to block.
 //
-// bin/bosses/bosses.php already sends `Access-Control-Allow-Origin: *`, so
-// the Bosses page fetches it directly and doesn't need this.
+// bin/bosses/bosses.php used to send `Access-Control-Allow-Origin: *`, so
+// the Bosses page fetched it directly and didn't need this. cort.ovh has
+// since stopped sending any Access-Control-Allow-Origin header on that
+// endpoint at all (confirmed with the same curl -H "Origin: ..." check
+// above — no header present anymore, whereas it used to send `*`), which
+// broke direct browser fetches for every visitor regardless of network —
+// a CORS block is enforced by the browser itself, so it isn't something a
+// better connection or a different network can route around. Routed
+// through here too now, for the same reason as the other three.
 //
 // Polling the deployed endpoint directly (curl, spaced 5s apart, no
 // mocking) showed the real severity: ~80% of individual attempts to
@@ -55,6 +62,7 @@ const ENDPOINTS = {
 	wstatus: "https://cort.ovh/api/var/wstatus.json",
 	events: "https://cort.ovh/api/var/events.json",
 	stats: "https://cort.ovh/api/var/stats.json",
+	bosses: "https://cort.ovh/api/bin/bosses/bosses.php",
 } as const;
 
 export default async function handler(req: VercelLikeRequest, res: VercelLikeResponse) {

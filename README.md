@@ -221,7 +221,7 @@ npm uninstall sharp
 ```
 api/
   notifications.ts   Vercel Function do CRUD de notificações (GitHub como "banco")
-  cort-proxy.ts   relay same-origin pra wstatus/events/stats.json (ver nota de CORS abaixo)
+  cort-proxy.ts   relay same-origin pra bosses/wstatus/events/stats (ver nota de CORS abaixo)
   _push/          lógica compartilhada do push (diff de WZ/épicos, envio VAPID, storage) — não roteável
   push/           Vercel Functions: subscribe.ts, unsubscribe.ts, tick.ts
 content/
@@ -245,7 +245,7 @@ public/
   icons/          ícones do PWA
 ```
 
-## Por que a Warzone passa por um proxy (`api/cort-proxy.ts`)
+## Por que os dados ao vivo passam por um proxy (`api/cort-proxy.ts`)
 
 `wstatus.json`, `events.json` e `stats.json` (`cort.ovh/api/var/...`) sempre
 respondem com `Access-Control-Allow-Origin: https://cort.ovh` — nunca o
@@ -253,24 +253,32 @@ domínio deste app, nem `*`. Isso significa que o **navegador** de qualquer
 visitante bloqueia a leitura dessas respostas por CORS, não importa a
 qualidade da conexão — dava pra confundir com "internet ruim" porque o
 sintoma era só um erro genérico de "dados indisponíveis". `bosses.php`
-manda `Access-Control-Allow-Origin: *` (por isso a página de Épicos nunca
-teve esse problema).
+mandava `Access-Control-Allow-Origin: *` originalmente (por isso a página
+de Épicos não precisava disso no começo), mas em algum momento o cort.ovh
+parou de mandar esse header também — sem header nenhum de CORS agora —,
+quebrando a leitura direta pra todo mundo do mesmo jeito. Os quatro
+endpoints passam por esse proxy agora.
 
-A correção foi rotear só esses três endpoints por uma Vercel Function
+A correção foi rotear esses quatro endpoints por uma Vercel Function
 própria (`api/cort-proxy.ts`, chamada via `/api/cort-proxy?endpoint=...`):
 um servidor não está sujeito a CORS (o mesmo motivo pelo qual `curl`
 funciona direto), então ela busca o JSON em nome do navegador e devolve
 same-origin — sem CORS nenhum de atravessar. Como as outras Vercel
 Functions deste projeto, isso não existe em `npm run dev` local (o Vite não
-roda Functions), então em dev essas três chamadas caem no estado de erro —
-só funciona depois de publicado.
+roda Functions), então em dev essas quatro chamadas caem no estado de erro
+— só funciona depois de publicado.
 
-**Sem cache em lugar nenhum desse caminho de propósito** (`Cache-Control:
-no-store` na resposta da function, `cache: "no-store"` no fetch do
-cliente): uma primeira versão cacheava a resposta por 30s na borda da
-Vercel (`stale-while-revalidate` de mais 60s) e isso fez o status da WZ
-parar de atualizar direito — o status da guerra muda a qualquer momento,
-então cachear esse endpoint específico não vale a economia.
+A function tenta 3 vezes (2.5s cada) antes de desistir, e cacheia uma
+resposta boa por só 15s na borda da Vercel (`s-maxage=15`, sem
+`stale-while-revalidate` de propósito — uma primeira versão com
+`stale-while-revalidate` fez o status da WZ parar de atualizar direito
+depois de uma falha silenciosa de revalidação). Isso existe porque, à
+parte do CORS, há também um problema de conectividade real entre a rede da
+Vercel e o cort.ovh — boa parte (às vezes a totalidade) das tentativas de
+busca *server-side* feitas a partir da Vercel falham, mesmo com o cort.ovh
+saudável e respondendo rápido pra qualquer outra origem (confirmado
+rodando o mesmo código fora da Vercel). Retry e cache reduzem o impacto,
+mas não eliminam a causa — que está fora do nosso controle.
 
 ## Créditos
 

@@ -23,17 +23,17 @@ async function getJSON<T>(url: string): Promise<T> {
 }
 
 export const cortApi = {
-	// bosses.php sends Access-Control-Allow-Origin: * — fetchable directly.
-	bosses: () => getJSON<BossSpawnData>(`${API_BASE}/bin/bosses/bosses.php`),
 	battlezone: () => getJSON<unknown>(`${API_BASE}/bin/bz/bz.php`),
-	// wstatus.json/events.json/stats.json send a *fixed*
-	// Access-Control-Allow-Origin: https://cort.ovh — never our own origin,
-	// so a browser fetching these directly always has the response withheld
-	// by CORS regardless of connection quality. Routed through our own
+	// bosses.php/wstatus.json/events.json/stats.json all send either a
+	// *fixed* Access-Control-Allow-Origin: https://cort.ovh (never our own
+	// origin) or, on bosses.php, no CORS header at all — either way, a
+	// browser fetching these directly always has the response withheld by
+	// CORS regardless of connection quality. Routed through our own
 	// same-origin proxy (api/cort-proxy.ts) instead, which fetches them
 	// server-side (not subject to CORS) and relays the JSON back — with no
 	// caching anywhere in that path, so this always reflects the current
 	// live status.
+	bosses: () => getJSON<BossSpawnData>("/api/cort-proxy?endpoint=bosses"),
 	warzoneStatus: () => getJSON<WzStatusData>("/api/cort-proxy?endpoint=wstatus"),
 	warzoneEvents: () => getJSON<WzEventsDumpEntry[]>("/api/cort-proxy?endpoint=events"),
 	warStats: () => getJSON<WzStatsDump>("/api/cort-proxy?endpoint=stats"),
