@@ -187,7 +187,28 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	}
 
 	try {
-		const [wzRes, bossRes] = await Promise.all([fetch(WZ_STATUS_URL), fetch(BOSSES_URL)]);
+		// A genuine network failure (timeout, connection reset — not just a
+		// non-2xx status) makes fetch() itself reject, which used to propagate
+		// all the way to the catch-all below and come back as a 500. That's
+		// not just cosmetic: cron-job.org auto-disables a cron job after
+		// enough consecutive failures, and a 500 read as "our code is broken"
+		// rather than "cort.ovh is unreachable right now" — which is exactly
+		// what happened (see git history/README for the cort.ovh-reachability
+		// context this fetch already assumes). Caught and turned into the
+		// same graceful 502 as a bad HTTP status, so a bad run stays a
+		// transient failure instead of getting the whole cron switched off.
+		let wzRes: Response;
+		let bossRes: Response;
+		try {
+			[wzRes, bossRes] = await Promise.all([
+				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000) }),
+				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000) }),
+			]);
+		} catch (err) {
+			console.error("push tick: cort.ovh fetch threw", err);
+			res.status(502).json({ error: "cort.ovh indisponível." });
+			return;
+		}
 		if (!wzRes.ok || !bossRes.ok) {
 			console.error("push tick: cort.ovh fetch failed", wzRes.status, bossRes.status);
 			res.status(502).json({ error: "cort.ovh indisponível." });
@@ -199,7 +220,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		// event dump — fails soft (falls back to "no history this tick", so
 		// no wall-vulnerable events fire) rather than taking down fort/gem/
 		// boss alerts too if cort.ovh's events endpoint has a bad moment.
-		const events = await fetch(EVENTS_URL)
+		const events = await fetch(EVENTS_URL, { signal: AbortSignal.timeout(6000) })
 			.then((r) => (r.ok ? (r.json() as Promise<WzEventsDumpEntry[]>) : []))
 			.then((entries) => entries.filter((e): e is WzEvent => "type" in e))
 			.catch(() => [] as WzEvent[]);

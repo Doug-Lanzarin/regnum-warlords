@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { buildMessagesFor, eventDisplayName, isAuthorized, type VercelLikeRequest, type WallVulnerableEvent } from "./tick";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import handler, { buildMessagesFor, eventDisplayName, isAuthorized, type VercelLikeRequest, type WallVulnerableEvent } from "./tick";
 import type { CategoryEvent, CategoryEvents } from "../_push/diff";
 import type { BossEvent } from "../_push/boss";
 import type { AlertSettings } from "../../src/types/alertSettings";
@@ -179,5 +179,73 @@ describe("isAuthorized", () => {
 	it("rejects a wrong or missing secret", () => {
 		expect(isAuthorized(req({ headers: { authorization: "Bearer nope" } }))).toBe(false);
 		expect(isAuthorized(req({}))).toBe(false);
+	});
+});
+
+describe("tick handler — cort.ovh fetch failures", () => {
+	const ORIGINAL_ENV = {
+		PUSH_TICK_SECRET: process.env.PUSH_TICK_SECRET,
+		VAPID_SUBJECT: process.env.VAPID_SUBJECT,
+		VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY,
+		VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
+	};
+
+	beforeAll(() => {
+		process.env.PUSH_TICK_SECRET = "s3cr3t";
+		process.env.VAPID_SUBJECT = "mailto:test@example.com";
+		process.env.VAPID_PUBLIC_KEY = "pub";
+		process.env.VAPID_PRIVATE_KEY = "priv";
+	});
+
+	afterAll(() => {
+		for (const [key, value] of Object.entries(ORIGINAL_ENV)) {
+			if (value === undefined) delete process.env[key];
+			else process.env[key] = value;
+		}
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	function mockRes() {
+		const result: { status: number | null; json: unknown } = { status: null, json: null };
+		const res = {
+			status(code: number) {
+				result.status = code;
+				return res;
+			},
+			json(body: unknown) {
+				result.json = body;
+			},
+			setHeader() {},
+		};
+		return { res, result };
+	}
+
+	// This is the actual bug that got the cron auto-disabled by cron-job.org:
+	// a genuine network failure (not just a non-2xx status) made fetch()
+	// itself reject, which used to fall through to the generic catch-all and
+	// come back as a 500 — read by cron-job.org as "this endpoint is broken"
+	// rather than "cort.ovh is unreachable right now", so it switched the
+	// cron off after enough of these in a row.
+	it("returns a graceful 502 — not a 500 — when the cort.ovh fetch itself rejects (timeout/connection reset)", async () => {
+		const fetchMock = vi.fn().mockRejectedValue(new Error("network reset"));
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", headers: { authorization: "Bearer s3cr3t" }, query: {} }, res);
+
+		expect(result.status).toBe(502);
+	});
+
+	it("still returns a graceful 502 when cort.ovh responds with a bad HTTP status (not rejected, just unhealthy)", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", headers: { authorization: "Bearer s3cr3t" }, query: {} }, res);
+
+		expect(result.status).toBe(502);
 	});
 });
