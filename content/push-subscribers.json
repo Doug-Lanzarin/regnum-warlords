@@ -54,5 +54,32 @@
 			]
 		},
 		"updatedAt": 1788458811400
+	},
+	{
+		"subscription": {
+			"endpoint": "https://web.push.apple.com/QMhR9WyaOB8NmuM6DV938ZdR8HGqw_K34tSGcMQAdKSnJO_sZt1JIbCZIb-LsMvXP5_GpTXCPkreI-a3Jq6yeGrtUI3dpmkuUe83WzT1aFFENMHzcaogZs_pPpcR4tvxanIpveLy0StE7YNFBtRMTWXgGeTfFRzpAFY1uZAqoJ8",
+			"expirationTime": null,
+			"keys": {
+				"p256dh": "BHnLsMHOMjU2LBIyd5kfhFupK-lZZmwQLGw5XPCyh0MEnd-rVFZqDu_nkiHmXCMtVXdKtRat4JKvbrdLFy9JkPY",
+				"auth": "P76M-8eJUF_TVzZNHjVlxw"
+			}
+		},
+		"settings": {
+			"myRealm": null,
+			"lang": "pt",
+			"fortCapturedAlerts": false,
+			"fortLostAlerts": false,
+			"fortRecoveredAlerts": false,
+			"wallCapturedAlerts": false,
+			"wallLostAlerts": false,
+			"wallRecoveredAlerts": false,
+			"wallVulnerableMineAlerts": false,
+			"wallVulnerableEnemyAlerts": false,
+			"gemCapturedAlerts": false,
+			"gemLostAlerts": false,
+			"gemRecoveredAlerts": false,
+			"bossAlertMinutes": []
+		},
+		"updatedAt": 1788518070924
 	}
 ]
