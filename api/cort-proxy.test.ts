@@ -37,11 +37,14 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", { signal: expect.any(AbortSignal) });
+		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", {
+			signal: expect.any(AbortSignal),
+			headers: { "User-Agent": "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)" },
+		});
 		// No `cache` RequestInit option on the upstream fetch — Vercel's Node
 		// fetch rejected that option outright (this endpoint went from
 		// working, if stale, to a flat 502 in production once it was added).
-		expect(Object.keys(fetchMock.mock.calls[0][1])).toEqual(["signal"]);
+		expect(Object.keys(fetchMock.mock.calls[0][1]).sort()).toEqual(["headers", "signal"]);
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 		// s-maxage but no stale-while-revalidate: a short edge cache absorbs
