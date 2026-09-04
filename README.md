@@ -221,7 +221,6 @@ npm uninstall sharp
 ```
 api/
   notifications.ts   Vercel Function do CRUD de notificações (GitHub como "banco")
-  cort-proxy.ts   relay same-origin pra wstatus/events/stats.json (ver nota de CORS abaixo)
   _push/          lógica compartilhada do push (diff de WZ/épicos, envio VAPID, storage) — não roteável
   push/           Vercel Functions: subscribe.ts, unsubscribe.ts, tick.ts
 content/
@@ -244,26 +243,6 @@ public/
   data/trainer/   dados de referência do trainer, empacotados para uso offline
   icons/          ícones do PWA
 ```
-
-## Por que a Warzone passa por um proxy (`api/cort-proxy.ts`)
-
-`wstatus.json`, `events.json` e `stats.json` (`cort.ovh/api/var/...`) sempre
-respondem com `Access-Control-Allow-Origin: https://cort.ovh` — nunca o
-domínio deste app, nem `*`. Isso significa que o **navegador** de qualquer
-visitante bloqueia a leitura dessas respostas por CORS, não importa a
-qualidade da conexão — dava pra confundir com "internet ruim" porque o
-sintoma era só um erro genérico de "dados indisponíveis". `bosses.php`
-manda `Access-Control-Allow-Origin: *` (por isso a página de Épicos nunca
-teve esse problema).
-
-A correção foi rotear só esses três endpoints por uma Vercel Function
-própria (`api/cort-proxy.ts`, chamada via `/api/cort-proxy?endpoint=...`):
-um servidor não está sujeito a CORS (o mesmo motivo pelo qual `curl`
-funciona direto), então ela busca o JSON em nome do navegador e devolve
-same-origin — sem CORS nenhum de atravessar. Como as outras Vercel
-Functions deste projeto, isso não existe em `npm run dev` local (o Vite não
-roda Functions), então em dev essas três chamadas caem no estado de erro —
-só funciona depois de publicado.
 
 ## Créditos
 
