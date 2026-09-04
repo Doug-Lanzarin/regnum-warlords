@@ -187,35 +187,37 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	}
 
 	try {
-		// A genuine network failure (timeout, connection reset — not just a
-		// non-2xx status) makes fetch() itself reject, which used to propagate
-		// all the way to the catch-all below and come back as a 500. That's
-		// not just cosmetic: cron-job.org auto-disables a cron job after
-		// enough consecutive failures, and a 500 read as "our code is broken"
-		// rather than "cort.ovh is unreachable right now" — which is exactly
-		// what happened (see git history/README for the cort.ovh-reachability
-		// context this fetch already assumes). Caught and turned into the
-		// same graceful 502 as a bad HTTP status, so a bad run stays a
-		// transient failure instead of getting the whole cron switched off.
-		let wzRes: Response;
-		let bossRes: Response;
+		// Anything that can go wrong getting real WZ/boss data out of
+		// cort.ovh — fetch() itself rejecting (timeout, connection reset),
+		// a non-2xx status, or a 200 whose body isn't valid JSON (a WAF
+		// challenge page, a truncated response) — used to either propagate
+		// past the old `!res.ok` check or throw during .json() and fall
+		// through to the generic catch-all below, coming back as a 500.
+		// That's not just cosmetic: cron-job.org auto-disables a cron job
+		// after enough consecutive failures, and a 500 reads as "our code
+		// is broken" rather than "cort.ovh is unreachable right now" —
+		// which is exactly what happened (see git history/README for the
+		// cort.ovh-reachability context this fetch already assumes). The
+		// whole fetch+parse sequence is caught here as one unit so any of
+		// those failure modes becomes the same graceful 502, keeping a bad
+		// run a transient failure instead of getting the cron switched off.
+		let wzData: WzStatusData;
+		let bossData: BossSpawnData;
 		try {
-			[wzRes, bossRes] = await Promise.all([
+			const [wzRes, bossRes] = await Promise.all([
 				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000) }),
 				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000) }),
 			]);
+			if (!wzRes.ok || !bossRes.ok) {
+				throw new Error(`cort.ovh respondeu wstatus=${wzRes.status} bosses=${bossRes.status}`);
+			}
+			wzData = (await wzRes.json()) as WzStatusData;
+			bossData = (await bossRes.json()) as BossSpawnData;
 		} catch (err) {
-			console.error("push tick: cort.ovh fetch threw", err);
+			console.error("push tick: cort.ovh fetch/parse failed", err);
 			res.status(502).json({ error: "cort.ovh indisponível." });
 			return;
 		}
-		if (!wzRes.ok || !bossRes.ok) {
-			console.error("push tick: cort.ovh fetch failed", wzRes.status, bossRes.status);
-			res.status(502).json({ error: "cort.ovh indisponível." });
-			return;
-		}
-		const wzData = (await wzRes.json()) as WzStatusData;
-		const bossData = (await bossRes.json()) as BossSpawnData;
 		// Wall vulnerability is the only thing that needs this ~10-day raw
 		// event dump — fails soft (falls back to "no history this tick", so
 		// no wall-vulnerable events fire) rather than taking down fort/gem/

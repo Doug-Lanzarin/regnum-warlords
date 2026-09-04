@@ -248,4 +248,24 @@ describe("tick handler — cort.ovh fetch failures", () => {
 
 		expect(result.status).toBe(502);
 	});
+
+	// The gap the first fix missed: a 200 whose body isn't valid JSON (a WAF
+	// challenge page, a truncated response) makes .json() itself throw —
+	// that's outside a fetch()-only try/catch, so it still fell through to
+	// the generic catch-all and came back as a 500 even after the first fix.
+	it("returns a graceful 502 — not a 500 — when cort.ovh answers 200 with a body that isn't valid JSON", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => {
+				throw new SyntaxError("Unexpected token < in JSON at position 0");
+			},
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", headers: { authorization: "Bearer s3cr3t" }, query: {} }, res);
+
+		expect(result.status).toBe(502);
+	});
 });
