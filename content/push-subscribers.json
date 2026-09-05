@@ -32,6 +32,31 @@
 	},
 	{
 		"subscription": {
+			"endpoint": "https://fcm.googleapis.com/fcm/send/exd4XQEE0yw:APA91bG5qbQxBL6v32-5-zVasJCAPxOzeCbx31MyQCjA4NI-NJu7XeIheoPv2mY_yjMXHxeuTYuADg5eu9se-lnBGUUxt06_yuTAlRg8UICzMAm5tgv2UtNrKmY4QinK0lnyi8w7GvAv",
+			"expirationTime": null,
+			"keys": {
+				"p256dh": "BM2AD9Bq_NPr5RSHQnoTSpBuGKMEp026JeCHgQj1focyVsIIWoOhyygICd9SZ2oAcxlyrr-xi-7KFctadMsBRp8",
+				"auth": "jPwlxbimBntRWil2bQ6cfQ"
+			}
+		},
+		"settings": {
+			"myRealm": "Syrtis",
+			"lang": "pt",
+			"fortCapturedAlerts": false,
+			"fortLostAlerts": false,
+			"fortRecoveredAlerts": false,
+			"wallCapturedAlerts": false,
+			"wallLostAlerts": false,
+			"wallRecoveredAlerts": false,
+			"gemCapturedAlerts": false,
+			"gemLostAlerts": false,
+			"gemRecoveredAlerts": false,
+			"bossAlertMinutes": []
+		},
+		"updatedAt": 1788573276683
+	},
+	{
+		"subscription": {
 			"endpoint": "https://web.push.apple.com/QMhR9WyaOB8NmuM6DV938ZdR8HGqw_K34tSGcMQAdKSnJO_sZt1JIbCZIb-LsMvXP5_GpTXCPkreI-a3Jq6yeGrtUI3dpmkuUe83WzT1aFFENMHzcaogZs_pPpcR4tvxanIpveLy0StE7YNFBtRMTWXgGeTfFRzpAFY1uZAqoJ8",
 			"expirationTime": null,
 			"keys": {
@@ -55,31 +80,6 @@
 			"gemRecoveredAlerts": true,
 			"bossAlertMinutes": []
 		},
-		"updatedAt": 1788548220978
-	},
-	{
-		"subscription": {
-			"endpoint": "https://fcm.googleapis.com/fcm/send/exd4XQEE0yw:APA91bG5qbQxBL6v32-5-zVasJCAPxOzeCbx31MyQCjA4NI-NJu7XeIheoPv2mY_yjMXHxeuTYuADg5eu9se-lnBGUUxt06_yuTAlRg8UICzMAm5tgv2UtNrKmY4QinK0lnyi8w7GvAv",
-			"expirationTime": null,
-			"keys": {
-				"p256dh": "BM2AD9Bq_NPr5RSHQnoTSpBuGKMEp026JeCHgQj1focyVsIIWoOhyygICd9SZ2oAcxlyrr-xi-7KFctadMsBRp8",
-				"auth": "jPwlxbimBntRWil2bQ6cfQ"
-			}
-		},
-		"settings": {
-			"myRealm": "Syrtis",
-			"lang": "pt",
-			"fortCapturedAlerts": false,
-			"fortLostAlerts": false,
-			"fortRecoveredAlerts": false,
-			"wallCapturedAlerts": false,
-			"wallLostAlerts": false,
-			"wallRecoveredAlerts": false,
-			"gemCapturedAlerts": false,
-			"gemLostAlerts": false,
-			"gemRecoveredAlerts": false,
-			"bossAlertMinutes": []
-		},
-		"updatedAt": 1788573276683
+		"updatedAt": 1788573389201
 	}
 ]
