@@ -146,8 +146,12 @@ mostram o estado de erro — isso é esperado, só funciona depois de publicado.
 > Enquanto isso, `AlertsWatcher` não é montado (sem toasts nem polling em
 > segundo plano), o painel de Alertas mostra um aviso no lugar dos
 > controles, e `api/push/tick.ts` responde 200 sem tocar em cort.ovh nem
-> mandar push. É um interruptor único — voltar tudo é só virar essa
-> constante pra `false`.
+> mandar push. **O cronjob externo em si também foi removido** (não só
+> pausado no código) — não existe mais nada batendo periodicamente em
+> `/api/push/tick`; todo processamento de status/eventos/épicos que resta
+> acontece só no navegador de quem está com o site aberto. A seção abaixo
+> descreve como recriar o cron **se** o push com app fechado voltar um dia
+> — hoje não há nenhum configurado.
 
 Os alertas locais do painel de Alertas (`/notificacoes`) só funcionam com
 o app aberto — o polling que os alimenta é o próprio JS da página. Pra
@@ -171,15 +175,17 @@ notificar mesmo com o app **fechado**, o app usa Web Push de verdade:
   justamente pra poder ter esse código próprio) com os handlers de
   `push`/`notificationclick` que mostram a notificação do sistema.
 
-### Por que o "cron" não é da própria Vercel
+### Por que o "cron" não era da própria Vercel (quando existia)
 
 Chamar `api/push/tick.ts` só funciona se algo disparar isso periodicamente
 — e nenhuma plataforma grátis agenda em menos de 1 minuto (Vercel Cron no
-plano Hobby é só 1x/dia; GitHub Actions é 5 em 5min no mínimo). A solução:
-um serviço **externo** e gratuito de "ping" agendado bate no endpoint a
-cada minuto — a lógica em si roda inteira na Vercel, só o gatilho vem de
-fora. Usei o [cron-job.org](https://cron-job.org) (grátis, sem cartão,
-suporta 1 em 1 minuto):
+plano Hobby é só 1x/dia; GitHub Actions é 5 em 5min no mínimo). A solução
+usada enquanto o cron existia: um serviço **externo** e gratuito de "ping"
+agendado batendo no endpoint a cada minuto — a lógica em si roda inteira
+na Vercel, só o gatilho vinha de fora. Era o [cron-job.org](https://cron-job.org)
+(grátis, sem cartão, suporta 1 em 1 minuto); esse cronjob foi **excluído**
+da conta em cron-job.org — os passos abaixo ficam só como referência pra
+recriar, caso o push com app fechado volte:
 
 1. Crie uma conta grátis em cron-job.org.
 2. Crie um novo cronjob:
