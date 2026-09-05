@@ -52,6 +52,16 @@
 //     está atualizando corretamente" was.
 // See also WZ_REFRESH_INTERVAL_MS (src/data/wzConstants.ts), bumped for
 // the same reason — less polling from the client side too.
+//
+// wstatus specifically now tries a second, independent CoRT deployment
+// first — cort.go.yo.fr/CoRT is a separate self-hosted instance of the
+// same open-source client (see its own js/libs/cortlibs.js), serving the
+// byte-identical wstatus.json shape, just not cort.ovh itself. Trying it
+// first spreads load off cort.ovh instead of adding to it, and gives a
+// second independent host to fall back to before ever touching the stale
+// snapshot below. It has shown its own "works, then randomly 403s/resets"
+// flakiness when polled from here — unrelated to cort.ovh's — so this
+// isn't assumed more reliable, just an independent second chance.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 
@@ -66,12 +76,13 @@ interface VercelLikeResponse {
 	setHeader(name: string, value: string): void;
 }
 
-const ENDPOINTS = {
-	wstatus: "https://cort.ovh/api/var/wstatus.json",
-	events: "https://cort.ovh/api/var/events.json",
-	stats: "https://cort.ovh/api/var/stats.json",
-	bosses: "https://cort.ovh/api/bin/bosses/bosses.php",
-} as const;
+// Each endpoint maps to one or more candidate URLs, tried in order.
+const ENDPOINTS: Record<string, readonly string[]> = {
+	wstatus: ["https://cort.go.yo.fr/CoRT/api/var/wstatus.json", "https://cort.ovh/api/var/wstatus.json"],
+	events: ["https://cort.ovh/api/var/events.json"],
+	stats: ["https://cort.ovh/api/var/stats.json"],
+	bosses: ["https://cort.ovh/api/bin/bosses/bosses.php"],
+};
 
 // Node's default fetch() User-Agent (something generic like "node") is
 // exactly the kind of thing a bot-detection layer flags first. A real,
@@ -89,8 +100,8 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 
 	const endpointParam = req.query.endpoint;
 	const endpoint = typeof endpointParam === "string" ? endpointParam : undefined;
-	const url = endpoint && endpoint in ENDPOINTS ? ENDPOINTS[endpoint as keyof typeof ENDPOINTS] : undefined;
-	if (!url) {
+	const urls = endpoint && endpoint in ENDPOINTS ? ENDPOINTS[endpoint] : undefined;
+	if (!urls) {
 		res.status(400).json({ error: `endpoint deve ser um de: ${Object.keys(ENDPOINTS).join(", ")}.` });
 		return;
 	}
@@ -107,13 +118,17 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	// 2 attempts at 2.5s each (5s worst case) — cut down from 3 once the
 	// failures looked like throttling from our own request volume rather
 	// than pure bad luck: retrying harder just adds to the volume that
-	// (likely) triggered this in the first place.
+	// (likely) triggered this in the first place. When an endpoint has more
+	// than one candidate URL (wstatus), the 2-attempt budget is spent one
+	// per host instead of twice on the same one — better odds against a
+	// single host's own flakiness than repeating the exact same request.
 	const ATTEMPTS = 2;
-	for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+	const attemptUrls = urls.length > 1 ? urls : Array(ATTEMPTS).fill(urls[0]);
+	for (const url of attemptUrls) {
 		try {
 			const upstream = await fetch(url, { signal: AbortSignal.timeout(2500), headers: { "User-Agent": CORT_USER_AGENT } });
 			if (!upstream.ok) {
-				console.error("cort-proxy: upstream error", endpoint, "attempt", attempt, upstream.status);
+				console.error("cort-proxy: upstream error", endpoint, url, upstream.status);
 			} else {
 				const data = await upstream.json();
 				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
@@ -121,7 +136,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 				return;
 			}
 		} catch (error) {
-			console.error("cort-proxy: fetch failed", endpoint, "attempt", attempt, error);
+			console.error("cort-proxy: fetch failed", endpoint, url, error);
 		}
 	}
 

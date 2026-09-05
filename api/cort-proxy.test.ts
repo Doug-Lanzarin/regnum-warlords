@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe("cort-proxy handler", () => {
-	it("relays wstatus.json from cort.ovh, same-origin, with a short edge cache and no stale-while-revalidate", async () => {
+	it("relays wstatus.json from cort.go.yo.fr first (the newer, non-cort.ovh mirror), same-origin, with a short edge cache and no stale-while-revalidate", async () => {
 		const payload = { forts: [{ name: "Imperia Castle" }] };
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
 		vi.stubGlobal("fetch", fetchMock);
@@ -37,10 +37,11 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", {
+		expect(fetchMock).toHaveBeenCalledWith("https://cort.go.yo.fr/CoRT/api/var/wstatus.json", {
 			signal: expect.any(AbortSignal),
 			headers: { "User-Agent": "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)" },
 		});
+		expect(fetchMock).toHaveBeenCalledTimes(1);
 		// No `cache` RequestInit option on the upstream fetch — Vercel's Node
 		// fetch rejected that option outright (this endpoint went from
 		// working, if stale, to a flat 502 in production once it was added).
@@ -54,6 +55,24 @@ describe("cort-proxy handler", () => {
 		// stale-while-revalidate=60) is what "não está atualizando
 		// corretamente" turned out to be.
 		expect(result.headers["Cache-Control"]).toBe("max-age=0, s-maxage=45");
+	});
+
+	it("falls back to cort.ovh for wstatus when cort.go.yo.fr's single attempt fails", async () => {
+		const payload = { forts: [{ name: "Imperia Castle" }] };
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 403, json: async () => ({}) };
+			return { ok: true, json: async () => payload };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/wstatus.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/wstatus.json", expect.anything());
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(payload);
 	});
 
 	it("maps 'events', 'stats' and 'bosses' to their own cort.ovh URLs", async () => {
@@ -138,7 +157,7 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 
 	function stubFetchWithGithubSnapshot(snapshot: unknown) {
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.ovh") || url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			if (url.includes("api.github.com")) {
 				return {
 					ok: true,
@@ -168,7 +187,7 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 	it("falls through to the normal 502 when there's no snapshot saved yet (GitHub 404)", async () => {
 		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.ovh") || url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			if (url.includes("api.github.com")) return { ok: false, status: 404, json: async () => ({}) };
 			throw new Error(`unexpected fetch to ${url}`);
 		});
