@@ -87,6 +87,8 @@ const pt = {
 	"wz.sourceLabel": "Fonte dos dados",
 	"wz.sourceCort": "cort.ovh",
 	"wz.sourceOfficial": "Site oficial",
+	"wz.manualRefresh": "Atualizar agora",
+	"wz.manualRefreshCooldown": "Aguarde {seconds}s",
 	"wz.mapAriaLabel": "Mapa da Zona de Guerra",
 	"wz.fortTooltip": "{label} — {owner}",
 	"wz.fortTooltipCapturedSuffix": " (invadido, dono original: {home})",
@@ -275,6 +277,7 @@ const pt = {
 	"alerts.panelTitle": "Alertas",
 	"alerts.panelSubtitle":
 		"Avisos locais neste dispositivo, sem cadastro — funcionam enquanto o app estiver aberto (aba ativa ou minimizada), e também com o app fechado se a notificação do navegador estiver ativada.",
+	"alerts.pausedNotice": "Os alertas estão temporariamente desativados enquanto ajustamos como os dados são atualizados. Volta em breve.",
 	"alerts.enableBrowserNotifications": "Ativar notificações do navegador",
 	"alerts.permissionGranted": "Ativadas neste navegador",
 	"alerts.permissionDenied": "Bloqueadas — habilite nas configurações do site/navegador",

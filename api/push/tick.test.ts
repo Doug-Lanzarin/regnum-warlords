@@ -4,6 +4,16 @@ import type { CategoryEvent, CategoryEvents } from "../_push/diff";
 import type { BossEvent } from "../_push/boss";
 import type { AlertSettings } from "../../src/types/alertSettings";
 
+// Notifications are paused (see notificationsPaused.ts) — tick.ts's real
+// handler now short-circuits before ever touching cort.ovh, which would
+// make every test below about fetch-failure handling moot. Force the flag
+// back to its pre-pause value just for this file (vi.mock is hoisted above
+// these imports regardless of where it's written), so the fetch/parse-error
+// handling this file exists to guard stays covered; the paused short-circuit
+// itself has its own test in tick.paused.test.ts, against the real
+// (unmocked) flag.
+vi.mock("../../src/features/alerts/notificationsPaused.js", () => ({ NOTIFICATIONS_PAUSED: false }));
+
 function settings(overrides: Partial<AlertSettings>): AlertSettings {
 	return {
 		myRealm: "Ignis",

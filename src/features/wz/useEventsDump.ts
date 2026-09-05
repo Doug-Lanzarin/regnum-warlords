@@ -6,6 +6,7 @@ import type { WzEvent } from "../../types/wz";
 export interface UseEventsDumpResult {
 	events: WzEvent[];
 	loading: boolean;
+	refresh: () => void;
 }
 
 /** CoRT's separate `events.json` dump (~10 days) — used by anything that
@@ -42,5 +43,5 @@ export function useEventsDump(): UseEventsDumpResult {
 		return () => clearInterval(poll);
 	}, [fetchData]);
 
-	return { events, loading };
+	return { events, loading, refresh: fetchData };
 }

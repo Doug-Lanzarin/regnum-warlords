@@ -1,5 +1,4 @@
 import { cortApi } from "../../api/cortApi";
-import { BOSS_REFRESH_INTERVAL_MS } from "../../data/bossConstants";
 import type { BossSpawnData } from "../../types/bosses";
 
 export interface BossStoreState {
@@ -34,17 +33,18 @@ function fetchData() {
 		});
 }
 
-/** Boss spawn data is shared across the whole app — `AlertsWatcher` needs it
- *  in the background (for spawn alerts) no matter which tab is open, and
- *  the Épicos page just displays whatever's already there. So this fetches
- *  and polls exactly once, module-wide, on the first subscriber ever (not
- *  once per mount) — reopening the Épicos tab reuses the already-warm data
- *  instead of re-querying cort.ovh. */
+/** Boss spawn data is shared across the whole app, module-wide, on the first
+ *  subscriber ever (not once per mount) — reopening the Épicos tab reuses
+ *  the already-warm data instead of re-querying cort.ovh. Fetches exactly
+ *  once per app open, no periodic re-poll: spawn timers don't need to
+ *  update mid-session, and every additional background poll is aggregate
+ *  cort.ovh load that isn't this one user's to spend. `refresh()` (wired to
+ *  the Épicos page's "tentar novamente" button) is still there for an
+ *  explicit manual retry. */
 function ensureStarted() {
 	if (started) return;
 	started = true;
 	fetchData();
-	setInterval(fetchData, BOSS_REFRESH_INTERVAL_MS);
 }
 
 export const bossStore = {

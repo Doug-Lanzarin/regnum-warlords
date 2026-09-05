@@ -20,7 +20,8 @@ export interface UseBossTimersResult {
  * Boss respawn timers are genuinely live data (unlike the Trainer's static
  * skill tables) — there's no sane "bundled" fallback to ship, a snapshot
  * would just be wrong a few hours later. So this only ever tries the live
- * CoRT feed, on a 5-minute poll, and surfaces a clear error when it's
+ * CoRT feed, fetched once per app open (no periodic re-poll — see
+ * `bossStore.ts`'s doc comment), and surfaces a clear error when it's
  * unreachable (common on locked-down networks that block cort.ovh).
  *
  * The fetch/poll itself lives in `bossStore`, shared by every caller — this

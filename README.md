@@ -140,6 +140,15 @@ mostram o estado de erro — isso é esperado, só funciona depois de publicado.
 
 ## Push de verdade (app fechado)
 
+> **Pausado por enquanto** (`src/features/alerts/notificationsPaused.ts`,
+> `NOTIFICATIONS_PAUSED = true`): a combinação do polling do próprio app
+> com um relay doméstico experimental (a 10s) chegou a derrubar o cort.ovh.
+> Enquanto isso, `AlertsWatcher` não é montado (sem toasts nem polling em
+> segundo plano), o painel de Alertas mostra um aviso no lugar dos
+> controles, e `api/push/tick.ts` responde 200 sem tocar em cort.ovh nem
+> mandar push. É um interruptor único — voltar tudo é só virar essa
+> constante pra `false`.
+
 Os alertas locais do painel de Alertas (`/notificacoes`) só funcionam com
 o app aberto — o polling que os alimenta é o próprio JS da página. Pra
 notificar mesmo com o app **fechado**, o app usa Web Push de verdade:

@@ -36,9 +36,6 @@ export function bossDescription(key: BossKey, lang: Lang): string {
 	return translate(lang, "bosses.descRealmBoss", { realm: BOSS_INFO[key].realm ?? "" });
 }
 
-/** Re-poll the live feed every 5 minutes — spawn times don't need second-level freshness. */
-export const BOSS_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-
 /** Portrait art ported from CoRT's `data/bosses/<key>.1.webp`. */
 export function bossIconUrl(key: BossKey): string {
 	return `/data/bosses/${key}.webp`;

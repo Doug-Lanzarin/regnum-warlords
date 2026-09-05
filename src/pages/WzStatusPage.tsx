@@ -59,9 +59,22 @@ export function WzStatusPage() {
 			? { data: officialStatus.data, loading: officialStatus.loading, error: officialStatus.error }
 			: { data: cortStatus.data, loading: cortStatus.loading, error: cortStatus.error };
 	const refresh = source === "official" ? officialStatus.refresh : refreshCort;
-	const { events: eventsDump } = useEventsDump();
+	const { events: eventsDump, refresh: refreshEvents } = useEventsDump();
 	const { reports } = useWzStats();
 	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
+	// Manual "refresh now" button, rate-limited to once every 10s so a user
+	// mashing it can't turn into the same kind of aggregate cort.ovh load
+	// that the automatic 60s poll is already sized to avoid. `now` already
+	// ticks every second (from useWzStatus), so the cooldown just compares
+	// against a stored deadline instead of running its own timer.
+	const [manualRefreshCooldownUntil, setManualRefreshCooldownUntil] = useState(0);
+	const canManualRefresh = now >= manualRefreshCooldownUntil;
+	const handleManualRefresh = () => {
+		if (!canManualRefresh) return;
+		refresh();
+		refreshEvents();
+		setManualRefreshCooldownUntil(Date.now() + 10_000);
+	};
 
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
@@ -158,6 +171,9 @@ export function WzStatusPage() {
 			<div className={styles.statusRow}>
 				{isStale && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
 				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>
+				<button type="button" className="btn btn-ghost" onClick={handleManualRefresh} disabled={!canManualRefresh}>
+					{canManualRefresh ? t("wz.manualRefresh") : t("wz.manualRefreshCooldown", { seconds: Math.ceil((manualRefreshCooldownUntil - now) / 1000) })}
+				</button>
 			</div>
 			<WzMap forts={forts} wallVulnerability={wallVulnerability} now={now} onSelectFort={setSelectedFort} />
 			{selectedFort && (

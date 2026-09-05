@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AlertsWatcher } from "../features/alerts/AlertsWatcher";
+import { NOTIFICATIONS_PAUSED } from "../features/alerts/notificationsPaused";
 import { useT } from "../i18n/useT";
 import { BottomTabBar } from "./BottomTabBar";
 import { LanguagePicker } from "./LanguagePicker";
@@ -21,7 +22,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 					{t("layout.footerSuffix")}
 				</p>
 			</footer>
-			<AlertsWatcher />
+			{!NOTIFICATIONS_PAUSED && <AlertsWatcher />}
 		</div>
 	);
 }

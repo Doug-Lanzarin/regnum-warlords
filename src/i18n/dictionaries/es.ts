@@ -85,6 +85,8 @@ const es: Record<TranslationKey, string> = {
 	"wz.sourceLabel": "Fuente de datos",
 	"wz.sourceCort": "cort.ovh",
 	"wz.sourceOfficial": "Sitio oficial",
+	"wz.manualRefresh": "Actualizar ahora",
+	"wz.manualRefreshCooldown": "Espera {seconds}s",
 	"wz.mapAriaLabel": "Mapa de la Zona de Guerra",
 	"wz.fortTooltip": "{label} — {owner}",
 	"wz.fortTooltipCapturedSuffix": " (invadido, dueño original: {home})",
@@ -272,6 +274,7 @@ const es: Record<TranslationKey, string> = {
 	"alerts.panelTitle": "Alertas",
 	"alerts.panelSubtitle":
 		"Avisos locales en este dispositivo, sin registro — funcionan mientras la app esté abierta (pestaña activa o minimizada), y también con la app cerrada si las notificaciones del navegador están activadas.",
+	"alerts.pausedNotice": "Las alertas están temporalmente desactivadas mientras ajustamos cómo se actualizan los datos. Vuelven pronto.",
 	"alerts.enableBrowserNotifications": "Activar notificaciones del navegador",
 	"alerts.permissionGranted": "Activadas en este navegador",
 	"alerts.permissionDenied": "Bloqueadas — actívalas en la configuración del sitio/navegador",

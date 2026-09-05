@@ -5,6 +5,7 @@
 
 import { bossName } from "../../src/data/bossConstants.js";
 import { formatFortLabel } from "../../src/data/fortKind.js";
+import { NOTIFICATIONS_PAUSED } from "../../src/features/alerts/notificationsPaused.js";
 import type { Realm } from "../../src/data/realms";
 import { translate } from "../../src/i18n/translate.js";
 import type { AlertSettings } from "../../src/types/alertSettings";
@@ -180,6 +181,15 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 
 	if (!isAuthorized(req)) {
 		res.status(401).json({ error: "Não autorizado." });
+		return;
+	}
+
+	// Notifications (and the cort.ovh polling that drives them) are paused —
+	// see notificationsPaused.ts. Returns clean before fetching anything so
+	// cron-job.org keeps hitting this URL harmlessly (no cort.ovh traffic,
+	// no failures that would get the cron job auto-disabled) while paused.
+	if (NOTIFICATIONS_PAUSED) {
+		res.status(200).json({ ok: true, paused: true });
 		return;
 	}
 

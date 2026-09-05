@@ -3,6 +3,7 @@ import { REALMS, type Realm } from "../../data/realms";
 import { useT } from "../../i18n/useT";
 import { useAlertSettings } from "../alerts/AlertSettingsContext";
 import type { BooleanAlertKey } from "../alerts/alertSettings";
+import { NOTIFICATIONS_PAUSED } from "../alerts/notificationsPaused";
 import {
 	getPushSubscription,
 	notificationSupport,
@@ -100,6 +101,15 @@ export function AlertSettingsPanel() {
 	}
 
 	const canOfferPush = VAPID_PUBLIC_KEY && pushSupported();
+
+	if (NOTIFICATIONS_PAUSED) {
+		return (
+			<section className={`card ${styles.panel}`}>
+				<h2 className={styles.title}>{t("alerts.panelTitle")}</h2>
+				<p className={styles.subtitle}>{t("alerts.pausedNotice")}</p>
+			</section>
+		);
+	}
 
 	return (
 		<section className={`card ${styles.panel}`}>

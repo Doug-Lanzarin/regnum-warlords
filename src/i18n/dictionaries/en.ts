@@ -85,6 +85,8 @@ const en: Record<TranslationKey, string> = {
 	"wz.sourceLabel": "Data source",
 	"wz.sourceCort": "cort.ovh",
 	"wz.sourceOfficial": "Official site",
+	"wz.manualRefresh": "Refresh now",
+	"wz.manualRefreshCooldown": "Wait {seconds}s",
 	"wz.mapAriaLabel": "Warzone map",
 	"wz.fortTooltip": "{label} — {owner}",
 	"wz.fortTooltipCapturedSuffix": " (invaded, original owner: {home})",
@@ -272,6 +274,7 @@ const en: Record<TranslationKey, string> = {
 	"alerts.panelTitle": "Alerts",
 	"alerts.panelSubtitle":
 		"Local alerts on this device, no sign-up needed — work while the app is open (active or minimized tab), and also with the app closed if browser notifications are enabled.",
+	"alerts.pausedNotice": "Alerts are temporarily disabled while we adjust how data gets refreshed. Back soon.",
 	"alerts.enableBrowserNotifications": "Enable browser notifications",
 	"alerts.permissionGranted": "Enabled on this browser",
 	"alerts.permissionDenied": "Blocked — enable it in the site/browser settings",
