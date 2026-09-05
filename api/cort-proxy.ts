@@ -53,15 +53,20 @@
 // See also WZ_REFRESH_INTERVAL_MS (src/data/wzConstants.ts), bumped for
 // the same reason — less polling from the client side too.
 //
-// wstatus specifically now tries a second, independent CoRT deployment
-// first — cort.go.yo.fr/CoRT is a separate self-hosted instance of the
-// same open-source client (see its own js/libs/cortlibs.js), serving the
-// byte-identical wstatus.json shape, just not cort.ovh itself. Trying it
-// first spreads load off cort.ovh instead of adding to it, and gives a
-// second independent host to fall back to before ever touching the stale
-// snapshot below. It has shown its own "works, then randomly 403s/resets"
-// flakiness when polled from here — unrelated to cort.ovh's — so this
-// isn't assumed more reliable, just an independent second chance.
+// All four now try a second, independent CoRT deployment first —
+// cort.go.yo.fr/CoRT is a separate self-hosted instance of the same
+// open-source client (see its own js/libs/cortlibs.js), serving all four
+// endpoints in byte-identical shape, just not cort.ovh itself. Confirmed
+// directly: events.json failing on cort.ovh (a live 502 from Vercel, no
+// alternate source at the time) is what surfaced the WZ page's events log
+// going empty — this fixes that by giving events/stats/bosses the same
+// cross-host fallback wstatus already had, not just wstatus. Trying the
+// mirror first spreads load off cort.ovh instead of adding to it, and
+// gives a second independent host to fall back to before ever touching
+// the stale snapshot below (wstatus only). It has shown its own "works,
+// then randomly 403s/resets" flakiness when polled from here — unrelated
+// to cort.ovh's — so this isn't assumed more reliable, just an
+// independent second chance.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 
@@ -79,9 +84,9 @@ interface VercelLikeResponse {
 // Each endpoint maps to one or more candidate URLs, tried in order.
 const ENDPOINTS: Record<string, readonly string[]> = {
 	wstatus: ["https://cort.go.yo.fr/CoRT/api/var/wstatus.json", "https://cort.ovh/api/var/wstatus.json"],
-	events: ["https://cort.ovh/api/var/events.json"],
-	stats: ["https://cort.ovh/api/var/stats.json"],
-	bosses: ["https://cort.ovh/api/bin/bosses/bosses.php"],
+	events: ["https://cort.go.yo.fr/CoRT/api/var/events.json", "https://cort.ovh/api/var/events.json"],
+	stats: ["https://cort.go.yo.fr/CoRT/api/var/stats.json", "https://cort.ovh/api/var/stats.json"],
+	bosses: ["https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php", "https://cort.ovh/api/bin/bosses/bosses.php"],
 };
 
 // Node's default fetch() User-Agent (something generic like "node") is

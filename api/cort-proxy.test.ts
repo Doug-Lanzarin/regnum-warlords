@@ -75,19 +75,36 @@ describe("cort-proxy handler", () => {
 		expect(result.json).toEqual(payload);
 	});
 
-	it("maps 'events', 'stats' and 'bosses' to their own cort.ovh URLs", async () => {
+	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr URLs first, falling back to cort.ovh", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
 		vi.stubGlobal("fetch", fetchMock);
 
-		for (const [endpoint, url] of [
-			["events", "https://cort.ovh/api/var/events.json"],
-			["stats", "https://cort.ovh/api/var/stats.json"],
-			["bosses", "https://cort.ovh/api/bin/bosses/bosses.php"],
+		for (const [endpoint, mirrorUrl] of [
+			["events", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
+			["stats", "https://cort.go.yo.fr/CoRT/api/var/stats.json"],
+			["bosses", "https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php"],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
-			expect(fetchMock).toHaveBeenCalledWith(url, expect.anything());
+			expect(fetchMock).toHaveBeenCalledWith(mirrorUrl, expect.anything());
 		}
+	});
+
+	it("falls back to cort.ovh for events when cort.go.yo.fr's single attempt fails — the actual reported bug (WZ page's events log going empty when cort.ovh's events.json alone was down)", async () => {
+		const payload = [{ date: 1, name: "Imperia Castle", location: "Alsius", owner: "Alsius", type: "fort" }];
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
+			return { ok: true, json: async () => payload };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(payload);
 	});
 
 	it("rejects an endpoint outside the allow-list instead of proxying an arbitrary URL", async () => {
@@ -199,9 +216,9 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 		expect(result.status).toBe(502);
 	});
 
-	it("never falls back for endpoints other than wstatus (events/stats/bosses have no snapshot to fall back to)", async () => {
+	it("never falls back to GitHub for endpoints other than wstatus (events/stats/bosses have no snapshot to fall back to), even after both live candidates fail", async () => {
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.ovh") || url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			throw new Error(`should never reach GitHub for a non-wstatus endpoint: ${url}`);
 		});
 		vi.stubGlobal("fetch", fetchMock);
