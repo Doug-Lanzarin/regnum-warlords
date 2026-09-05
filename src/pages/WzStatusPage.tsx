@@ -7,7 +7,6 @@ import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
 import { WishActivityChart, type WishActivityRange } from "../features/wz/WishActivityChart";
 import { useEventsDump } from "../features/wz/useEventsDump";
-import { useOfficialWzStatus } from "../features/wz/useOfficialWzStatus";
 import { useWzStats } from "../features/wz/useWzStats";
 import { useWzStatus } from "../features/wz/useWzStatus";
 import { FORT_ACTIVITY_WINDOW_MS } from "../data/wzConstants";
@@ -39,26 +38,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  *  false-positives under normal operation. */
 const STALE_DATA_THRESHOLD_MS = 5 * 60 * 1000;
 
-/** EXPERIMENTAL: cort.ovh (via api/cort-proxy.ts) vs. championsofregnum.com
- *  itself (via api/wz-official.ts, scraped) — see that file's comment for
- *  what's known to differ. Only the fort/gem status source switches; the
- *  events-derived sections below (wishes, event log, activity charts, wall
- *  vulnerability) keep using cort.ovh's events.json either way, since the
- *  official page has no history to derive those from at all. */
-type WzSource = "cort" | "official";
-
 export function WzStatusPage() {
 	const { lang } = useLanguage();
 	const t = useT();
-	const [source, setSource] = useState<WzSource>("cort");
-	const cortStatus = useWzStatus();
-	const officialStatus = useOfficialWzStatus(source === "official");
-	const { now, refresh: refreshCort } = cortStatus;
-	const { data, loading, error } =
-		source === "official"
-			? { data: officialStatus.data, loading: officialStatus.loading, error: officialStatus.error }
-			: { data: cortStatus.data, loading: cortStatus.loading, error: cortStatus.error };
-	const refresh = source === "official" ? officialStatus.refresh : refreshCort;
+	const { data, loading, error, now, refresh } = useWzStatus();
 	const { events: eventsDump, refresh: refreshEvents } = useEventsDump();
 	const { reports } = useWzStats();
 	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
@@ -110,30 +93,9 @@ export function WzStatusPage() {
 	const generatedAt = data ? data.generated * 1000 : null;
 	const isStale = generatedAt !== null && (Boolean(error) || now - generatedAt >= STALE_DATA_THRESHOLD_MS);
 
-	// The toggle has to render no matter what state the selected source is
-	// in — otherwise switching to "official" while it's loading or erroring
-	// leaves no way back to "cort" short of reloading the page.
-	const sourceToggle = (
-		<div className={styles.sourceToggle} role="radiogroup" aria-label={t("wz.sourceLabel")}>
-			{(["cort", "official"] as const).map((s) => (
-				<button
-					key={s}
-					type="button"
-					role="radio"
-					aria-checked={source === s}
-					className={`${styles.sourceButton} ${source === s ? styles.sourceButtonActive : ""}`}
-					onClick={() => setSource(s)}
-				>
-					{s === "cort" ? t("wz.sourceCort") : t("wz.sourceOfficial")}
-				</button>
-			))}
-		</div>
-	);
-
 	if (loading && !data) {
 		return (
 			<div className={styles.wrap}>
-				{sourceToggle}
 				<div className={`card ${styles.centerMessage}`}>
 					<span className={styles.spinner} aria-hidden />
 					{t("wz.loading")}
@@ -145,7 +107,6 @@ export function WzStatusPage() {
 	if (error && !data) {
 		return (
 			<div className={styles.wrap}>
-				{sourceToggle}
 				<div className={`card ${styles.centerMessage}`}>
 					<span className="badge">{t("common.liveDataUnavailable")}</span>
 					<h1 className={styles.errorTitle}>{t("wz.errorTitle")}</h1>
@@ -163,11 +124,10 @@ export function WzStatusPage() {
 		);
 	}
 
-	if (!data) return <div className={styles.wrap}>{sourceToggle}</div>;
+	if (!data) return <div className={styles.wrap} />;
 
 	return (
 		<div className={styles.wrap}>
-			{sourceToggle}
 			<div className={styles.statusRow}>
 				{isStale && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
 				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>

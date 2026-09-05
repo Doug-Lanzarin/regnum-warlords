@@ -61,32 +61,6 @@
 	font-size: 0.88rem;
 }
 
-.sourceToggle {
-	display: inline-flex;
-	align-self: flex-start;
-	gap: 2px;
-	padding: 3px;
-	border-radius: 999px;
-	background: var(--forms);
-}
-
-.sourceButton {
-	border: none;
-	background: transparent;
-	color: var(--faded);
-	font-size: 0.78rem;
-	font-weight: 600;
-	padding: 6px 14px;
-	border-radius: 999px;
-	cursor: pointer;
-	transition: background 0.15s ease, color 0.15s ease;
-}
-
-.sourceButtonActive {
-	background: var(--links);
-	color: var(--background);
-}
-
 .statusRow {
 	display: flex;
 	align-items: center;
