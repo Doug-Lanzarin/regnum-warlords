@@ -1,16 +1,20 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/translate";
-import { BossesTabIcon, NotificationsTabIcon, ToolsTabIcon, WzTabIcon } from "./NavIcons";
+import { BossesTabIcon, ToolsTabIcon, WzTabIcon } from "./NavIcons";
 import styles from "./BottomTabBar.module.css";
 
+// The Notificações tab is pulled for now (notifications feature itself is
+// paused, see src/features/alerts/notificationsPaused.ts) — /notificacoes
+// still exists and works for anyone with a direct link, just not linked
+// from here. Re-add a `{ to: "/notificacoes", ... }` entry to bring the tab
+// back once notifications are unpaused.
 const TABS: { to: string; labelKey: TranslationKey; Icon: typeof WzTabIcon; end: boolean; alsoActiveOn?: string[] }[] = [
 	{ to: "/", labelKey: "nav.wz", Icon: WzTabIcon, end: true },
 	{ to: "/bosses", labelKey: "nav.bosses", Icon: BossesTabIcon, end: false },
 	// The Trainer and Armor Calculator pages live under this hub — highlight
 	// the tab while inside either of them too, not just on /ferramentas.
 	{ to: "/ferramentas", labelKey: "nav.tools", Icon: ToolsTabIcon, end: false, alsoActiveOn: ["/trainer", "/armadura"] },
-	{ to: "/notificacoes", labelKey: "nav.notifications", Icon: NotificationsTabIcon, end: false },
 ];
 
 /** The app's only navigation surface (the header was removed) — docked to
