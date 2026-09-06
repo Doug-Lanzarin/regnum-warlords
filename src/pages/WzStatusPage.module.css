@@ -64,19 +64,10 @@
 .statusRow {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: var(--space-3);
-	flex-wrap: wrap;
 	font-size: 0.8rem;
 	color: var(--faded);
-}
-
-.staleWarning {
-	color: var(--red);
-	font-weight: 600;
-}
-
-.updated {
-	margin-right: auto;
 }
 
 @media (max-width: 640px) {
@@ -87,13 +78,6 @@
 		padding: var(--space-4);
 	}
 	.statusRow {
-		width: 100%;
-	}
-	.statusRow .btn {
-		flex: 1 1 auto;
-	}
-	.updated {
-		margin-right: 0;
 		width: 100%;
 	}
 }

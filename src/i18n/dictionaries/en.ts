@@ -80,7 +80,6 @@ const en: Record<TranslationKey, string> = {
 	"wz.loading": "Loading Warzone status…",
 	"wz.errorTitle": "Couldn't load the WZ status",
 	"wz.fetchError": "Couldn't load the Warzone status. This usually happens when the network blocks access to cort.ovh.",
-	"wz.staleWarning": "Update failed — showing the last data we got.",
 	"wz.updatedAt": "Updated at {time}",
 	"wz.manualRefresh": "Refresh now",
 	"wz.manualRefreshCooldown": "Wait {seconds}s",

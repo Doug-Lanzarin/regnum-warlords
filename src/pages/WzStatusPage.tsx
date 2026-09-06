@@ -29,14 +29,6 @@ import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Above this age, `data.generated` (cort.ovh's own timestamp) is treated
- *  as stale even though the fetch itself succeeded — the proxy can serve a
- *  fallback snapshot (see api/cort-proxy.ts) when cort.ovh is unreachable
- *  from Vercel, and that comes back as a normal 200, so `error` alone can't
- *  tell a stale-but-successful response apart from a fresh one. Comfortably
- *  above the ~15s edge cache + normal poll interval, so this never
- *  false-positives under normal operation. */
-const STALE_DATA_THRESHOLD_MS = 5 * 60 * 1000;
 
 export function WzStatusPage() {
 	const { lang } = useLanguage();
@@ -91,7 +83,6 @@ export function WzStatusPage() {
 	);
 
 	const generatedAt = data ? data.generated * 1000 : null;
-	const isStale = generatedAt !== null && (Boolean(error) || now - generatedAt >= STALE_DATA_THRESHOLD_MS);
 
 	if (loading && !data) {
 		return (
@@ -129,8 +120,7 @@ export function WzStatusPage() {
 	return (
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
-				{isStale && <span className={styles.staleWarning}>{t("wz.staleWarning")}</span>}
-				<span className={styles.updated}>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>
+				<span>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>
 				<button type="button" className="btn btn-ghost" onClick={handleManualRefresh} disabled={!canManualRefresh}>
 					{canManualRefresh ? t("wz.manualRefresh") : t("wz.manualRefreshCooldown", { seconds: Math.ceil((manualRefreshCooldownUntil - now) / 1000) })}
 				</button>

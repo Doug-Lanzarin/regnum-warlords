@@ -80,7 +80,6 @@ const es: Record<TranslationKey, string> = {
 	"wz.loading": "Cargando estado de la Zona de Guerra…",
 	"wz.errorTitle": "No se pudo cargar el estado de la WZ",
 	"wz.fetchError": "No se pudo cargar el estado de la Zona de Guerra. Esto suele pasar cuando la red bloquea el acceso a cort.ovh.",
-	"wz.staleWarning": "Falló la actualización — mostrando los últimos datos obtenidos.",
 	"wz.updatedAt": "Actualizado a las {time}",
 	"wz.manualRefresh": "Actualizar ahora",
 	"wz.manualRefreshCooldown": "Espera {seconds}s",

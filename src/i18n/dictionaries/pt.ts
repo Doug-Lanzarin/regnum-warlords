@@ -82,7 +82,6 @@ const pt = {
 	"wz.errorTitle": "Não foi possível carregar o status da WZ",
 	"wz.fetchError":
 		"Não foi possível carregar o status da Zona de Guerra. Isso costuma acontecer quando a rede bloqueia o acesso a cort.ovh.",
-	"wz.staleWarning": "Falha ao atualizar — mostrando o último dado obtido.",
 	"wz.updatedAt": "Atualizado às {time}",
 	"wz.manualRefresh": "Atualizar agora",
 	"wz.manualRefreshCooldown": "Aguarde {seconds}s",
