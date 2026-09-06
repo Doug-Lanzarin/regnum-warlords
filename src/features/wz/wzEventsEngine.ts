@@ -2,7 +2,7 @@ import { REALMS, type Realm } from "../../data/realms";
 import { getFortKind } from "../../data/fortKind";
 import type { Lang } from "../../i18n/languages";
 import { translate } from "../../i18n/translate";
-import type { WzEvent, WzStatsReport, WzStatusData } from "../../types/wz";
+import type { WzEvent, WzStatsReport } from "../../types/wz";
 import type { FortStatus } from "./wzEngine";
 
 export interface EventSegment {
@@ -103,13 +103,21 @@ export function humanizeEvent(event: WzEvent, index: number, lang: Lang): Humani
 	return null;
 }
 
-export function computeEventLog(data: WzStatusData, lang: Lang, limit = 100): HumanizedEvent[] {
-	const events: HumanizedEvent[] = [];
-	for (let i = 0; i < data.events_log.length && events.length < limit; i++) {
-		const humanized = humanizeEvent(data.events_log[i], i, lang);
-		if (humanized) events.push(humanized);
+/** Same rationale as `computeDragonWishes`/`computeFortActivityByRealm` for
+ *  pulling from the larger events.json dump instead of
+ *  `WzStatusData.events_log`: a busy war blows through that ~100-entry
+ *  recent window in well under a day, which is what made this section
+ *  show only the last few hours instead of a real recent history. Skips
+ *  "wish" events — those get their own section via `computeDragonWishes`. */
+export function computeEventLog(events: WzEvent[], lang: Lang, limit = 100): HumanizedEvent[] {
+	const result: HumanizedEvent[] = [];
+	for (let i = 0; i < events.length && result.length < limit; i++) {
+		const event = events[i];
+		if (event.type === "wish") continue;
+		const humanized = humanizeEvent(event, i, lang);
+		if (humanized) result.push(humanized);
 	}
-	return events;
+	return result;
 }
 
 /** Just the "wish" events (dragon wishes) from an events list, newest first.

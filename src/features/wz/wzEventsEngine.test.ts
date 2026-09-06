@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FortStatus } from "./wzEngine";
-import { computeWallVulnerability } from "./wzEventsEngine";
+import { computeEventLog, computeWallVulnerability } from "./wzEventsEngine";
 import type { WzEvent } from "../../types/wz";
 
 const MIN = 60_000;
@@ -137,5 +137,31 @@ describe("computeWallVulnerability", () => {
 		// Must count from the retake, not the original (interrupted) capture.
 		expect(result.vulnerableAtMs).toBe(retakeAt + 5 * MIN);
 		expect(result.isVulnerable).toBe(false);
+	});
+});
+
+describe("computeEventLog", () => {
+	it("reads from the events.json dump passed in, not a ~100-entry rolling window — the actual reported bug (the log only ever showing a few recent hours)", () => {
+		// A dump deep enough that a shallow, ~100-entry-only source could never
+		// have covered it — this only passes if computeEventLog is reading the
+		// full array given to it, not silently re-deriving from somewhere else.
+		const events: WzEvent[] = Array.from({ length: 150 }, (_, i) => event(`Fort ${i}`, "Alsius", i));
+		const result = computeEventLog(events, "pt");
+		expect(result).toHaveLength(100); // default limit
+	});
+
+	it("skips wish events — those get their own section via computeDragonWishes", () => {
+		const events: WzEvent[] = [
+			{ date: 2, name: "", location: "Syrtis", owner: "", type: "wish" },
+			event("Imperia Castle", "Alsius", 1),
+		];
+		const result = computeEventLog(events, "pt");
+		expect(result).toHaveLength(1);
+		expect(result[0].segments.some((s) => s.text === "Imperia Castle")).toBe(true);
+	});
+
+	it("respects a custom limit", () => {
+		const events: WzEvent[] = Array.from({ length: 10 }, (_, i) => event(`Fort ${i}`, "Alsius", i));
+		expect(computeEventLog(events, "pt", 3)).toHaveLength(3);
 	});
 });

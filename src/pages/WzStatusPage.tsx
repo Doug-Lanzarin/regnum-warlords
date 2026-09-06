@@ -54,7 +54,7 @@ export function WzStatusPage() {
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const wallVulnerability = useMemo(() => computeWallVulnerability(forts, eventsDump, now), [forts, eventsDump, now]);
-	const events = useMemo(() => (data ? computeEventLog(data, lang) : []), [data, lang]);
+	const events = useMemo(() => computeEventLog(eventsDump, lang), [eventsDump, lang]);
 	const wishes = useMemo(() => computeDragonWishes(eventsDump, lang), [eventsDump, lang]);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
