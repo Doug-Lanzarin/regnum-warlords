@@ -75,25 +75,25 @@ describe("cort-proxy handler", () => {
 		expect(result.json).toEqual(payload);
 	});
 
-	it("maps 'events' and 'stats' to cort.ovh (primary), and 'bosses' to cort.go.yo.fr (primary)", async () => {
-		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
+	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr URLs first, falling back to cort.ovh", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [{}, {}, {}, {}] });
 		vi.stubGlobal("fetch", fetchMock);
 
-		for (const [endpoint, primaryUrl] of [
-			["events", "https://cort.ovh/api/var/events.json"],
-			["stats", "https://cort.ovh/api/var/stats.json"],
+		for (const [endpoint, mirrorUrl] of [
+			["events", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
+			["stats", "https://cort.go.yo.fr/CoRT/api/var/stats.json"],
 			["bosses", "https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php"],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
-			expect(fetchMock).toHaveBeenCalledWith(primaryUrl, expect.anything());
+			expect(fetchMock).toHaveBeenCalledWith(mirrorUrl, expect.anything());
 		}
 	});
 
-	it("keeps cort.ovh primary for events (not cort.go.yo.fr), only falling back to the mirror if cort.ovh itself fails — cort.go.yo.fr's events.json is missing 2026-09-02 through 09-04 entirely (verified by diffing it against cort.ovh's own copy), including the exact Syrtis dragon wish a user reported missing from the chart", async () => {
+	it("falls back to cort.ovh for events when cort.go.yo.fr's single attempt fails", async () => {
 		const payload = [{ date: 1, name: "Imperia Castle", location: "Alsius", owner: "Alsius", type: "fort" }];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			return { ok: true, json: async () => payload };
 		});
 		vi.stubGlobal("fetch", fetchMock);
@@ -101,24 +101,27 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "events" } }, res);
 
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.ovh/api/var/events.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 	});
 
-	it("never tries cort.go.yo.fr for stats — its stats.json is a completely different, incompatible shape (a flat 24h activity curve, not the per-realm sevenDay/thirtyDay/ninetyDay WzStatsReport this app parses), confirmed live in production before this fix", async () => {
-		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
+	it("falls back to cort.ovh for stats when cort.go.yo.fr's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts (a previous version of this file wrongly treated the mirror's shape as incompatible by only checking tuple element [0])", async () => {
+		const payload = [{ generated: 1 }, { Alsius: {} }, { Alsius: {} }, { Alsius: {} }];
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
+			return { ok: true, json: async () => payload };
+		});
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "stats" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledTimes(2);
-		for (const call of fetchMock.mock.calls) {
-			expect(call[0]).toBe("https://cort.ovh/api/var/stats.json");
-		}
-		expect(result.status).toBe(502);
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/stats.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/stats.json", expect.anything());
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(payload);
 	});
 
 	it("rejects an endpoint outside the allow-list instead of proxying an arbitrary URL", async () => {

@@ -53,36 +53,32 @@
 // See also WZ_REFRESH_INTERVAL_MS (src/data/wzConstants.ts), bumped for
 // the same reason — less polling from the client side too.
 //
-// wstatus and bosses try a second, independent CoRT deployment first —
+// All four try a second, independent CoRT deployment first —
 // cort.go.yo.fr/CoRT is a separate self-hosted instance of the same
-// open-source client (see its own js/libs/cortlibs.js). Both endpoints
-// there are byte-identical in shape to cort.ovh's AND reflect only
-// *current* state, so a temporary gap in that mirror's own uptime can't
-// leave a permanent hole — the next successful poll just shows the
-// current truth either way. Trying it first spreads load off cort.ovh
-// instead of adding to it. It has shown its own "works, then randomly
-// 403s/resets" flakiness when polled from here — unrelated to cort.ovh's
-// — so this isn't assumed more reliable, just an independent second
-// chance, with cort.ovh as fallback.
+// open-source client (see its own js/libs/cortlibs.js), all four endpoints
+// verified byte-identical in shape to cort.ovh's (stats.json in particular
+// is the 4-element [header, 7d, 30d, 90d] tuple in `WzStatsDump` on both —
+// an earlier version of this comment misread it as a different shape by
+// only inspecting element [0], and briefly dropped the mirror as a stats
+// candidate entirely on that basis; that was wrong and has been reverted).
+// Trying the mirror first spreads load off cort.ovh instead of adding to
+// it, which matters because cort.ovh remains unreachable from Vercel's
+// network right now (same long-running issue documented above) — every
+// live check against it from here times out or 5xxs, while the mirror
+// answers normally. It has shown its own "works, then randomly
+// 403s/resets" flakiness when polled from here too — unrelated to
+// cort.ovh's — so this isn't assumed more reliable, just reachable, with
+// cort.ovh as fallback.
 //
-// events and stats do NOT default to that mirror, for two reasons found
-// by actually diffing its data against cort.ovh's:
-//  1. events.json is a rolling *history* dump, not current state — a gap
-//     in the mirror's own uptime becomes a permanent hole in its history
-//     rather than self-healing on the next poll. Confirmed directly: its
-//     copy is missing 2026-09-02 through 2026-09-04 entirely (a stretch
-//     that overlaps this app's own cort.ovh-instability saga), while
-//     cort.ovh's own copy has complete history for those same days,
-//     including a Syrtis dragon wish on 2026-09-04 the mirror has no
-//     record of at all. So cort.ovh stays primary for events, with the
-//     mirror only as a fallback if cort.ovh itself is unreachable.
-//  2. stats.json on the mirror is a *different, incompatible shape*
-//     entirely (`{generated, activity, invasions, gems, wishes,
-//     fortsheld, generation_time}`, a flat 24h activity curve) — not the
-//     `WzStatsReport`-per-realm-per-window shape
-//     (`sevenDay`/`thirtyDay`/`ninetyDay`) this app actually parses. Using
-//     it silently broke the 7d/30d/90d chart tabs in production. Not used
-//     at all here — cort.ovh is the only candidate for stats.
+// Known, temporary tradeoff: the mirror's events.json (and, consequently,
+// its stats.json aggregates) is missing 2026-09-02 through 2026-09-04
+// entirely — confirmed by diffing it against cort.ovh's own copy, which
+// has that stretch complete (including a Syrtis dragon wish on
+// 2026-09-04 a user noticed missing from the chart). Given cort.ovh is
+// the one with the complete history but is the one Vercel can't reach,
+// there's no source available from here with both full history and
+// reachability — the gap will age out of events.json's own ~10-day
+// rolling window on its own by the time this comment is a week old.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 
@@ -100,8 +96,8 @@ interface VercelLikeResponse {
 // Each endpoint maps to one or more candidate URLs, tried in order.
 const ENDPOINTS: Record<string, readonly string[]> = {
 	wstatus: ["https://cort.go.yo.fr/CoRT/api/var/wstatus.json", "https://cort.ovh/api/var/wstatus.json"],
-	events: ["https://cort.ovh/api/var/events.json", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
-	stats: ["https://cort.ovh/api/var/stats.json"],
+	events: ["https://cort.go.yo.fr/CoRT/api/var/events.json", "https://cort.ovh/api/var/events.json"],
+	stats: ["https://cort.go.yo.fr/CoRT/api/var/stats.json", "https://cort.ovh/api/var/stats.json"],
 	bosses: ["https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php", "https://cort.ovh/api/bin/bosses/bosses.php"],
 };
 
