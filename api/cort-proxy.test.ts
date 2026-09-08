@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe("cort-proxy handler", () => {
-	it("relays wstatus.json from cort.ovh first, same-origin, with a short edge cache and no stale-while-revalidate", async () => {
+	it("relays wstatus.json from cort.go.yo.fr first (the mirror), same-origin, with a short edge cache and no stale-while-revalidate", async () => {
 		const payload = { forts: [{ name: "Imperia Castle" }] };
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
 		vi.stubGlobal("fetch", fetchMock);
@@ -37,7 +37,7 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", {
+		expect(fetchMock).toHaveBeenCalledWith("https://cort.go.yo.fr/CoRT/api/var/wstatus.json", {
 			signal: expect.any(AbortSignal),
 			headers: { "User-Agent": "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)" },
 		});
@@ -57,10 +57,10 @@ describe("cort-proxy handler", () => {
 		expect(result.headers["Cache-Control"]).toBe("max-age=0, s-maxage=45");
 	});
 
-	it("falls back to cort.go.yo.fr for wstatus when cort.ovh's single attempt fails", async () => {
+	it("falls back to cort.ovh for wstatus when cort.go.yo.fr's single attempt fails", async () => {
 		const payload = { forts: [{ name: "Imperia Castle" }] };
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 403, json: async () => ({}) };
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 403, json: async () => ({}) };
 			return { ok: true, json: async () => payload };
 		});
 		vi.stubGlobal("fetch", fetchMock);
@@ -69,20 +69,20 @@ describe("cort-proxy handler", () => {
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
 		expect(fetchMock).toHaveBeenCalledTimes(2);
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.ovh/api/var/wstatus.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.go.yo.fr/CoRT/api/var/wstatus.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/wstatus.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/wstatus.json", expect.anything());
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 	});
 
-	it("maps 'events', 'stats' and 'bosses' to their own cort.ovh URLs first, falling back to cort.go.yo.fr", async () => {
+	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr URLs first, falling back to cort.ovh", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [{}, {}, {}, {}] });
 		vi.stubGlobal("fetch", fetchMock);
 
 		for (const [endpoint, primaryUrl] of [
-			["events", "https://cort.ovh/api/var/events.json"],
-			["stats", "https://cort.ovh/api/var/stats.json"],
-			["bosses", "https://cort.ovh/api/bin/bosses/bosses.php"],
+			["events", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
+			["stats", "https://cort.go.yo.fr/CoRT/api/var/stats.json"],
+			["bosses", "https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php"],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
@@ -90,10 +90,10 @@ describe("cort-proxy handler", () => {
 		}
 	});
 
-	it("falls back to cort.go.yo.fr for events when cort.ovh's single attempt fails", async () => {
+	it("falls back to cort.ovh for events when cort.go.yo.fr's single attempt fails", async () => {
 		const payload = [{ date: 1, name: "Imperia Castle", location: "Alsius", owner: "Alsius", type: "fort" }];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			return { ok: true, json: async () => payload };
 		});
 		vi.stubGlobal("fetch", fetchMock);
@@ -101,16 +101,16 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "events" } }, res);
 
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.ovh/api/var/events.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 	});
 
-	it("falls back to cort.go.yo.fr for stats when cort.ovh's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
+	it("falls back to cort.ovh for stats when cort.go.yo.fr's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
 		const payload = [{ generated: 1 }, { Alsius: {} }, { Alsius: {} }, { Alsius: {} }];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.ovh")) return { ok: false, status: 502, json: async () => ({}) };
+			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			return { ok: true, json: async () => payload };
 		});
 		vi.stubGlobal("fetch", fetchMock);
@@ -118,8 +118,8 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "stats" } }, res);
 
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.ovh/api/var/stats.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.go.yo.fr/CoRT/api/var/stats.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/stats.json", expect.anything());
+		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/stats.json", expect.anything());
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 	});

@@ -94,18 +94,17 @@ interface VercelLikeResponse {
 }
 
 // Each endpoint maps to one or more candidate URLs, tried in order.
-// TEMPORARY: cort.ovh moved back to first candidate on all four, to test
-// live whether Vercel's network can reach it again (it couldn't as of
-// 2026-09-06 — see git history). cort.ovh has the complete, correct data
-// (the mirror has a real multi-day gap around 2026-09-02–05); if this
-// sticks, cort.ovh should stay primary. If cort.ovh is still unreachable
-// from here, revert this swap rather than leaving a wasted timeout on
-// every request.
+// cort.ovh was briefly tried first again on 2026-09-08 to test whether
+// Vercel's network could reach it again — confirmed still no: the live
+// response matched the mirror's known-incomplete data (774 events/4
+// wishes) instead of cort.ovh's own copy (1541 events/8 wishes for the
+// same window, checked directly). Reverted back to the mirror first so
+// requests don't pay for a cort.ovh attempt that reliably fails.
 const ENDPOINTS: Record<string, readonly string[]> = {
-	wstatus: ["https://cort.ovh/api/var/wstatus.json", "https://cort.go.yo.fr/CoRT/api/var/wstatus.json"],
-	events: ["https://cort.ovh/api/var/events.json", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
-	stats: ["https://cort.ovh/api/var/stats.json", "https://cort.go.yo.fr/CoRT/api/var/stats.json"],
-	bosses: ["https://cort.ovh/api/bin/bosses/bosses.php", "https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php"],
+	wstatus: ["https://cort.go.yo.fr/CoRT/api/var/wstatus.json", "https://cort.ovh/api/var/wstatus.json"],
+	events: ["https://cort.go.yo.fr/CoRT/api/var/events.json", "https://cort.ovh/api/var/events.json"],
+	stats: ["https://cort.go.yo.fr/CoRT/api/var/stats.json", "https://cort.ovh/api/var/stats.json"],
+	bosses: ["https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php", "https://cort.ovh/api/bin/bosses/bosses.php"],
 };
 
 // Node's default fetch() User-Agent (something generic like "node") is
