@@ -104,7 +104,44 @@ describe("cort-proxy handler", () => {
 		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
 		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
 		expect(result.status).toBe(200);
-		expect(result.json).toEqual(payload);
+		// events also gets content/events-backfill.json merged in (see next
+		// test) — the live entry is still in there, just no longer the
+		// *whole* response.
+		expect(result.json).toContainEqual(payload[0]);
+	});
+
+	it("merges content/events-backfill.json into 'events' responses, deduped and sorted newest-first", async () => {
+		const live = [
+			{ generated: 999 },
+			{ date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
+			// Same event content/events-backfill.json also carries, in some
+			// form — proves a live entry that happens to overlap the backfill
+			// window doesn't end up duplicated in the response.
+			{ date: 1788710523, name: "Fort Aggersborg", location: "Alsius", owner: "Ignis", type: "fort" },
+		];
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		const body = result.json as unknown[];
+		expect(body[0]).toEqual({ generated: 999 }); // header stays first, not folded into the date sort
+		expect(body.length).toBeGreaterThan(live.length); // backfill entries actually got added
+		// No duplicate of the entry both sides happened to share.
+		const dup = body.filter(
+			(e) =>
+				typeof e === "object" &&
+				e !== null &&
+				"date" in e &&
+				(e as { date: number }).date === 1788710523 &&
+				(e as { name: string }).name === "Fort Aggersborg",
+		);
+		expect(dup).toHaveLength(1);
+		// Newest-first: the live entry with the far-future date leads the
+		// (non-header) part of the list.
+		expect(body[1]).toEqual(live[1]);
 	});
 
 	it("falls back to cort.ovh for stats when cort.go.yo.fr's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {

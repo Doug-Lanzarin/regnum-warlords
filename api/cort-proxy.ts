@@ -71,16 +71,53 @@
 // cort.ovh as fallback.
 //
 // Known, temporary tradeoff: the mirror's events.json (and, consequently,
-// its stats.json aggregates) is missing 2026-09-02 through 2026-09-04
+// its stats.json aggregates) is missing 2026-09-01T17:59–2026-09-06T16:06
 // entirely — confirmed by diffing it against cort.ovh's own copy, which
-// has that stretch complete (including a Syrtis dragon wish on
-// 2026-09-04 a user noticed missing from the chart). Given cort.ovh is
-// the one with the complete history but is the one Vercel can't reach,
-// there's no source available from here with both full history and
-// reachability — the gap will age out of events.json's own ~10-day
-// rolling window on its own by the time this comment is a week old.
+// had that stretch complete (including a Syrtis dragon wish on
+// 2026-09-04 a user noticed missing from the chart) at the time this was
+// written. Vercel can't reach cort.ovh to get that history live, so
+// content/events-backfill.json is a one-time, hand-fetched copy of
+// exactly the missing window (pulled directly from cort.ovh from outside
+// Vercel's network) — see mergeBackfill below. This is a frozen snapshot,
+// not a live source: once 2026-09-06 rolls out of events.json's own
+// ~10-day window (around 2026-09-16), this file stops mattering and
+// content/events-backfill.json can be deleted along with the merge call.
 
 import { readLiveSnapshot } from "./_push/storage.js";
+import backfillEvents from "../content/events-backfill.json";
+import type { WzEvent } from "../src/types/wz";
+
+function isWzEvent(entry: unknown): entry is WzEvent {
+	return !!entry && typeof entry === "object" && "type" in entry;
+}
+
+/** Fills in the mirror's known 2026-09-01–09-06 gap (see comment above) by
+ *  merging in the hand-fetched backfill, deduped against whatever the live
+ *  fetch actually returned (in case a future source ever does cover part
+ *  of that window) and re-sorted newest-first, matching the convention
+ *  every other events.json consumer already assumes. events.json's own
+ *  leading `{generated}` header entry (no `type` field — see
+ *  `WzEventsDumpEntry`) is set aside before the merge/sort and put back at
+ *  the front, rather than treated as just another event. No-ops if `data`
+ *  isn't the plain event array events.json is supposed to be. */
+function mergeBackfill(data: unknown): unknown {
+	if (!Array.isArray(data)) return data;
+	const header = data.find((entry) => !isWzEvent(entry));
+	const liveEvents = data.filter(isWzEvent);
+
+	const seen = new Set<string>();
+	const keyOf = (e: WzEvent) => `${e.date}-${e.type}-${e.name}-${e.location}-${e.owner}`;
+	const merged: WzEvent[] = [];
+	for (const entry of [...liveEvents, ...(backfillEvents as WzEvent[])]) {
+		const key = keyOf(entry);
+		if (seen.has(key)) continue;
+		seen.add(key);
+		merged.push(entry);
+	}
+	merged.sort((a, b) => b.date - a.date);
+
+	return header !== undefined ? [header, ...merged] : merged;
+}
 
 interface VercelLikeRequest {
 	method?: string;
@@ -155,7 +192,7 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			} else {
 				const data = await upstream.json();
 				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
-				res.status(200).json(data);
+				res.status(200).json(endpoint === "events" ? mergeBackfill(data) : data);
 				return;
 			}
 		} catch (error) {
