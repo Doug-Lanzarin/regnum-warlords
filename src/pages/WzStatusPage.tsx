@@ -33,7 +33,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function WzStatusPage() {
 	const { lang } = useLanguage();
 	const t = useT();
-	const { data, loading, error, now, refresh } = useWzStatus();
+	const { data, loading, error, now, lastUpdated, refresh } = useWzStatus();
 	const { events: eventsDump, refresh: refreshEvents } = useEventsDump();
 	const { reports } = useWzStats();
 	const [selectedFort, setSelectedFort] = useState<FortStatus | null>(null);
@@ -82,8 +82,6 @@ export function WzStatusPage() {
 		[eventsDump, now, reports],
 	);
 
-	const generatedAt = data ? data.generated * 1000 : null;
-
 	if (loading && !data) {
 		return (
 			<div className={styles.wrap}>
@@ -120,7 +118,7 @@ export function WzStatusPage() {
 	return (
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
-				<span>{t("wz.updatedAt", { time: formatHourMinuteSecond(generatedAt as number, lang) })}</span>
+				<span>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated ?? Date.now(), lang) })}</span>
 				<button type="button" className="btn btn-ghost" onClick={handleManualRefresh} disabled={!canManualRefresh}>
 					{canManualRefresh ? t("wz.manualRefresh") : t("wz.manualRefreshCooldown", { seconds: Math.ceil((manualRefreshCooldownUntil - now) / 1000) })}
 				</button>
