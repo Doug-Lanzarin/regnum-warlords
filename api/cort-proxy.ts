@@ -76,15 +76,16 @@
 // had that stretch complete (including a Syrtis dragon wish on
 // 2026-09-04 a user noticed missing from the chart) at the time this was
 // written. Vercel can't reach cort.ovh to get that history live, so
-// content/events-backfill.json is a one-time, hand-fetched copy of
-// exactly the missing window (pulled directly from cort.ovh from outside
-// Vercel's network) — see mergeBackfill below. This is a frozen snapshot,
-// not a live source: once 2026-09-06 rolls out of events.json's own
-// ~10-day window (around 2026-09-16), this file stops mattering and
-// content/events-backfill.json can be deleted along with the merge call.
+// _eventsBackfill.ts is a one-time, hand-fetched copy of exactly the
+// missing window (pulled directly from cort.ovh from outside Vercel's
+// network) — see mergeBackfill below and that file's own doc comment
+// (including why it's a plain .ts export, not a .json import). This is a
+// frozen snapshot, not a live source: once 2026-09-06 rolls out of
+// events.json's own ~10-day window (around 2026-09-16), it stops
+// mattering and both that file and the merge call below can be deleted.
 
 import { readLiveSnapshot } from "./_push/storage.js";
-import backfillEvents from "../content/events-backfill.json";
+import backfillEvents from "./_eventsBackfill.js";
 import type { WzEvent } from "../src/types/wz";
 
 function isWzEvent(entry: unknown): entry is WzEvent {
@@ -108,7 +109,7 @@ function mergeBackfill(data: unknown): unknown {
 	const seen = new Set<string>();
 	const keyOf = (e: WzEvent) => `${e.date}-${e.type}-${e.name}-${e.location}-${e.owner}`;
 	const merged: WzEvent[] = [];
-	for (const entry of [...liveEvents, ...(backfillEvents as WzEvent[])]) {
+	for (const entry of [...liveEvents, ...backfillEvents]) {
 		const key = keyOf(entry);
 		if (seen.has(key)) continue;
 		seen.add(key);

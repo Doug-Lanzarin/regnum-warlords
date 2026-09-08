@@ -104,17 +104,17 @@ describe("cort-proxy handler", () => {
 		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
 		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
 		expect(result.status).toBe(200);
-		// events also gets content/events-backfill.json merged in (see next
+		// events also gets _eventsBackfill.ts merged in (see next
 		// test) — the live entry is still in there, just no longer the
 		// *whole* response.
 		expect(result.json).toContainEqual(payload[0]);
 	});
 
-	it("merges content/events-backfill.json into 'events' responses, deduped and sorted newest-first", async () => {
+	it("merges _eventsBackfill.ts into 'events' responses, deduped and sorted newest-first", async () => {
 		const live = [
 			{ generated: 999 },
 			{ date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
-			// Same event content/events-backfill.json also carries, in some
+			// Same event _eventsBackfill.ts also carries, in some
 			// form — proves a live entry that happens to overlap the backfill
 			// window doesn't end up duplicated in the response.
 			{ date: 1788710523, name: "Fort Aggersborg", location: "Alsius", owner: "Ignis", type: "fort" },

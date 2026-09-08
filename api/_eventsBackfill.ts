@@ -1,4 +1,16 @@
-[
+// One-time, hand-fetched patch for the mirror's 2026-09-01T17:59–2026-09-06T16:06
+// events.json gap — see the doc comment on mergeBackfill in cort-proxy.ts for the
+// full story. A plain .ts module (not a .json import) on purpose: an earlier version
+// imported this as JSON directly and passed every local check (tsc doesn't even
+// cover api/, and Vitest's esbuild-based JSON import is lenient about it), but
+// crashed the deployed Vercel function outright (FUNCTION_INVOCATION_FAILED) —
+// most likely native Node ESM's stricter JSON-import-attribute requirement, which
+// esbuild's transform doesn't enforce locally. A plain exported array sidesteps
+// that entirely — same import mechanism every other internal api/ module already uses.
+
+import type { WzEvent } from "../src/types/wz.js";
+
+const eventsBackfill: WzEvent[] = [
 	{
 		"date": 1788710523,
 		"name": "Fort Aggersborg",
@@ -5375,4 +5387,6 @@
 		"owner": "Alsius",
 		"type": "fort"
 	}
-]
+];
+
+export default eventsBackfill;
