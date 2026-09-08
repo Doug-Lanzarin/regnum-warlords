@@ -145,7 +145,16 @@ describe("cort-proxy handler", () => {
 	});
 
 	it("falls back to cort.ovh for stats when cort.go.yo.fr's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
-		const payload = [{ generated: 1 }, { Alsius: {} }, { Alsius: {} }, { Alsius: {} }];
+		const emptyRealm = () => ({
+			forts: { total: 3, captured: 1, recovered: 1, most_captured: { name: "Imperia Castle", count: 1 } },
+			wishes: { count: 0, last: null },
+		});
+		const payload = [
+			{ generated: 1 },
+			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+		];
 		const fetchMock = vi.fn(async (url: string) => {
 			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			return { ok: true, json: async () => payload };
@@ -158,7 +167,46 @@ describe("cort-proxy handler", () => {
 		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/stats.json", expect.anything());
 		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/stats.json", expect.anything());
 		expect(result.status).toBe(200);
-		expect(result.json).toEqual(payload);
+		// forts and every other field pass through untouched — only wishes
+		// gets patched (see the dedicated test below), and only for realms
+		// _eventsBackfill.ts's wishes are actually in.
+		const body = result.json as typeof payload;
+		expect(body[1].Alsius.forts).toEqual(payload[1].Alsius.forts);
+		expect(body[1].Ignis).toEqual(payload[1].Ignis); // Ignis has no backfilled wishes at all
+	});
+
+	it("patches stats.json's wishes count/last for 7d/30d/90d from the same backfilled wishes events.json gets — the actual reported bug ('pedidos do dragão por reino filtrado por semana' reading 0 for every realm)", async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
+		try {
+			const emptyRealm = () => ({
+				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
+				wishes: { count: 0, last: null },
+			});
+			const payload = [
+				{ generated: 1 },
+				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
+			];
+			const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+			vi.stubGlobal("fetch", fetchMock);
+
+			const { res, result } = mockRes();
+			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
+
+			// _eventsBackfill.ts carries 2 Syrtis + 2 Alsius wishes (2026-09-02,
+			// -04, -05×2) + 0 Ignis — all inside every window from this pinned
+			// "now" (2026-09-08).
+			const body = result.json as typeof payload;
+			for (const window of [1, 2, 3] as const) {
+				expect(body[window].Syrtis.wishes.count).toBe(2);
+				expect(body[window].Alsius.wishes.count).toBe(2);
+				expect(body[window].Ignis.wishes.count).toBe(0); // untouched — no backfilled Ignis wishes
+			}
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it("rejects an endpoint outside the allow-list instead of proxying an arbitrary URL", async () => {

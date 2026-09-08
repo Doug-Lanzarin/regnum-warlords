@@ -118,7 +118,7 @@ export function WzStatusPage() {
 	return (
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
-				<span>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated ?? Date.now(), lang) })}</span>
+				<span>{t("wz.updatedAt", { time: formatHourMinuteSecond(lastUpdated as number, lang) })}</span>
 				<button type="button" className="btn btn-ghost" onClick={handleManualRefresh} disabled={!canManualRefresh}>
 					{canManualRefresh ? t("wz.manualRefresh") : t("wz.manualRefreshCooldown", { seconds: Math.ceil((manualRefreshCooldownUntil - now) / 1000) })}
 				</button>

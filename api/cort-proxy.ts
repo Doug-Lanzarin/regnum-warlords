@@ -71,22 +71,28 @@
 // cort.ovh as fallback.
 //
 // Known, temporary tradeoff: the mirror's events.json (and, consequently,
-// its stats.json aggregates) is missing 2026-09-01T17:59–2026-09-06T16:06
-// entirely — confirmed by diffing it against cort.ovh's own copy, which
-// had that stretch complete (including a Syrtis dragon wish on
-// 2026-09-04 a user noticed missing from the chart) at the time this was
-// written. Vercel can't reach cort.ovh to get that history live, so
-// _eventsBackfill.ts is a one-time, hand-fetched copy of exactly the
-// missing window (pulled directly from cort.ovh from outside Vercel's
-// network) — see mergeBackfill below and that file's own doc comment
-// (including why it's a plain .ts export, not a .json import). This is a
-// frozen snapshot, not a live source: once 2026-09-06 rolls out of
-// events.json's own ~10-day window (around 2026-09-16), it stops
-// mattering and both that file and the merge call below can be deleted.
+// its stats.json aggregates, computed upstream from that same event
+// history) is missing 2026-09-01T17:59–2026-09-06T16:06 entirely —
+// confirmed by diffing it against cort.ovh's own copy, which had that
+// stretch complete (including a Syrtis dragon wish on 2026-09-04 a user
+// noticed missing from the chart) at the time this was written. Vercel
+// can't reach cort.ovh to get that history live, so _eventsBackfill.ts is
+// a one-time, hand-fetched copy of exactly the missing window (pulled
+// directly from cort.ovh from outside Vercel's network) — see
+// mergeBackfill (events) and patchStatsWishes (stats.json's wishes.count/
+// last, patched from the same backfilled wishes rather than re-fetched)
+// below, and _eventsBackfill.ts's own doc comment (including why it's a
+// plain .ts export, not a .json import). This is a frozen snapshot, not a
+// live source: once 2026-09-06 rolls out of events.json's own ~10-day
+// window (around 2026-09-16), it stops mattering and _eventsBackfill.ts
+// plus both patch calls below can be deleted.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
-import type { WzEvent } from "../src/types/wz";
+import { REALMS, type Realm } from "../src/data/realms.js";
+import type { WzEvent, WzStatsDump } from "../src/types/wz";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
@@ -118,6 +124,46 @@ function mergeBackfill(data: unknown): unknown {
 	merged.sort((a, b) => b.date - a.date);
 
 	return header !== undefined ? [header, ...merged] : merged;
+}
+
+/** stats.json's per-realm `wishes.count`/`wishes.last` (7d/30d/90d) are
+ *  computed upstream from the same event history events.json has — so the
+ *  mirror's 2026-09-01–09-06 gap undercounts these too, most visibly on
+ *  "7d" (the whole gap sits inside a 7-day window right now, zeroing every
+ *  realm's count out entirely — the reported bug). Rather than an extra
+ *  live fetch to recompute this from scratch, patches in just the known 4
+ *  backfilled wishes: adds however many of them fall within each window
+ *  (relative to request time) to that window's count, and bumps `last`
+ *  forward if a backfilled one is more recent than what the live source
+ *  reported. No-ops on anything that isn't the [header, 7d, 30d, 90d]
+ *  shape stats.json is supposed to be. */
+function patchStatsWishes(data: unknown): unknown {
+	if (!Array.isArray(data) || data.length !== 4) return data;
+	const [header, ...reports] = data as WzStatsDump;
+	const backfilledWishes = backfillEvents.filter((e) => e.type === "wish");
+	const now = Date.now();
+
+	const patchedReports = reports.map((report, i) => {
+		const windowMs = [7, 30, 90][i] * DAY_MS;
+		const cutoff = now - windowMs;
+		const patched = { ...report };
+		for (const realm of REALMS) {
+			const inWindow = backfilledWishes.filter((w) => w.location === realm && w.date * 1000 >= cutoff);
+			if (inWindow.length === 0) continue;
+			const realmReport = patched[realm];
+			const newestBackfilled = Math.max(...inWindow.map((w) => w.date));
+			patched[realm] = {
+				...realmReport,
+				wishes: {
+					count: (realmReport?.wishes?.count ?? 0) + inWindow.length,
+					last: Math.max(realmReport?.wishes?.last ?? 0, newestBackfilled),
+				},
+			};
+		}
+		return patched;
+	});
+
+	return [header, ...patchedReports];
 }
 
 interface VercelLikeRequest {
@@ -193,7 +239,10 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			} else {
 				const data = await upstream.json();
 				res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
-				res.status(200).json(endpoint === "events" ? mergeBackfill(data) : data);
+				let responseData = data;
+				if (endpoint === "events") responseData = mergeBackfill(data);
+				else if (endpoint === "stats") responseData = patchStatsWishes(data);
+				res.status(200).json(responseData);
 				return;
 			}
 		} catch (error) {

@@ -1,6 +1,9 @@
 // One-time, hand-fetched patch for the mirror's 2026-09-01T17:59–2026-09-06T16:06
-// events.json gap — see the doc comment on mergeBackfill in cort-proxy.ts for the
-// full story. A plain .ts module (not a .json import) on purpose: an earlier version
+// events.json gap — used both to merge into events.json responses directly
+// (mergeBackfill in cort-proxy.ts) and to correct stats.json's wishes.count/last
+// for the same window (patchStatsWishes, same file) — see either one's doc
+// comment for the full story. A plain .ts module (not a .json import) on
+// purpose: an earlier version
 // imported this as JSON directly and passed every local check (tsc doesn't even
 // cover api/, and Vitest's esbuild-based JSON import is lenient about it), but
 // crashed the deployed Vercel function outright (FUNCTION_INVOCATION_FAILED) —
