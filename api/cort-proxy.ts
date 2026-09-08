@@ -89,7 +89,7 @@
 
 import { readLiveSnapshot } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
-import { REALMS, type Realm } from "../src/data/realms.js";
+import { REALMS } from "../src/data/realms.js";
 import type { WzEvent, WzStatsDump } from "../src/types/wz";
 
 const DAY_MS = 24 * 60 * 60 * 1000;

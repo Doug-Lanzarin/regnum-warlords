@@ -3,7 +3,6 @@ import { REALM_COLOR } from "../../data/realms";
 import { FORT_MAP_POSITIONS, WZ_MAP_IMAGE, WZ_MAP_SIZE } from "../../data/wzMapConstants";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
-import { formatDuration } from "../../utils/time";
 import type { FortStatus } from "./wzEngine";
 import type { WallVulnerability } from "./wzEventsEngine";
 import { FORT_ICON_PATHS, getFortKind } from "./wzIcons";
@@ -14,7 +13,6 @@ interface Props {
 	forts: FortStatus[];
 	/** One entry per realm — see `computeWallVulnerability`. */
 	wallVulnerability: WallVulnerability[];
-	now: number;
 	/** Called with the fort's raw name when a fort icon is clicked/activated. */
 	onSelectFort?: (fort: FortStatus) => void;
 }
@@ -28,7 +26,7 @@ const WALL_VULNERABLE_COLOR = "#b8860b";
 /** The war zone map with the 12 forts placed on top, ported from CoRT's
  *  canvas-based `wz-map` (same base image and hand-placed coordinates),
  *  redrawn as SVG so each fort can be a hoverable, keyboard-reachable node. */
-export function WzMap({ forts, wallVulnerability, now, onSelectFort }: Props) {
+export function WzMap({ forts, wallVulnerability, onSelectFort }: Props) {
 	const { lang } = useLanguage();
 	const t = useT();
 	return (
@@ -43,13 +41,6 @@ export function WzMap({ forts, wallVulnerability, now, onSelectFort }: Props) {
 					const isVulnerable = !!vulnerability?.isVulnerable;
 					const color = isVulnerable ? WALL_VULNERABLE_COLOR : REALM_COLOR[fort.owner];
 					const label = formatFortLabel(fort.name, lang);
-
-					let vulnerabilityTooltip = "";
-					if (isVulnerable) {
-						vulnerabilityTooltip = ` ${t("wz.wallVulnerableTooltip")}`;
-					} else if (vulnerability?.vulnerableAtMs != null) {
-						vulnerabilityTooltip = ` ${t("wz.wallVulnerableIn", { time: formatDuration(vulnerability.vulnerableAtMs - now) })}`;
-					}
 
 					return (
 						<g
@@ -72,7 +63,6 @@ export function WzMap({ forts, wallVulnerability, now, onSelectFort }: Props) {
 							<title>
 								{t("wz.fortTooltip", { label, owner: fort.owner })}
 								{fort.captured ? t("wz.fortTooltipCapturedSuffix", { home: fort.home }) : ""}
-								{vulnerabilityTooltip}
 							</title>
 							{fort.captured && (
 								<circle

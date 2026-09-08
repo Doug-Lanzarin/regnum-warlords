@@ -124,12 +124,6 @@
 	color: var(--red);
 }
 
-.vulnerableNote {
-	font-size: 0.74rem;
-	font-weight: 600;
-	color: #b8860b;
-}
-
 @keyframes row-vulnerable-blink {
 	0%,
 	100% {

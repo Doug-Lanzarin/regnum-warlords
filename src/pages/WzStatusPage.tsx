@@ -123,7 +123,7 @@ export function WzStatusPage() {
 					{canManualRefresh ? t("wz.manualRefresh") : t("wz.manualRefreshCooldown", { seconds: Math.ceil((manualRefreshCooldownUntil - now) / 1000) })}
 				</button>
 			</div>
-			<WzMap forts={forts} wallVulnerability={wallVulnerability} now={now} onSelectFort={setSelectedFort} />
+			<WzMap forts={forts} wallVulnerability={wallVulnerability} onSelectFort={setSelectedFort} />
 			{selectedFort && (
 				<FortHistoryModal
 					fortName={selectedFort.name}
