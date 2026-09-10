@@ -155,6 +155,35 @@ describe("cort-proxy handler", () => {
 		expect(body).toContainEqual(cortOvhLive[1]);
 	});
 
+	it("collapses the same real event reported by both sources a few seconds apart into one entry (minute-rounded dedup) — observed live: a mirror wish at :07:56:02 vs cort.ovh's :07:56:00 copy of the same wish", async () => {
+		// A far-future date, same shape as the live case that motivated this
+		// (a wish, empty name/owner) but picked so it can't collide with any
+		// real entry in _eventsBackfill.ts, which this test's assertion needs
+		// to isolate from.
+		const mirrorLive = [
+			{ generated: 500 },
+			{ date: 5_000_000_002, name: "", location: "Syrtis", owner: "", type: "wish" },
+		];
+		const cortOvhLive = [
+			{ generated: 999 },
+			{ date: 5_000_000_000, name: "", location: "Syrtis", owner: "", type: "wish" },
+		];
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorLive };
+			return { ok: true, json: async () => cortOvhLive };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		const body = result.json as unknown[];
+		const matches = body.filter(
+			(e) => typeof e === "object" && e !== null && (e as { date: number }).date >= 5_000_000_000 && (e as { date: number }).date <= 5_000_000_002,
+		);
+		expect(matches).toHaveLength(1); // not double-counted as two separate wishes
+	});
+
 	it("merges _eventsBackfill.ts into 'events' responses without duplicating an overlapping live entry", async () => {
 		const live = [
 			{ generated: 999 },
@@ -290,6 +319,45 @@ describe("cort-proxy handler", () => {
 				expect(body[window].Syrtis.wishes.count).toBe(2);
 				expect(body[window].Alsius.wishes.count).toBe(2);
 				expect(body[window].Ignis.wishes.count).toBe(0); // untouched — no backfilled Ignis wishes
+			}
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("does NOT patch in wishes newer than the confirmed-empty gap window, even from the mirror — the mirror isn't always empty, so a newer backfilled wish risks double-counting one it already caught itself", async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-09-10T12:00:00Z"));
+		try {
+			// _eventsBackfill.ts also carries an Ignis wish from 2026-09-09
+			// (outside the confirmed gap — Ignis has zero *pre*-gap backfilled
+			// wishes, so it's a clean isolated check), but the mirror's
+			// stats.json here already reports 1 Ignis wish for every window —
+			// simulating that the mirror did catch that one itself. If the
+			// patch blindly added the backfilled 2026-09-09 Ignis wish on top,
+			// this would read 2.
+			const realmWith = (count: number) => ({
+				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
+				wishes: { count, last: null },
+			});
+			const payload = [
+				{ generated: 1 },
+				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
+				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
+				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
+			];
+			const fetchMock = vi.fn(async (url: string) => {
+				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+				return { ok: false, status: 502, json: async () => ({}) };
+			});
+			vi.stubGlobal("fetch", fetchMock);
+
+			const { res, result } = mockRes();
+			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
+
+			const body = result.json as typeof payload;
+			for (const window of [1, 2, 3] as const) {
+				expect(body[window].Ignis.wishes.count).toBe(1); // untouched, not bumped to 2
 			}
 		} finally {
 			vi.useRealTimers();

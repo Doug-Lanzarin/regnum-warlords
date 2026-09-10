@@ -67,42 +67,46 @@
 // ordering (and the "first candidate to answer wins" logic generally) no
 // longer holds: the mirror has its own, worse reliability problem.
 //
-// Known, temporary tradeoff: the mirror's events.json (and, consequently,
-// its stats.json aggregates, computed upstream from that same event
-// history) was missing 2026-09-01T17:59–2026-09-06T16:06 entirely —
-// confirmed by diffing it against cort.ovh's own copy, which had that
-// stretch complete (including a Syrtis dragon wish on 2026-09-04 a user
-// noticed missing from the chart) at the time this was written. Vercel
-// couldn't reach cort.ovh to get that history live at the time, so
-// _eventsBackfill.ts is a one-time, hand-fetched copy of exactly that
-// window (pulled directly from cort.ovh from outside Vercel's network) —
-// see mergeEventSources (events) and patchStatsWishes (stats.json's
-// wishes.count/last, patched from the same backfilled wishes rather than
-// re-fetched) below, and _eventsBackfill.ts's own doc comment (including
-// why it's a plain .ts export, not a .json import). This is a frozen
-// snapshot, not a live source: once 2026-09-06 rolls out of events.json's
-// own ~10-day window (around 2026-09-16), it stops mattering and
-// _eventsBackfill.ts plus both uses below can be deleted.
+// Known, ongoing tradeoff: the mirror's events.json (and, consequently, its
+// stats.json aggregates, computed upstream from that same event history)
+// is missing the large majority of real events, not just one dated window
+// — confirmed 2026-09-10 by diffing it against cort.ovh's own copy: the
+// mirror had only 216 events.json entries for 2026-08-31–09-10, versus
+// cort.ovh's 1567 for the identical range (same oldest timestamp) — the
+// mirror is only catching ~14% of what's actually happening, missing
+// things as recent as an Ignis dragon wish from the day before it was
+// checked ("ontem ignis fez um pedido e não está contando"). Confirmed
+// separately, the same day, that Vercel itself still can't reach cort.ovh
+// (curling the *deployed* proxy's events endpoint returned an entry count
+// matching mirror+backfill, not cort.ovh's fuller count) — so this can't
+// be fixed by preferring cort.ovh and calling it done; that exact
+// swap-the-primary-source approach was tried on 2026-09-08 and reverted
+// for the same reason.
 //
-// 2026-09-10 update: the mirror turned out to be *far* more incomplete
-// than just that one known window — polling it directly showed only 216
-// events.json entries covering 2026-08-31–09-10, versus cort.ovh's 1558
-// for the identical range (same oldest timestamp), missing an Ignis
-// dragon wish from just the day before ("ontem ignis fez um pedido e não
-// está contando"). Since cort.ovh answered that same check cleanly, it's
-// reachable from wherever this was checked from — but not provably from
-// Vercel specifically (the network that matters), so this doesn't revert
-// to "cort.ovh first, mirror as fallback": that exact swap was tried and
-// reverted on 2026-09-08 after confirming Vercel still couldn't reach it.
-// Instead, every candidate for every endpoint is now fetched *concurrently*
-// (not first-success-wins) and combined below:
-//  - events: union of every source that answered, deduped and re-sorted —
-//    correct regardless of which source(s) Vercel can currently reach,
-//    and strictly no worse than before if cort.ovh stays unreachable.
+// The only source actually complete is cort.ovh fetched from *outside*
+// Vercel's network (this repo's own dev sandbox, in practice) — so
+// _eventsBackfill.ts is a hand-fetched snapshot of cort.ovh's events.json,
+// pulled the same way, merged in below (mergeEventSources for events,
+// patchStatsWishes for stats.json's wishes.count/last) exactly like a
+// narrower version of this file did for a single 2026-09-01–09-06 window
+// before the mirror's failure was known to be this much bigger. Because
+// events.json is only a rolling ~10-day window and the mirror keeps
+// falling behind rather than catching up, this snapshot goes stale on its
+// own within a day or two and needs re-fetching the same way — see
+// _eventsBackfill.ts's own doc comment for exactly when it was last taken.
+// This is a stopgap, not a fix: the real fix is either the mirror
+// recovering or Vercel regaining a reachable path to cort.ovh, neither of
+// which this proxy controls.
+//
+// Every candidate for every endpoint is fetched *concurrently* (not
+// first-success-wins) and combined below:
+//  - events: union of every source that answered plus the backfill snapshot,
+//    deduped and re-sorted — correct regardless of which live source(s)
+//    Vercel can currently reach, and strictly no worse than before if
+//    cort.ovh stays unreachable from Vercel.
 //  - wstatus/stats/bosses: cort.ovh's answer wins when it answers (it's
-//    the authoritative source and the mirror has now shown itself
-//    unreliable at real scale, not just the one dated window), otherwise
-//    whichever candidate did answer.
+//    the authoritative source and the mirror has shown itself unreliable
+//    at real scale), otherwise whichever candidate did answer.
 // Fetching concurrently instead of sequentially also removes the old
 // "second attempt only runs after the first fails" latency tax — worst
 // case is now one timeout, not two stacked.
@@ -118,16 +122,30 @@ function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
 }
 
+// Two independently-scraped sources record the *same* real action a
+// couple of seconds apart rather than at an identical timestamp (seen
+// directly: the mirror's own events.json had a dragon wish at :07:56:02
+// while cort.ovh had the same wish at :07:56:00). An exact-timestamp dedup
+// key would treat those as two different events and double-list it.
+// Rounding to the minute a scrape happened in is coarse enough to collapse
+// that, without merging two genuinely different events of the same
+// type/name/location/owner — those aren't expected to repeat inside the
+// same 60s window (forts in particular can't flip ownership that fast;
+// see the vulnerability countdown in wzEventsEngine.ts) and even a wish
+// coincidentally repeating within a minute just undercounts by one,
+// nowhere near as bad as the double-count this avoids.
+const dedupKeyOf = (e: WzEvent) => `${Math.round(e.date / 60)}-${e.type}-${e.name}-${e.location}-${e.owner}`;
+
 /** Merges every source's events.json array (each already known to be an
  *  array — see `fetchAllCandidates`) with the hand-fetched backfill into
  *  one deduped, newest-first list. Safe to include a source that itself
- *  already carries the backfilled window (e.g. cort.ovh, when reachable):
- *  entries from the same original source collide on the dedup key and
- *  only survive once, so this never double-counts. Each array's own
- *  leading `{generated}` header entry (no `type` field — see
- *  `WzEventsDumpEntry`) is set aside before the merge/sort; the freshest
- *  one (highest `generated`) is put back at the front, rather than any
- *  header being treated as just another event. */
+ *  already carries part of the backfilled window (e.g. cort.ovh, when
+ *  reachable, or the mirror for whatever slice it did catch): entries for
+ *  the same real event collide on the dedup key (see `dedupKeyOf`) and
+ *  only survive once. Each array's own leading `{generated}` header entry
+ *  (no `type` field — see `WzEventsDumpEntry`) is set aside before the
+ *  merge/sort; the freshest one (highest `generated`) is put back at the
+ *  front, rather than any header being treated as just another event. */
 function mergeEventSources(dataList: unknown[]): unknown {
 	const headers: { generated: number }[] = [];
 	const liveEvents: WzEvent[] = [];
@@ -139,10 +157,9 @@ function mergeEventSources(dataList: unknown[]): unknown {
 	}
 
 	const seen = new Set<string>();
-	const keyOf = (e: WzEvent) => `${e.date}-${e.type}-${e.name}-${e.location}-${e.owner}`;
 	const merged: WzEvent[] = [];
 	for (const entry of [...liveEvents, ...backfillEvents]) {
-		const key = keyOf(entry);
+		const key = dedupKeyOf(entry);
 		if (seen.has(key)) continue;
 		seen.add(key);
 		merged.push(entry);
@@ -154,21 +171,35 @@ function mergeEventSources(dataList: unknown[]): unknown {
 	return [freshestHeader, ...merged];
 }
 
+// stats.json's wishes.count is a plain number, not a list — there's no
+// per-wish key to dedup against whatever the mirror's own (increasingly
+// incomplete, but not always *empty*) event history already reflects. So
+// unlike mergeEventSources, patchStatsWishes only trusts the backfill for
+// the one window truly confirmed to be 100% absent from the mirror
+// (2026-09-01T17:59–2026-09-06T16:06 — see the top-of-file comment).
+// Newer backfilled wishes are deliberately excluded here even though
+// mergeEventSources does use them: the mirror has been seen to catch a
+// handful of recent events (its own events.json isn't always empty for a
+// given moment, just badly incomplete overall), so blindly adding a newer
+// backfilled wish risks double-counting one the mirror's stats.json
+// already included.
+const KNOWN_GAP_END_SECONDS = 1788710760; // 2026-09-06T16:06:00Z
+
 /** stats.json's per-realm `wishes.count`/`wishes.last` (7d/30d/90d) are
  *  computed upstream from the same event history events.json has — so a
  *  source with a gap in its event history undercounts these too. Only
  *  called on a response known to still need the patch (the mirror's,
  *  never cort.ovh's own — see the call site) rather than an extra live
- *  fetch to recompute from scratch: patches in just the known 4
- *  backfilled wishes: adds however many of them fall within each window
- *  (relative to request time) to that window's count, and bumps `last`
- *  forward if a backfilled one is more recent than what the source
- *  reported. No-ops on anything that isn't the [header, 7d, 30d, 90d]
- *  shape stats.json is supposed to be. */
+ *  fetch to recompute from scratch: patches in the backfilled wishes from
+ *  the confirmed-empty window (see `KNOWN_GAP_END_SECONDS` above), adding
+ *  however many of them fall within each window (relative to request
+ *  time) to that window's count, and bumping `last` forward if one is
+ *  more recent than what the source reported. No-ops on anything that
+ *  isn't the [header, 7d, 30d, 90d] shape stats.json is supposed to be. */
 function patchStatsWishes(data: unknown): unknown {
 	if (!Array.isArray(data) || data.length !== 4) return data;
 	const [header, ...reports] = data as WzStatsDump;
-	const backfilledWishes = backfillEvents.filter((e) => e.type === "wish");
+	const backfilledWishes = backfillEvents.filter((e) => e.type === "wish" && e.date <= KNOWN_GAP_END_SECONDS);
 	const now = Date.now();
 
 	const patchedReports = reports.map((report, i) => {
