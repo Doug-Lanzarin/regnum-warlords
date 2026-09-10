@@ -5,6 +5,7 @@ import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortHistoryModal } from "../features/wz/FortHistoryModal";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
+import { RealmHourlyActivityChart } from "../features/wz/RealmHourlyActivityChart";
 import { WishActivityChart, type WishActivityRange } from "../features/wz/WishActivityChart";
 import { useEventsDump } from "../features/wz/useEventsDump";
 import { useWzStats } from "../features/wz/useWzStats";
@@ -20,6 +21,7 @@ import {
 	computeFortActivityFromStats,
 	computeFortHistory,
 	computeWallVulnerability,
+	computeWeeklyActivityByTimeOfDay,
 	computeWishActivityByRealm,
 	computeWishActivityFromStats,
 	type RealmActivityCount,
@@ -81,6 +83,7 @@ export function WzStatusPage() {
 		}),
 		[eventsDump, now, reports],
 	);
+	const hourlyActivity = useMemo(() => computeWeeklyActivityByTimeOfDay(eventsDump, now), [eventsDump, now]);
 
 	if (loading && !data) {
 		return (
@@ -141,6 +144,7 @@ export function WzStatusPage() {
 			<EventsLogSection events={events} now={now} />
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
+			<RealmHourlyActivityChart points={hourlyActivity} />
 			<WishActivityChart rangeData={wishActivityRanges} />
 		</div>
 	);

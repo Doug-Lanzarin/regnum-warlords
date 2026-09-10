@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FortStatus } from "./wzEngine";
-import { computeEventLog, computeWallVulnerability } from "./wzEventsEngine";
+import { computeEventLog, computeWallVulnerability, computeWeeklyActivityByTimeOfDay } from "./wzEventsEngine";
 import type { WzEvent } from "../../types/wz";
 
 const MIN = 60_000;
@@ -163,5 +163,62 @@ describe("computeEventLog", () => {
 	it("respects a custom limit", () => {
 		const events: WzEvent[] = Array.from({ length: 10 }, (_, i) => event(`Fort ${i}`, "Alsius", i));
 		expect(computeEventLog(events, "pt", 3)).toHaveLength(3);
+	});
+});
+
+describe("computeWeeklyActivityByTimeOfDay", () => {
+	// Local-time based, matching how the function itself interprets
+	// event.date — deterministic regardless of which timezone tests run in.
+	function localSeconds(daysAgo: number, hours: number, minutes: number, referenceNow: number): number {
+		const ref = new Date(referenceNow);
+		const d = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - daysAgo, hours, minutes, 0, 0);
+		return Math.floor(d.getTime() / 1000);
+	}
+
+	it("returns all 96 time-of-day slots, zero-filled where nothing happened", () => {
+		const now = Date.now();
+		const result = computeWeeklyActivityByTimeOfDay([], now);
+		expect(result).toHaveLength(96);
+		expect(result[0].minuteOfDay).toBe(0);
+		expect(result[95].minuteOfDay).toBe(1425);
+		expect(result.every((p) => p.activity.Alsius === 0 && p.activity.Ignis === 0 && p.activity.Syrtis === 0)).toBe(true);
+	});
+
+	it("buckets a fort capture into its 15-minute time-of-day slot, averaged over 7 days", () => {
+		const now = Date.now();
+		// 14:07 local time, 2 days ago — falls in the 14:00–14:15 slot.
+		const events = [event("Imperia Castle", "Ignis", localSeconds(2, 14, 7, now))];
+		const result = computeWeeklyActivityByTimeOfDay(events, now);
+		const slot = result.find((p) => p.minuteOfDay === 14 * 60)!;
+		expect(slot.activity.Ignis).toBeCloseTo(1 / 7);
+		expect(slot.activity.Alsius).toBe(0);
+	});
+
+	it("sums same-time-of-day captures from different days into the same slot", () => {
+		const now = Date.now();
+		const events = [
+			event("Imperia Castle", "Syrtis", localSeconds(1, 9, 5, now)),
+			event("Fort Aggersborg", "Syrtis", localSeconds(3, 9, 12, now)), // same 09:00–09:15 slot
+		];
+		const result = computeWeeklyActivityByTimeOfDay(events, now);
+		const slot = result.find((p) => p.minuteOfDay === 9 * 60)!;
+		expect(slot.activity.Syrtis).toBeCloseTo(2 / 7);
+	});
+
+	it("ignores events older than 7 days", () => {
+		const now = Date.now();
+		const events = [event("Imperia Castle", "Alsius", localSeconds(10, 12, 0, now))];
+		const result = computeWeeklyActivityByTimeOfDay(events, now);
+		expect(result.every((p) => p.activity.Alsius === 0)).toBe(true);
+	});
+
+	it("ignores non-fort events (gems, wishes) — this is a fort-capture activity chart, same convention as computeFortActivityByRealm", () => {
+		const now = Date.now();
+		const events: WzEvent[] = [
+			{ date: localSeconds(1, 10, 0, now), name: "Gema", location: "Ignis", owner: "Ignis", type: "gem" },
+			{ date: localSeconds(1, 10, 0, now), name: "", location: "Ignis", owner: "", type: "wish" },
+		];
+		const result = computeWeeklyActivityByTimeOfDay(events, now);
+		expect(result.every((p) => p.activity.Ignis === 0)).toBe(true);
 	});
 });
