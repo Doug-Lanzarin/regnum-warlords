@@ -245,10 +245,12 @@ export interface RealmActivityByTimeOfDay {
 	/** Minutes since local midnight, in 15-minute steps (0, 15, 30, ..., 1425
 	 *  — 96 points/day). */
 	minuteOfDay: number;
-	/** Fort captures/recaptures per realm in this slot, averaged over the
-	 *  trailing 7 days (raw 7-day total / 7 — not the count of days that
-	 *  actually had data, so a source with gaps reads as lower activity
-	 *  rather than silently reweighting around them). */
+	/** Enemy-territory fort captures (invasions only — see
+	 *  `computeWeeklyActivityByTimeOfDay`'s own doc comment) per realm in
+	 *  this slot, averaged over the trailing 7 days (raw 7-day total / 7 —
+	 *  not the count of days that actually had data, so a source with gaps
+	 *  reads as lower activity rather than silently reweighting around
+	 *  them). */
 	activity: Record<Realm, number>;
 }
 
@@ -256,12 +258,17 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const TIME_OF_DAY_BUCKET_MIN = 15;
 const TIME_OF_DAY_BUCKETS = (24 * 60) / TIME_OF_DAY_BUCKET_MIN;
 
-/** "What time of day is this realm usually active?" — fort captures from
- *  the trailing 7 days, bucketed by time-of-day (in the viewer's own local
- *  time, same as every other chart's timestamps) rather than by absolute
- *  time, then averaged per realm so every slot ends up as "captures per
- *  day" instead of a 7-day sum. Always returns all 96 slots, midnight
- *  first, zero-filled where nothing happened. */
+/** "What time of day is this realm usually active invading?" — fort
+ *  captures from the trailing 7 days, bucketed by time-of-day (in the
+ *  viewer's own local time, same as every other chart's timestamps)
+ *  rather than by absolute time, then averaged per realm so every slot
+ *  ends up as "captures per day" instead of a 7-day sum. Only counts
+ *  captures in enemy territory (`event.owner !== event.location`) —
+ *  same `recovered`/invaded distinction `humanizeEvent` already makes —
+ *  so a realm recapturing its own fort (e.g. Syrtis retaking Herbred, its
+ *  own keep) doesn't inflate its "invading" activity the way Syrtis
+ *  taking Samal (Ignis's keep) should. Always returns all 96 slots,
+ *  midnight first, zero-filled where nothing happened. */
 export function computeWeeklyActivityByTimeOfDay(events: WzEvent[], now: number): RealmActivityByTimeOfDay[] {
 	const cutoff = now - WEEK_MS;
 	const sums: Record<Realm, number>[] = Array.from({ length: TIME_OF_DAY_BUCKETS }, () => ({
@@ -272,6 +279,7 @@ export function computeWeeklyActivityByTimeOfDay(events: WzEvent[], now: number)
 
 	for (const event of events) {
 		if (event.type !== "fort") continue;
+		if (event.owner === event.location) continue; // recaptured own territory, not an invasion
 		if (!REALMS.includes(event.owner as Realm)) continue;
 		const eventMs = event.date * 1000;
 		if (eventMs < cutoff || eventMs > now) continue;

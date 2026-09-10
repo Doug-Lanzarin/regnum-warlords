@@ -207,9 +207,12 @@ describe("computeWeeklyActivityByTimeOfDay", () => {
 
 	it("ignores events older than 7 days", () => {
 		const now = Date.now();
-		const events = [event("Imperia Castle", "Alsius", localSeconds(10, 12, 0, now))];
+		// owner "Ignis" vs the event() helper's fixed location "Alsius" —
+		// enemy territory, so this only tests the age cutoff in isolation,
+		// not conflated with the own-territory exclusion below.
+		const events = [event("Imperia Castle", "Ignis", localSeconds(10, 12, 0, now))];
 		const result = computeWeeklyActivityByTimeOfDay(events, now);
-		expect(result.every((p) => p.activity.Alsius === 0)).toBe(true);
+		expect(result.every((p) => p.activity.Ignis === 0)).toBe(true);
 	});
 
 	it("ignores non-fort events (gems, wishes) — this is a fort-capture activity chart, same convention as computeFortActivityByRealm", () => {
@@ -220,5 +223,18 @@ describe("computeWeeklyActivityByTimeOfDay", () => {
 		];
 		const result = computeWeeklyActivityByTimeOfDay(events, now);
 		expect(result.every((p) => p.activity.Ignis === 0)).toBe(true);
+	});
+
+	it("only counts captures in enemy territory, not a realm recapturing its own fort — e.g. Syrtis taking Samal (Ignis's keep) counts, Syrtis retaking Herbred (its own keep) doesn't", () => {
+		const now = Date.now();
+		const events: WzEvent[] = [
+			// Syrtis invading Ignis's territory — should count.
+			{ date: localSeconds(1, 11, 0, now), name: "Fort Samal", location: "Ignis", owner: "Syrtis", type: "fort" },
+			// Syrtis recapturing its own fort — should NOT count.
+			{ date: localSeconds(1, 11, 0, now), name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
+		];
+		const result = computeWeeklyActivityByTimeOfDay(events, now);
+		const slot = result.find((p) => p.minuteOfDay === 11 * 60)!;
+		expect(slot.activity.Syrtis).toBeCloseTo(1 / 7);
 	});
 });
