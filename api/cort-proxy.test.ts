@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe("cort-proxy handler", () => {
-	it("relays wstatus.json from cort.go.yo.fr first (the mirror), same-origin, with a short edge cache and no stale-while-revalidate", async () => {
+	it("fetches both candidates concurrently for wstatus, with a short edge cache and no stale-while-revalidate", async () => {
 		const payload = { forts: [{ name: "Imperia Castle" }] };
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
 		vi.stubGlobal("fetch", fetchMock);
@@ -37,11 +37,12 @@ describe("cort-proxy handler", () => {
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
+		expect(fetchMock).toHaveBeenCalledTimes(2);
 		expect(fetchMock).toHaveBeenCalledWith("https://cort.go.yo.fr/CoRT/api/var/wstatus.json", {
 			signal: expect.any(AbortSignal),
 			headers: { "User-Agent": "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)" },
 		});
-		expect(fetchMock).toHaveBeenCalledTimes(1);
+		expect(fetchMock).toHaveBeenCalledWith("https://cort.ovh/api/var/wstatus.json", expect.anything());
 		// No `cache` RequestInit option on the upstream fetch — Vercel's Node
 		// fetch rejected that option outright (this endpoint went from
 		// working, if stale, to a flat 502 in production once it was added).
@@ -57,52 +58,63 @@ describe("cort-proxy handler", () => {
 		expect(result.headers["Cache-Control"]).toBe("max-age=0, s-maxage=45");
 	});
 
-	it("falls back to cort.ovh for wstatus when cort.go.yo.fr's single attempt fails", async () => {
-		const payload = { forts: [{ name: "Imperia Castle" }] };
+	it("prefers cort.ovh's answer over the mirror's for wstatus when both succeed", async () => {
+		const mirrorPayload = { forts: [{ name: "stale mirror copy" }] };
+		const cortOvhPayload = { forts: [{ name: "fresh cort.ovh copy" }] };
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 403, json: async () => ({}) };
-			return { ok: true, json: async () => payload };
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorPayload };
+			return { ok: true, json: async () => cortOvhPayload };
 		});
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
 
-		expect(fetchMock).toHaveBeenCalledTimes(2);
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/wstatus.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/wstatus.json", expect.anything());
+		expect(result.status).toBe(200);
+		expect(result.json).toEqual(cortOvhPayload);
+	});
+
+	it("falls back to the mirror for wstatus when cort.ovh's attempt fails", async () => {
+		const payload = { forts: [{ name: "Imperia Castle" }] };
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+			return { ok: false, status: 403, json: async () => ({}) };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
 	});
 
-	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr URLs first, falling back to cort.ovh", async () => {
+	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr and cort.ovh URLs", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [{}, {}, {}, {}] });
 		vi.stubGlobal("fetch", fetchMock);
 
-		for (const [endpoint, primaryUrl] of [
-			["events", "https://cort.go.yo.fr/CoRT/api/var/events.json"],
-			["stats", "https://cort.go.yo.fr/CoRT/api/var/stats.json"],
-			["bosses", "https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php"],
+		for (const [endpoint, urls] of [
+			["events", ["https://cort.go.yo.fr/CoRT/api/var/events.json", "https://cort.ovh/api/var/events.json"]],
+			["stats", ["https://cort.go.yo.fr/CoRT/api/var/stats.json", "https://cort.ovh/api/var/stats.json"]],
+			["bosses", ["https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php", "https://cort.ovh/api/bin/bosses/bosses.php"]],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
-			expect(fetchMock).toHaveBeenCalledWith(primaryUrl, expect.anything());
+			for (const url of urls) expect(fetchMock).toHaveBeenCalledWith(url, expect.anything());
 		}
 	});
 
-	it("falls back to cort.ovh for events when cort.go.yo.fr's single attempt fails", async () => {
+	it("falls back to the mirror for events when cort.ovh's attempt fails", async () => {
 		const payload = [{ date: 1, name: "Imperia Castle", location: "Alsius", owner: "Alsius", type: "fort" }];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
-			return { ok: true, json: async () => payload };
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+			return { ok: false, status: 502, json: async () => ({}) };
 		});
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "events" } }, res);
 
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/events.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/events.json", expect.anything());
 		expect(result.status).toBe(200);
 		// events also gets _eventsBackfill.ts merged in (see next
 		// test) — the live entry is still in there, just no longer the
@@ -110,7 +122,40 @@ describe("cort-proxy handler", () => {
 		expect(result.json).toContainEqual(payload[0]);
 	});
 
-	it("merges _eventsBackfill.ts into 'events' responses, deduped and sorted newest-first", async () => {
+	it("merges the mirror's and cort.ovh's events into one deduped, newest-first union — the actual reported bug ('curva de atividade sem atividade', a dragon wish 'não está contando')", async () => {
+		const mirrorLive = [
+			{ generated: 500 },
+			{ date: 1_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
+		];
+		// cort.ovh has everything the mirror has, plus a more recent event the
+		// mirror is simply missing (the mirror falling behind, not just a
+		// dated historical gap — the actual failure mode found live).
+		const cortOvhLive = [
+			{ generated: 999 },
+			{ date: 2_000, name: "", location: "Ignis", owner: "", type: "wish" },
+			{ date: 1_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
+		];
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorLive };
+			return { ok: true, json: async () => cortOvhLive };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		const body = result.json as unknown[];
+		expect(body[0]).toEqual({ generated: 999 }); // freshest header wins, not folded into the date sort
+		// The event both sources shared isn't duplicated...
+		const sharedFort = body.filter((e) => typeof e === "object" && e !== null && (e as { date: number }).date === 1_000);
+		expect(sharedFort).toHaveLength(1);
+		// ...but the wish only cort.ovh had is present — this is the fix:
+		// the mirror alone would have silently dropped it.
+		expect(body).toContainEqual(cortOvhLive[1]);
+	});
+
+	it("merges _eventsBackfill.ts into 'events' responses without duplicating an overlapping live entry", async () => {
 		const live = [
 			{ generated: 999 },
 			{ date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" },
@@ -144,7 +189,7 @@ describe("cort-proxy handler", () => {
 		expect(body[1]).toEqual(live[1]);
 	});
 
-	it("falls back to cort.ovh for stats when cort.go.yo.fr's single attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
+	it("falls back to the mirror for stats when cort.ovh's attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
 		const emptyRealm = () => ({
 			forts: { total: 3, captured: 1, recovered: 1, most_captured: { name: "Imperia Castle", count: 1 } },
 			wishes: { count: 0, last: null },
@@ -156,16 +201,14 @@ describe("cort-proxy handler", () => {
 			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 		];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
-			return { ok: true, json: async () => payload };
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+			return { ok: false, status: 502, json: async () => ({}) };
 		});
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "stats" } }, res);
 
-		expect(fetchMock).toHaveBeenNthCalledWith(1, "https://cort.go.yo.fr/CoRT/api/var/stats.json", expect.anything());
-		expect(fetchMock).toHaveBeenNthCalledWith(2, "https://cort.ovh/api/var/stats.json", expect.anything());
 		expect(result.status).toBe(200);
 		// forts and every other field pass through untouched — only wishes
 		// gets patched (see the dedicated test below), and only for realms
@@ -175,7 +218,48 @@ describe("cort-proxy handler", () => {
 		expect(body[1].Ignis).toEqual(payload[1].Ignis); // Ignis has no backfilled wishes at all
 	});
 
-	it("patches stats.json's wishes count/last for 7d/30d/90d from the same backfilled wishes events.json gets — the actual reported bug ('pedidos do dragão por reino filtrado por semana' reading 0 for every realm)", async () => {
+	it("prefers cort.ovh's stats.json over the mirror's when both succeed, and does NOT apply the backfill patch to it (would double-count)", async () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
+		try {
+			const realmWith = (count: number) => ({
+				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
+				wishes: { count, last: null },
+			});
+			// cort.ovh's own copy already has the real wish counts (it never had
+			// the mirror's gap) — patching it on top would double it.
+			const cortOvhPayload = [
+				{ generated: 1 },
+				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+			];
+			const mirrorPayload = [
+				{ generated: 1 },
+				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+			];
+			const fetchMock = vi.fn(async (url: string) => {
+				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorPayload };
+				return { ok: true, json: async () => cortOvhPayload };
+			});
+			vi.stubGlobal("fetch", fetchMock);
+
+			const { res, result } = mockRes();
+			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
+
+			const body = result.json as typeof cortOvhPayload;
+			for (const window of [1, 2, 3] as const) {
+				expect(body[window].Syrtis.wishes.count).toBe(2); // untouched, not 4
+				expect(body[window].Alsius.wishes.count).toBe(2); // untouched, not 4
+			}
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("patches the mirror's stats.json wishes count/last for 7d/30d/90d from the same backfilled wishes events.json gets — the actual reported bug ('pedidos do dragão por reino filtrado por semana' reading 0 for every realm)", async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
 		try {
@@ -189,7 +273,10 @@ describe("cort-proxy handler", () => {
 				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 			];
-			const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+			const fetchMock = vi.fn(async (url: string) => {
+				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+				return { ok: false, status: 502, json: async () => ({}) };
+			});
 			vi.stubGlobal("fetch", fetchMock);
 
 			const { res, result } = mockRes();
@@ -226,7 +313,7 @@ describe("cort-proxy handler", () => {
 		expect(result.status).toBe(400);
 	});
 
-	it("responds 502 after 2 attempts, when cort.ovh keeps erroring", async () => {
+	it("responds 502 when both candidates error", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) });
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
@@ -235,7 +322,7 @@ describe("cort-proxy handler", () => {
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
-	it("responds 502 after 2 attempts, when the fetch itself keeps rejecting (timeout/offline)", async () => {
+	it("responds 502 when both candidate fetches reject (timeout/offline)", async () => {
 		const fetchMock = vi.fn().mockRejectedValue(new Error("network down"));
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
@@ -244,12 +331,12 @@ describe("cort-proxy handler", () => {
 		expect(fetchMock).toHaveBeenCalledTimes(2);
 	});
 
-	it("succeeds on the 2nd attempt after the first fails — this is the actual, observed high-failure-rate case", async () => {
+	it("succeeds when one candidate fails and the other doesn't", async () => {
 		const payload = { forts: [] };
-		const fetchMock = vi
-			.fn()
-			.mockRejectedValueOnce(new Error("transient network blip"))
-			.mockResolvedValueOnce({ ok: true, json: async () => payload });
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return Promise.reject(new Error("transient network blip"));
+			return { ok: true, json: async () => payload };
+		});
 		vi.stubGlobal("fetch", fetchMock);
 		const { res, result } = mockRes();
 		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
@@ -290,7 +377,7 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 		return fetchMock;
 	}
 
-	it("falls back to api/push/tick.ts's last saved snapshot (as an honest 200, not an error) once all 3 live attempts fail", async () => {
+	it("falls back to api/push/tick.ts's last saved snapshot (as an honest 200, not an error) once both live attempts fail", async () => {
 		process.env.NOTIFICATIONS_GITHUB_TOKEN = "test-token";
 		const snapshot = { wstatus: { forts: [], gems: [], generated: 111 }, savedAt: 222 };
 		stubFetchWithGithubSnapshot(snapshot);
