@@ -294,6 +294,112 @@ export function computeWeeklyActivityByTimeOfDay(events: WzEvent[], now: number)
 	}));
 }
 
+export interface RealmDurationStat {
+	realm: Realm;
+	/** `null` when there's no sample to average (the realm had zero
+	 *  qualifying holds/recoveries in the window) — distinct from a real
+	 *  0ms average, which can't actually happen. */
+	avgMs: number | null;
+	/** How many holds/recoveries the average is built from, so a chart can
+	 *  show "(2 capturas)" alongside a value that might otherwise look
+	 *  authoritative despite being a single data point. */
+	samples: number;
+}
+
+/** Every fort-type event, grouped by fort name and sorted oldest-first —
+ *  the shared shape `computeEnemyFortHoldDuration` and
+ *  `computeOwnFortRecoveryDuration` both walk to find "what happened to
+ *  this fort next". Needs the *full* event history, not just whatever
+ *  window the caller ultimately reports on: a capture just inside a 7-day
+ *  window can easily be lost again just outside it, and that end still
+ *  has to be found to know the hold's real duration. */
+function groupFortEventsByName(events: WzEvent[]): Map<string, WzEvent[]> {
+	const byFort = new Map<string, WzEvent[]>();
+	for (const event of events) {
+		if (event.type !== "fort") continue;
+		const list = byFort.get(event.name);
+		if (list) list.push(event);
+		else byFort.set(event.name, [event]);
+	}
+	for (const list of byFort.values()) list.sort((a, b) => a.date - b.date);
+	return byFort;
+}
+
+/** Average time each realm holds onto a fort it took from enemy territory,
+ *  for captures that happened within the trailing `windowMs` — "when we
+ *  invade, how long do we typically keep it". A capture still held as of
+ *  `now` (not yet lost again) counts too, using `now` as its end, so a
+ *  fresh long-running hold doesn't just vanish from the average for lack
+ *  of an end event yet. Recaptures of a realm's *own* territory don't
+ *  count (`owner === location`), same distinction
+ *  `computeWeeklyActivityByTimeOfDay` makes. `null` `avgMs` (see
+ *  `RealmDurationStat`) means that realm made no qualifying captures in
+ *  the window. */
+export function computeEnemyFortHoldDuration(events: WzEvent[], windowMs: number, now: number): RealmDurationStat[] {
+	const cutoff = now - windowMs;
+	const byFort = groupFortEventsByName(events);
+	const sums: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+	const counts: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+
+	for (const fortEvents of byFort.values()) {
+		for (let i = 0; i < fortEvents.length; i++) {
+			const capture = fortEvents[i];
+			if (!REALMS.includes(capture.owner as Realm)) continue;
+			if (capture.owner === capture.location) continue; // not an invasion
+			const captureMs = capture.date * 1000;
+			if (captureMs < cutoff || captureMs > now) continue;
+			const next = fortEvents[i + 1];
+			const heldUntilMs = next ? next.date * 1000 : now;
+			const durationMs = heldUntilMs - captureMs;
+			if (durationMs < 0) continue; // defensive — shouldn't happen with real data
+			const realm = capture.owner as Realm;
+			sums[realm] += durationMs;
+			counts[realm] += 1;
+		}
+	}
+
+	return REALMS.map((realm) => ({ realm, avgMs: counts[realm] > 0 ? sums[realm] / counts[realm] : null, samples: counts[realm] }));
+}
+
+/** Average time it takes each realm to recover one of its *own* forts
+ *  after losing it to an enemy, for recoveries that *completed* within
+ *  the trailing `windowMs` — "when we lose one, how long until we get it
+ *  back". Unlike `computeEnemyFortHoldDuration`, an unresolved loss (still
+ *  enemy-held, not yet recaptured) doesn't count: there's no "recovery
+ *  time" to measure until it actually happens, so it's simply excluded
+ *  rather than censored with `now`. Only a direct loss-then-recapture-by-
+ *  the-same-home-realm pair counts as one recovery; if a third realm
+ *  takes the fort in between, that in-between stretch isn't attributed to
+ *  anyone as a "recovery" (the original realm hasn't recovered it yet —
+ *  its own later reclaim, if any, is a separate pair against whichever
+ *  event immediately preceded it). `null` `avgMs` (see `RealmDurationStat`)
+ *  means that realm had no qualifying recoveries in the window. */
+export function computeOwnFortRecoveryDuration(events: WzEvent[], windowMs: number, now: number): RealmDurationStat[] {
+	const cutoff = now - windowMs;
+	const byFort = groupFortEventsByName(events);
+	const sums: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+	const counts: Record<Realm, number> = { Alsius: 0, Ignis: 0, Syrtis: 0 };
+
+	for (const fortEvents of byFort.values()) {
+		for (let i = 0; i < fortEvents.length; i++) {
+			const loss = fortEvents[i];
+			if (!REALMS.includes(loss.location as Realm)) continue;
+			if (loss.owner === loss.location) continue; // not a loss to an enemy
+			const recovery = fortEvents[i + 1];
+			if (!recovery || recovery.owner !== loss.location) continue; // not yet recovered by its own realm
+			const recoveredMs = recovery.date * 1000;
+			if (recoveredMs < cutoff || recoveredMs > now) continue;
+			const durationMs = recoveredMs - loss.date * 1000;
+			if (durationMs < 0) continue; // defensive — shouldn't happen with real data
+			const realm = loss.location as Realm;
+			sums[realm] += durationMs;
+			counts[realm] += 1;
+		}
+	}
+
+	return REALMS.map((realm) => ({ realm, avgMs: counts[realm] > 0 ? sums[realm] / counts[realm] : null, samples: counts[realm] }));
+}
+
 export interface WallVulnerability {
 	homeRealm: Realm;
 	/** Raw (uncleaned) name of this realm's "wall" fort, for matching against `FortStatus`/`WzFort`. */

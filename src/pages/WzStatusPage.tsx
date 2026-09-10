@@ -5,6 +5,7 @@ import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortHistoryModal } from "../features/wz/FortHistoryModal";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
+import { RealmDurationChart } from "../features/wz/RealmDurationChart";
 import { RealmHourlyActivityChart } from "../features/wz/RealmHourlyActivityChart";
 import { WishActivityChart, type WishActivityRange } from "../features/wz/WishActivityChart";
 import { useEventsDump } from "../features/wz/useEventsDump";
@@ -19,7 +20,9 @@ import {
 	computeEventLog,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
+	computeEnemyFortHoldDuration,
 	computeFortHistory,
+	computeOwnFortRecoveryDuration,
 	computeWallVulnerability,
 	computeWeeklyActivityByTimeOfDay,
 	computeWishActivityByRealm,
@@ -84,6 +87,8 @@ export function WzStatusPage() {
 		[eventsDump, now, reports],
 	);
 	const hourlyActivity = useMemo(() => computeWeeklyActivityByTimeOfDay(eventsDump, now), [eventsDump, now]);
+	const holdDuration = useMemo(() => computeEnemyFortHoldDuration(eventsDump, 7 * DAY_MS, now), [eventsDump, now]);
+	const recoveryDuration = useMemo(() => computeOwnFortRecoveryDuration(eventsDump, 7 * DAY_MS, now), [eventsDump, now]);
 
 	if (loading && !data) {
 		return (
@@ -118,6 +123,9 @@ export function WzStatusPage() {
 
 	if (!data) return <div className={styles.wrap} />;
 
+	const holdSampleLabel = (n: number) => t(n === 1 ? "wz.holdDurationSampleSingular" : "wz.holdDurationSamplePlural", { n });
+	const recoverySampleLabel = (n: number) => t(n === 1 ? "wz.recoveryDurationSampleSingular" : "wz.recoveryDurationSamplePlural", { n });
+
 	return (
 		<div className={styles.wrap}>
 			<div className={styles.statusRow}>
@@ -145,6 +153,30 @@ export function WzStatusPage() {
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
 			<RealmHourlyActivityChart points={hourlyActivity} />
+			<div className={styles.durationPair}>
+				<RealmDurationChart
+					icon="⏳"
+					title={t("wz.holdDurationTitle")}
+					subtitle={t("wz.holdDurationSubtitle")}
+					data={holdDuration}
+					emptyMessage={t("wz.holdDurationEmpty")}
+					sortDirection="desc"
+					sampleLabel={holdSampleLabel}
+					rowAriaLabel={(realm, duration, samples) => t("wz.holdDurationRowAriaLabel", { realm, duration, samples: holdSampleLabel(samples) })}
+				/>
+				<RealmDurationChart
+					icon="🔁"
+					title={t("wz.recoveryDurationTitle")}
+					subtitle={t("wz.recoveryDurationSubtitle")}
+					data={recoveryDuration}
+					emptyMessage={t("wz.recoveryDurationEmpty")}
+					sortDirection="asc"
+					sampleLabel={recoverySampleLabel}
+					rowAriaLabel={(realm, duration, samples) =>
+						t("wz.recoveryDurationRowAriaLabel", { realm, duration, samples: recoverySampleLabel(samples) })
+					}
+				/>
+			</div>
 			<WishActivityChart rangeData={wishActivityRanges} />
 		</div>
 	);

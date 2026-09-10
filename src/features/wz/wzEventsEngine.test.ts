@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { FortStatus } from "./wzEngine";
-import { computeEventLog, computeWallVulnerability, computeWeeklyActivityByTimeOfDay } from "./wzEventsEngine";
+import {
+	computeEnemyFortHoldDuration,
+	computeEventLog,
+	computeOwnFortRecoveryDuration,
+	computeWallVulnerability,
+	computeWeeklyActivityByTimeOfDay,
+} from "./wzEventsEngine";
 import type { WzEvent } from "../../types/wz";
 
 const MIN = 60_000;
@@ -20,6 +26,13 @@ function alsiusForts(overrides: Partial<Record<"castle" | "keep1" | "keep2" | "w
 
 function event(name: string, owner: string, dateSeconds: number): WzEvent {
 	return { date: dateSeconds, name, location: "Alsius", owner, type: "fort" };
+}
+
+/** Same as `event()`, but with an explicit `location` (home realm) — needed
+ *  wherever owner-vs-location actually matters (enemy capture vs. own-realm
+ *  recapture), unlike `event()`'s fixed "Alsius" location. */
+function fortEvent(name: string, location: string, owner: string, dateSeconds: number): WzEvent {
+	return { date: dateSeconds, name, location, owner, type: "fort" };
 }
 
 function alsiusResult(forts: FortStatus[], events: WzEvent[], now: number) {
@@ -236,5 +249,117 @@ describe("computeWeeklyActivityByTimeOfDay", () => {
 		const result = computeWeeklyActivityByTimeOfDay(events, now);
 		const slot = result.find((p) => p.minuteOfDay === 11 * 60)!;
 		expect(slot.activity.Syrtis).toBeCloseTo(1 / 7);
+	});
+});
+
+const HOUR = 60 * MIN;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+
+describe("computeEnemyFortHoldDuration", () => {
+	it("measures the time between an enemy capture and the fort's next event as the hold duration", () => {
+		const now = Date.now();
+		const t0 = now - 5 * HOUR;
+		const events = [
+			fortEvent("Fort Samal", "Ignis", "Syrtis", t0 / 1000), // Syrtis invades Ignis's fort
+			fortEvent("Fort Samal", "Ignis", "Ignis", (t0 + 2 * HOUR) / 1000), // Ignis takes it back 2h later
+		];
+		const result = computeEnemyFortHoldDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBe(2 * HOUR);
+		expect(syrtis.samples).toBe(1);
+	});
+
+	it("treats a still-held enemy fort as ongoing, using `now` as its end", () => {
+		const now = Date.now();
+		const events = [fortEvent("Fort Samal", "Ignis", "Syrtis", (now - 3 * HOUR) / 1000)];
+		const result = computeEnemyFortHoldDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBe(3 * HOUR);
+		expect(syrtis.samples).toBe(1);
+	});
+
+	it("excludes a realm recapturing its own territory — only enemy-territory captures count", () => {
+		const now = Date.now();
+		const events = [fortEvent("Fort Herbred", "Syrtis", "Syrtis", (now - 3 * HOUR) / 1000)];
+		const result = computeEnemyFortHoldDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBeNull();
+		expect(syrtis.samples).toBe(0);
+	});
+
+	it("excludes captures outside the trailing window", () => {
+		const now = Date.now();
+		const events = [fortEvent("Fort Samal", "Ignis", "Syrtis", (now - 10 * DAY) / 1000)];
+		const result = computeEnemyFortHoldDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBeNull();
+	});
+
+	it("averages across multiple captures by the same realm", () => {
+		const now = Date.now();
+		const events = [
+			fortEvent("Fort Samal", "Ignis", "Syrtis", (now - 5 * HOUR) / 1000),
+			fortEvent("Fort Samal", "Ignis", "Ignis", (now - 4 * HOUR) / 1000), // 1h hold
+			fortEvent("Fort Algaros", "Ignis", "Syrtis", (now - 3 * HOUR) / 1000),
+			fortEvent("Fort Algaros", "Ignis", "Ignis", now / 1000), // 3h hold
+		];
+		const result = computeEnemyFortHoldDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBe(2 * HOUR);
+		expect(syrtis.samples).toBe(2);
+	});
+});
+
+describe("computeOwnFortRecoveryDuration", () => {
+	it("measures time from loss to recovery by the fort's own home realm", () => {
+		const now = Date.now();
+		const t0 = now - 5 * HOUR;
+		const events = [
+			fortEvent("Fort Herbred", "Syrtis", "Ignis", t0 / 1000), // Ignis takes Syrtis's fort
+			fortEvent("Fort Herbred", "Syrtis", "Syrtis", (t0 + 90 * MIN) / 1000), // Syrtis retakes 90min later
+		];
+		const result = computeOwnFortRecoveryDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBe(90 * MIN);
+		expect(syrtis.samples).toBe(1);
+	});
+
+	it("excludes an unresolved loss — not yet recaptured, so there's no recovery time to measure", () => {
+		const now = Date.now();
+		const events = [fortEvent("Fort Herbred", "Syrtis", "Ignis", (now - 3 * HOUR) / 1000)];
+		const result = computeOwnFortRecoveryDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.avgMs).toBeNull();
+		expect(syrtis.samples).toBe(0);
+	});
+
+	it("filters by when the recovery completed, not when the loss happened — a loss outside the window still counts if it was recovered inside it", () => {
+		const now = Date.now();
+		const events = [
+			fortEvent("Fort Herbred", "Syrtis", "Ignis", (now - 10 * DAY) / 1000), // lost outside the 7d window
+			fortEvent("Fort Herbred", "Syrtis", "Syrtis", (now - 1 * DAY) / 1000), // recovered inside it
+		];
+		const result = computeOwnFortRecoveryDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		expect(syrtis.samples).toBe(1);
+		expect(syrtis.avgMs).toBe(9 * DAY);
+	});
+
+	it("only pairs a loss with the very next event — a third realm reclaiming it later doesn't get attributed as the original owner's recovery", () => {
+		const now = Date.now();
+		const t0 = now - 3 * HOUR;
+		const events = [
+			fortEvent("Fort Herbred", "Syrtis", "Ignis", t0 / 1000), // Ignis takes Syrtis's fort
+			fortEvent("Fort Herbred", "Syrtis", "Alsius", (t0 + 1 * HOUR) / 1000), // Alsius takes it from Ignis
+			fortEvent("Fort Herbred", "Syrtis", "Syrtis", (t0 + 2 * HOUR) / 1000), // Syrtis finally retakes
+		];
+		const result = computeOwnFortRecoveryDuration(events, WEEK, now);
+		const syrtis = result.find((r) => r.realm === "Syrtis")!;
+		// Only the Alsius→Syrtis leg counts as "recovered" (1h), not the full
+		// Ignis→Syrtis span (2h) — the fort was never lost-then-immediately-
+		// recovered by Syrtis in one step.
+		expect(syrtis.samples).toBe(1);
+		expect(syrtis.avgMs).toBe(1 * HOUR);
 	});
 });
