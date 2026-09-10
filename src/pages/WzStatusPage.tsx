@@ -153,30 +153,33 @@ export function WzStatusPage() {
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
 			<RealmHourlyActivityChart points={hourlyActivity} />
-			<div className={styles.durationPair}>
-				<RealmDurationChart
-					icon="⏳"
-					title={t("wz.holdDurationTitle")}
-					subtitle={t("wz.holdDurationSubtitle")}
-					data={holdDuration}
-					emptyMessage={t("wz.holdDurationEmpty")}
-					sortDirection="desc"
-					sampleLabel={holdSampleLabel}
-					rowAriaLabel={(realm, duration, samples) => t("wz.holdDurationRowAriaLabel", { realm, duration, samples: holdSampleLabel(samples) })}
-				/>
-				<RealmDurationChart
-					icon="🔁"
-					title={t("wz.recoveryDurationTitle")}
-					subtitle={t("wz.recoveryDurationSubtitle")}
-					data={recoveryDuration}
-					emptyMessage={t("wz.recoveryDurationEmpty")}
-					sortDirection="asc"
-					sampleLabel={recoverySampleLabel}
-					rowAriaLabel={(realm, duration, samples) =>
-						t("wz.recoveryDurationRowAriaLabel", { realm, duration, samples: recoverySampleLabel(samples) })
-					}
-				/>
-			</div>
+			<RealmDurationChart
+				title={t("wz.durationTitle")}
+				tabsLabel={t("wz.durationTabsLabel")}
+				views={[
+					{
+						key: "hold",
+						tabLabel: t("wz.durationTabHold"),
+						subtitle: t("wz.holdDurationSubtitle"),
+						data: holdDuration,
+						emptyMessage: t("wz.holdDurationEmpty"),
+						sortDirection: "desc",
+						sampleLabel: holdSampleLabel,
+						rowAriaLabel: (realm, duration, samples) => t("wz.holdDurationRowAriaLabel", { realm, duration, samples: holdSampleLabel(samples) }),
+					},
+					{
+						key: "recovery",
+						tabLabel: t("wz.durationTabRecovery"),
+						subtitle: t("wz.recoveryDurationSubtitle"),
+						data: recoveryDuration,
+						emptyMessage: t("wz.recoveryDurationEmpty"),
+						sortDirection: "asc",
+						sampleLabel: recoverySampleLabel,
+						rowAriaLabel: (realm, duration, samples) =>
+							t("wz.recoveryDurationRowAriaLabel", { realm, duration, samples: recoverySampleLabel(samples) }),
+					},
+				]}
+			/>
 			<WishActivityChart rangeData={wishActivityRanges} />
 		</div>
 	);

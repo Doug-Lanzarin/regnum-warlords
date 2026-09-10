@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { REALM_COLOR, type Realm } from "../../data/realms";
 import { formatDuration } from "../../utils/time";
 import type { RealmDurationStat } from "./wzEventsEngine";
 import styles from "./RealmDurationChart.module.css";
 
-interface Props {
-	icon: string;
-	title: string;
+export interface RealmDurationView {
+	key: string;
+	tabLabel: string;
 	subtitle: string;
 	data: RealmDurationStat[];
 	emptyMessage: string;
@@ -19,14 +20,23 @@ interface Props {
 	rowAriaLabel: (realm: Realm, formattedDuration: string, samples: number) => string;
 }
 
-/** Ranked horizontal bar per realm, same visual language as
- *  `FortActivityChart` (realm dot, colored track, value on the right) —
- *  but the value is a duration (via `formatDuration`) instead of a plain
- *  count, and there's no range-tab row since both callers use a fixed
- *  7-day window. Shared by `computeEnemyFortHoldDuration` and
- *  `computeOwnFortRecoveryDuration`'s charts, which differ only in their
- *  data, copy and sort direction. */
-export function RealmDurationChart({ icon, title, subtitle, data, emptyMessage, sortDirection, sampleLabel, rowAriaLabel }: Props) {
+interface Props {
+	title: string;
+	tabsLabel: string;
+	views: RealmDurationView[];
+}
+
+/** One chart, two metrics — a tab row switches between them, same pattern
+ *  `FortActivityChart` uses for its time ranges. Ranked horizontal bar per
+ *  realm (realm dot, colored track, value on the right), but the value is
+ *  a duration (via `formatDuration`) instead of a plain count. Shared by
+ *  `computeEnemyFortHoldDuration` and `computeOwnFortRecoveryDuration`'s
+ *  views, which differ only in their data, copy and sort direction. */
+export function RealmDurationChart({ title, tabsLabel, views }: Props) {
+	const [activeKey, setActiveKey] = useState(views[0].key);
+	const view = views.find((v) => v.key === activeKey) ?? views[0];
+	const { data, emptyMessage, sortDirection, sampleLabel, rowAriaLabel } = view;
+
 	const withData = data.filter((d) => d.avgMs !== null);
 	const max = Math.max(...withData.map((d) => d.avgMs as number), 1);
 	const hasAnyData = withData.length > 0;
@@ -42,10 +52,28 @@ export function RealmDurationChart({ icon, title, subtitle, data, emptyMessage, 
 		<section className={styles.section}>
 			<div className={styles.header}>
 				<div className={styles.titleGroup}>
-					<h2>
-						<span aria-hidden>{icon}</span> {title}
-					</h2>
-					<span className={styles.subtitle}>{subtitle}</span>
+					<h2>{title}</h2>
+					<span className={styles.subtitle}>{view.subtitle}</span>
+				</div>
+
+				<div className={styles.tabsGroup}>
+					<span className={styles.tabsLabel} id="duration-chart-tabs-label">
+						{tabsLabel}
+					</span>
+					<div className={styles.tabs} role="tablist" aria-labelledby="duration-chart-tabs-label">
+						{views.map((v) => (
+							<button
+								key={v.key}
+								type="button"
+								role="tab"
+								aria-selected={activeKey === v.key}
+								className={`${styles.tab} ${activeKey === v.key ? styles.tabActive : ""}`}
+								onClick={() => setActiveKey(v.key)}
+							>
+								{v.tabLabel}
+							</button>
+						))}
+					</div>
 				</div>
 			</div>
 
