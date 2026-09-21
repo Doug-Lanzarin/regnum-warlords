@@ -64,7 +64,12 @@ export function WzStatusPage() {
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
 			"24h": computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
-			"7d": reports ? computeFortActivityFromStats(reports.sevenDay) : null,
+			// 7d comes straight from the events dump, not stats.json's own 7d
+			// report — events.json's ~10-day retention comfortably covers it,
+			// and this way it stays accurate on its own even when stats.json's
+			// upstream source (the mirror, most of the time — see
+			// api/cort-proxy.ts) is undercounting.
+			"7d": computeFortActivityByRealm(eventsDump, 7 * DAY_MS, now),
 			"30d": reports ? computeFortActivityFromStats(reports.thirtyDay) : null,
 			"90d": reports ? computeFortActivityFromStats(reports.ninetyDay) : null,
 		}),
@@ -79,7 +84,8 @@ export function WzStatusPage() {
 			"1d": computeWishActivityByRealm(eventsDump, DAY_MS, now),
 			"3d": computeWishActivityByRealm(eventsDump, 3 * DAY_MS, now),
 			"5d": computeWishActivityByRealm(eventsDump, 5 * DAY_MS, now),
-			"7d": reports ? computeWishActivityFromStats(reports.sevenDay) : null,
+			// Same reasoning as fortActivityRanges' "7d" above.
+			"7d": computeWishActivityByRealm(eventsDump, 7 * DAY_MS, now),
 			"10d": computeWishActivityByRealm(eventsDump, 10 * DAY_MS, now),
 			"30d": reports ? computeWishActivityFromStats(reports.thirtyDay) : null,
 			"90d": reports ? computeWishActivityFromStats(reports.ninetyDay) : null,

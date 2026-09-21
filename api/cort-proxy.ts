@@ -67,36 +67,41 @@
 // ordering (and the "first candidate to answer wins" logic generally) no
 // longer holds: the mirror has its own, worse reliability problem.
 //
-// Known, ongoing tradeoff: the mirror's events.json (and, consequently, its
-// stats.json aggregates, computed upstream from that same event history)
-// is missing the large majority of real events, not just one dated window
-// — confirmed 2026-09-10 by diffing it against cort.ovh's own copy: the
-// mirror had only 216 events.json entries for 2026-08-31–09-10, versus
-// cort.ovh's 1567 for the identical range (same oldest timestamp) — the
-// mirror is only catching ~14% of what's actually happening, missing
-// things as recent as an Ignis dragon wish from the day before it was
-// checked ("ontem ignis fez um pedido e não está contando"). Confirmed
-// separately, the same day, that Vercel itself still can't reach cort.ovh
-// (curling the *deployed* proxy's events endpoint returned an entry count
-// matching mirror+backfill, not cort.ovh's fuller count) — so this can't
-// be fixed by preferring cort.ovh and calling it done; that exact
+// Known, ongoing, and *recurring* tradeoff: the mirror's events.json (and,
+// consequently, its stats.json aggregates, computed upstream from that
+// same event history) is missing a large chunk of real events, not just
+// one dated window — first confirmed 2026-09-10 (mirror catching only
+// ~14% of cort.ovh's own event count for the same window), re-confirmed
+// 2026-09-21 (~50% — better, still badly incomplete), missing things as
+// recent as the day before each check (an Ignis dragon wish on 09-10, a
+// Syrtis one on 09-21). Confirmed both times, same day, that Vercel
+// itself still can't reach cort.ovh directly either (curling the
+// *deployed* proxy's events endpoint returned an entry count and per-realm
+// tallies matching the mirror alone, not cort.ovh's fuller ones) — so this
+// can't be fixed by preferring cort.ovh and calling it done; that exact
 // swap-the-primary-source approach was tried on 2026-09-08 and reverted
-// for the same reason.
+// for the same reason, and still holds true two weeks later.
 //
 // The only source actually complete is cort.ovh fetched from *outside*
 // Vercel's network (this repo's own dev sandbox, in practice) — so
-// _eventsBackfill.ts is a hand-fetched snapshot of cort.ovh's events.json,
-// pulled the same way, merged in below (mergeEventSources for events,
-// patchStatsWishes for stats.json's wishes.count/last) exactly like a
-// narrower version of this file did for a single 2026-09-01–09-06 window
-// before the mirror's failure was known to be this much bigger. Because
-// events.json is only a rolling ~10-day window and the mirror keeps
-// falling behind rather than catching up, this snapshot goes stale on its
-// own within a day or two and needs re-fetching the same way — see
-// _eventsBackfill.ts's own doc comment for exactly when it was last taken.
-// This is a stopgap, not a fix: the real fix is either the mirror
-// recovering or Vercel regaining a reachable path to cort.ovh, neither of
-// which this proxy controls.
+// _eventsBackfill.ts and _statsBackfill.ts are hand-fetched snapshots of
+// cort.ovh's events.json and stats.json, pulled the same way. events.json
+// merges cleanly (mergeEventSources, below) since it's a raw list that can
+// be deduped against whatever's live; stats.json can't be merged the same
+// way (it's a pre-aggregated report, not a list — see the stats handling
+// below), so its snapshot substitutes for the mirror's wholesale instead.
+// Because both upstream sources keep moving (events.json is a rolling
+// ~10-day window; stats.json's 7d/30d/90d windows roll continuously) and
+// the mirror keeps falling behind rather than fully catching up, both
+// snapshots go stale within a day or two and need re-fetching the same
+// way — see each file's own doc comment for exactly when it was last
+// taken. This is a stopgap, not a fix: the real fix is either the mirror
+// recovering fully or Vercel regaining a reachable path to cort.ovh,
+// neither of which this proxy controls. (stats.json's 7d window sidesteps
+// this differently — see WzStatusPage.tsx, which computes it directly
+// from the events dump instead of trusting stats.json at all, since 7
+// days comfortably fits inside events.json's own retention and that stays
+// self-correcting as long as events.json itself is accurate.)
 //
 // Every candidate for every endpoint is fetched *concurrently* (not
 // first-success-wins) and combined below:
@@ -104,19 +109,19 @@
 //    deduped and re-sorted — correct regardless of which live source(s)
 //    Vercel can currently reach, and strictly no worse than before if
 //    cort.ovh stays unreachable from Vercel.
-//  - wstatus/stats/bosses: cort.ovh's answer wins when it answers (it's
-//    the authoritative source and the mirror has shown itself unreliable
-//    at real scale), otherwise whichever candidate did answer.
+//  - stats: cort.ovh's answer wins when it answers; otherwise the frozen
+//    _statsBackfill.ts snapshot, not the mirror's own (see above).
+//  - wstatus/bosses: cort.ovh's answer wins when it answers (it's the
+//    authoritative source and the mirror has shown itself unreliable at
+//    real scale), otherwise whichever candidate did answer.
 // Fetching concurrently instead of sequentially also removes the old
 // "second attempt only runs after the first fails" latency tax — worst
 // case is now one timeout, not two stacked.
 
 import { readLiveSnapshot } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
-import { REALMS } from "../src/data/realms.js";
-import type { WzEvent, WzStatsDump } from "../src/types/wz";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import statsBackfill from "./_statsBackfill.js";
+import type { WzEvent } from "../src/types/wz";
 
 function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
@@ -169,60 +174,6 @@ function mergeEventSources(dataList: unknown[]): unknown {
 	if (headers.length === 0) return merged;
 	const freshestHeader = headers.reduce((a, b) => (b.generated > a.generated ? b : a));
 	return [freshestHeader, ...merged];
-}
-
-// stats.json's wishes.count is a plain number, not a list — there's no
-// per-wish key to dedup against whatever the mirror's own (increasingly
-// incomplete, but not always *empty*) event history already reflects. So
-// unlike mergeEventSources, patchStatsWishes only trusts the backfill for
-// the one window truly confirmed to be 100% absent from the mirror
-// (2026-09-01T17:59–2026-09-06T16:06 — see the top-of-file comment).
-// Newer backfilled wishes are deliberately excluded here even though
-// mergeEventSources does use them: the mirror has been seen to catch a
-// handful of recent events (its own events.json isn't always empty for a
-// given moment, just badly incomplete overall), so blindly adding a newer
-// backfilled wish risks double-counting one the mirror's stats.json
-// already included.
-const KNOWN_GAP_END_SECONDS = 1788710760; // 2026-09-06T16:06:00Z
-
-/** stats.json's per-realm `wishes.count`/`wishes.last` (7d/30d/90d) are
- *  computed upstream from the same event history events.json has — so a
- *  source with a gap in its event history undercounts these too. Only
- *  called on a response known to still need the patch (the mirror's,
- *  never cort.ovh's own — see the call site) rather than an extra live
- *  fetch to recompute from scratch: patches in the backfilled wishes from
- *  the confirmed-empty window (see `KNOWN_GAP_END_SECONDS` above), adding
- *  however many of them fall within each window (relative to request
- *  time) to that window's count, and bumping `last` forward if one is
- *  more recent than what the source reported. No-ops on anything that
- *  isn't the [header, 7d, 30d, 90d] shape stats.json is supposed to be. */
-function patchStatsWishes(data: unknown): unknown {
-	if (!Array.isArray(data) || data.length !== 4) return data;
-	const [header, ...reports] = data as WzStatsDump;
-	const backfilledWishes = backfillEvents.filter((e) => e.type === "wish" && e.date <= KNOWN_GAP_END_SECONDS);
-	const now = Date.now();
-
-	const patchedReports = reports.map((report, i) => {
-		const windowMs = [7, 30, 90][i] * DAY_MS;
-		const cutoff = now - windowMs;
-		const patched = { ...report };
-		for (const realm of REALMS) {
-			const inWindow = backfilledWishes.filter((w) => w.location === realm && w.date * 1000 >= cutoff);
-			if (inWindow.length === 0) continue;
-			const realmReport = patched[realm];
-			const newestBackfilled = Math.max(...inWindow.map((w) => w.date));
-			patched[realm] = {
-				...realmReport,
-				wishes: {
-					count: (realmReport?.wishes?.count ?? 0) + inWindow.length,
-					last: Math.max(realmReport?.wishes?.last ?? 0, newestBackfilled),
-				},
-			};
-		}
-		return patched;
-	});
-
-	return [header, ...patchedReports];
 }
 
 interface VercelLikeRequest {
@@ -323,10 +274,16 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			responseData = mergeEventSources(results.map((r) => r.data));
 		} else if (endpoint === "stats") {
 			const preferred = preferCortOvh(results)!;
-			// Only the mirror's stats.json needs the backfilled-wishes patch —
-			// cort.ovh's own copy already has that window natively, and
-			// patching it too would double-count those wishes.
-			responseData = preferred.url.includes("cort.ovh") ? preferred.data : patchStatsWishes(preferred.data);
+			// cort.ovh's own live copy is always accurate — pass it straight
+			// through. Otherwise we're stuck with the mirror's, which is
+			// computed server-side from its own incomplete event history and
+			// undercounts forts.total/wishes.count the same way its events.json
+			// does. There's no per-field way to correct a pre-aggregated report
+			// (unlike events.json's per-event dedup), so the frozen
+			// _statsBackfill.ts snapshot substitutes for the whole thing — a
+			// stale-but-accurate answer beats a live-but-wrong one. See
+			// _statsBackfill.ts's own doc comment for when it was last refreshed.
+			responseData = preferred.url.includes("cort.ovh") ? preferred.data : statsBackfill;
 		} else {
 			responseData = preferCortOvh(results)!.data;
 		}

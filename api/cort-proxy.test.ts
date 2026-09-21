@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import handler from "./cort-proxy";
+import statsBackfill from "./_statsBackfill";
 
 interface MockResult {
 	status: number | null;
@@ -218,19 +219,25 @@ describe("cort-proxy handler", () => {
 		expect(body[1]).toEqual(live[1]);
 	});
 
-	it("falls back to the mirror for stats when cort.ovh's attempt fails — stats.json IS the same [header, 7d, 30d, 90d] WzStatsDump tuple on both hosts", async () => {
+	it("falls back to the frozen _statsBackfill.ts snapshot, NOT the mirror's own undercounted copy, when cort.ovh's attempt fails", async () => {
 		const emptyRealm = () => ({
 			forts: { total: 3, captured: 1, recovered: 1, most_captured: { name: "Imperia Castle", count: 1 } },
 			wishes: { count: 0, last: null },
 		});
-		const payload = [
+		// The mirror's own numbers here are deliberately implausible (way
+		// lower than the real _statsBackfill.ts snapshot) — if the response
+		// ever matched this instead of the snapshot, that's the regression
+		// this guards against (stats.json can't be per-field corrected like
+		// events.json, so the mirror's copy must never be served as-is once
+		// cort.ovh is unreachable).
+		const mirrorPayload = [
 			{ generated: 1 },
 			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 			{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
 		];
 		const fetchMock = vi.fn(async (url: string) => {
-			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorPayload };
 			return { ok: false, status: 502, json: async () => ({}) };
 		});
 		vi.stubGlobal("fetch", fetchMock);
@@ -239,129 +246,37 @@ describe("cort-proxy handler", () => {
 		await handler({ method: "GET", query: { endpoint: "stats" } }, res);
 
 		expect(result.status).toBe(200);
-		// forts and every other field pass through untouched — only wishes
-		// gets patched (see the dedicated test below), and only for realms
-		// _eventsBackfill.ts's wishes are actually in.
-		const body = result.json as typeof payload;
-		expect(body[1].Alsius.forts).toEqual(payload[1].Alsius.forts);
-		expect(body[1].Ignis).toEqual(payload[1].Ignis); // Ignis has no backfilled wishes at all
+		expect(result.json).toEqual(statsBackfill);
+		expect(result.json).not.toEqual(mirrorPayload);
 	});
 
-	it("prefers cort.ovh's stats.json over the mirror's when both succeed, and does NOT apply the backfill patch to it (would double-count)", async () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
-		try {
-			const realmWith = (count: number) => ({
-				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
-				wishes: { count, last: null },
-			});
-			// cort.ovh's own copy already has the real wish counts (it never had
-			// the mirror's gap) — patching it on top would double it.
-			const cortOvhPayload = [
-				{ generated: 1 },
-				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
-				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
-				{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
-			];
-			const mirrorPayload = [
-				{ generated: 1 },
-				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
-				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
-				{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
-			];
-			const fetchMock = vi.fn(async (url: string) => {
-				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorPayload };
-				return { ok: true, json: async () => cortOvhPayload };
-			});
-			vi.stubGlobal("fetch", fetchMock);
+	it("prefers cort.ovh's own stats.json over both the mirror's and the frozen snapshot when it succeeds", async () => {
+		const realmWith = (count: number) => ({
+			forts: { total: 500, captured: 250, recovered: 250, most_captured: { name: "Fort Herbred", count: 80 } },
+			wishes: { count, last: null },
+		});
+		const cortOvhPayload = [
+			{ generated: 1 },
+			{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+			{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+			{ Alsius: realmWith(2), Ignis: realmWith(0), Syrtis: realmWith(2) },
+		];
+		const mirrorPayload = [
+			{ generated: 1 },
+			{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+			{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+			{ Alsius: realmWith(0), Ignis: realmWith(0), Syrtis: realmWith(0) },
+		];
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => mirrorPayload };
+			return { ok: true, json: async () => cortOvhPayload };
+		});
+		vi.stubGlobal("fetch", fetchMock);
 
-			const { res, result } = mockRes();
-			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "stats" } }, res);
 
-			const body = result.json as typeof cortOvhPayload;
-			for (const window of [1, 2, 3] as const) {
-				expect(body[window].Syrtis.wishes.count).toBe(2); // untouched, not 4
-				expect(body[window].Alsius.wishes.count).toBe(2); // untouched, not 4
-			}
-		} finally {
-			vi.useRealTimers();
-		}
-	});
-
-	it("patches the mirror's stats.json wishes count/last for 7d/30d/90d from the same backfilled wishes events.json gets — the actual reported bug ('pedidos do dragão por reino filtrado por semana' reading 0 for every realm)", async () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2026-09-08T12:00:00Z"));
-		try {
-			const emptyRealm = () => ({
-				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
-				wishes: { count: 0, last: null },
-			});
-			const payload = [
-				{ generated: 1 },
-				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
-				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
-				{ Alsius: emptyRealm(), Ignis: emptyRealm(), Syrtis: emptyRealm() },
-			];
-			const fetchMock = vi.fn(async (url: string) => {
-				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
-				return { ok: false, status: 502, json: async () => ({}) };
-			});
-			vi.stubGlobal("fetch", fetchMock);
-
-			const { res, result } = mockRes();
-			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
-
-			// _eventsBackfill.ts carries 2 Syrtis + 2 Alsius wishes (2026-09-02,
-			// -04, -05×2) + 0 Ignis — all inside every window from this pinned
-			// "now" (2026-09-08).
-			const body = result.json as typeof payload;
-			for (const window of [1, 2, 3] as const) {
-				expect(body[window].Syrtis.wishes.count).toBe(2);
-				expect(body[window].Alsius.wishes.count).toBe(2);
-				expect(body[window].Ignis.wishes.count).toBe(0); // untouched — no backfilled Ignis wishes
-			}
-		} finally {
-			vi.useRealTimers();
-		}
-	});
-
-	it("does NOT patch in wishes newer than the confirmed-empty gap window, even from the mirror — the mirror isn't always empty, so a newer backfilled wish risks double-counting one it already caught itself", async () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2026-09-10T12:00:00Z"));
-		try {
-			// _eventsBackfill.ts also carries an Ignis wish from 2026-09-09
-			// (outside the confirmed gap — Ignis has zero *pre*-gap backfilled
-			// wishes, so it's a clean isolated check), but the mirror's
-			// stats.json here already reports 1 Ignis wish for every window —
-			// simulating that the mirror did catch that one itself. If the
-			// patch blindly added the backfilled 2026-09-09 Ignis wish on top,
-			// this would read 2.
-			const realmWith = (count: number) => ({
-				forts: { total: 0, captured: 0, recovered: 0, most_captured: { name: "", count: 0 } },
-				wishes: { count, last: null },
-			});
-			const payload = [
-				{ generated: 1 },
-				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
-				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
-				{ Alsius: realmWith(0), Ignis: realmWith(1), Syrtis: realmWith(0) },
-			];
-			const fetchMock = vi.fn(async (url: string) => {
-				if (url.includes("cort.go.yo.fr")) return { ok: true, json: async () => payload };
-				return { ok: false, status: 502, json: async () => ({}) };
-			});
-			vi.stubGlobal("fetch", fetchMock);
-
-			const { res, result } = mockRes();
-			await handler({ method: "GET", query: { endpoint: "stats" } }, res);
-
-			const body = result.json as typeof payload;
-			for (const window of [1, 2, 3] as const) {
-				expect(body[window].Ignis.wishes.count).toBe(1); // untouched, not bumped to 2
-			}
-		} finally {
-			vi.useRealTimers();
-		}
+		expect(result.json).toEqual(cortOvhPayload);
 	});
 
 	it("rejects an endpoint outside the allow-list instead of proxying an arbitrary URL", async () => {
