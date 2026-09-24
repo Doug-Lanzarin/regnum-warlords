@@ -9,7 +9,7 @@ import { NOTIFICATIONS_PAUSED } from "../../src/features/alerts/notificationsPau
 import type { Realm } from "../../src/data/realms";
 import { translate } from "../../src/i18n/translate.js";
 import type { AlertSettings } from "../../src/types/alertSettings";
-import type { BossSpawnData } from "../../src/types/bosses";
+import { computeBossSpawnData } from "../../src/features/bosses/bossScheduleEngine.js";
 import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine.js";
 import { computeWallVulnerability } from "../../src/features/wz/wzEventsEngine.js";
 import type { WzEvent, WzEventsDumpEntry, WzStatusData } from "../../src/types/wz";
@@ -47,7 +47,6 @@ interface VercelLikeResponse {
 }
 
 const WZ_STATUS_URL = "https://cort.ovh/api/var/wstatus.json";
-const BOSSES_URL = "https://cort.ovh/api/bin/bosses/bosses.php";
 const EVENTS_URL = "https://cort.ovh/api/var/events.json";
 
 // Same reasoning as api/cort-proxy.ts's CORT_USER_AGENT: Node's default
@@ -217,17 +216,12 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		// those failure modes becomes the same graceful 502, keeping a bad
 		// run a transient failure instead of getting the cron switched off.
 		let wzData: WzStatusData;
-		let bossData: BossSpawnData;
 		try {
-			const [wzRes, bossRes] = await Promise.all([
-				fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
-				fetch(BOSSES_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } }),
-			]);
-			if (!wzRes.ok || !bossRes.ok) {
-				throw new Error(`cort.ovh respondeu wstatus=${wzRes.status} bosses=${bossRes.status}`);
+			const wzRes = await fetch(WZ_STATUS_URL, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": CORT_USER_AGENT } });
+			if (!wzRes.ok) {
+				throw new Error(`cort.ovh respondeu wstatus=${wzRes.status}`);
 			}
 			wzData = (await wzRes.json()) as WzStatusData;
-			bossData = (await bossRes.json()) as BossSpawnData;
 		} catch (err) {
 			console.error("push tick: cort.ovh fetch/parse failed", err);
 			res.status(502).json({ error: "cort.ovh indisponível." });
@@ -263,6 +257,9 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			console.error("push tick: failed to update live snapshot", err);
 		}
 
+		// No fetch for this anymore — see computeBossSpawnData's doc comment
+		// for why boss respawns are a pure function of `now`, not a live feed.
+		const bossData = computeBossSpawnData(now);
 		const { next: nextBossState, events: bossEvents } = detectBossEvents(bossData, now, prevState.boss);
 
 		const prevWallVulnerable = prevState.wallVulnerable ?? { Alsius: false, Ignis: false, Syrtis: false };

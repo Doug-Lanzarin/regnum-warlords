@@ -186,9 +186,6 @@ const es: Record<TranslationKey, string> = {
 	"wz.eventWishSuffix": " ¡le pidió un deseo al dragón!",
 
 	// -- bosses --
-	"bosses.loading": "Cargando horarios de los jefes…",
-	"bosses.errorTitle": "No se pudieron cargar los jefes",
-	"bosses.fetchError": "No se pudieron cargar los horarios de los jefes. Esto suele pasar cuando la red bloquea el acceso a cort.ovh.",
 	"bosses.featuredTag": "Por reaparecer",
 	"bosses.countdownStatus": "Estado",
 	"bosses.countdownReappearIn": "Reaparece en",

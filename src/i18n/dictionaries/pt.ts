@@ -188,10 +188,6 @@ const pt = {
 	"wz.eventWishSuffix": " fez um pedido ao dragão!",
 
 	// -- bosses --
-	"bosses.loading": "Carregando horários dos chefes…",
-	"bosses.errorTitle": "Não foi possível carregar os chefes",
-	"bosses.fetchError":
-		"Não foi possível carregar os horários dos chefes. Isso costuma acontecer quando a rede bloqueia o acesso a cort.ovh.",
 	"bosses.featuredTag": "Próximo a reaparecer",
 	"bosses.countdownStatus": "Status",
 	"bosses.countdownReappearIn": "Reaparece em",

@@ -1,36 +1,24 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { useT } from "../../i18n/useT";
+import { useEffect, useMemo, useState } from "react";
 import type { BossSpawnData } from "../../types/bosses";
-import { bossStore } from "./bossStore";
+import { computeBossSpawnData } from "./bossScheduleEngine";
 
 export interface UseBossTimersResult {
-	data: BossSpawnData | null;
-	loading: boolean;
-	/** Set whenever the most recent fetch failed. Cleared on success. Can be
-	 *  true alongside non-null `data` (a background refresh failed but we
-	 *  still have the last good snapshot to show). */
-	error: string | null;
+	data: BossSpawnData;
 	/** Live clock (ms since epoch), ticking every second, for countdown math. */
 	now: number;
-	lastUpdated: number | null;
-	refresh: () => void;
 }
 
 /**
- * Boss respawn timers are genuinely live data (unlike the Trainer's static
- * skill tables) — there's no sane "bundled" fallback to ship, a snapshot
- * would just be wrong a few hours later. So this only ever tries the live
- * CoRT feed, fetched once per app open (no periodic re-poll — see
- * `bossStore.ts`'s doc comment), and surfaces a clear error when it's
- * unreachable (common on locked-down networks that block cort.ovh).
- *
- * The fetch/poll itself lives in `bossStore`, shared by every caller — this
- * hook just subscribes to it, so mounting the Épicos page again (or having
- * `AlertsWatcher` mounted alongside it) never triggers a redundant fetch.
+ * Boss respawn timers used to be a genuinely live feed (CoRT's
+ * `bosses.php`), but CoRT's own v5 rewrite removed that endpoint entirely
+ * and moved the computation to run client-side instead (see
+ * `bossScheduleEngine.ts`'s doc comment) — there's nothing left to fetch,
+ * fail, or retry. `data` is just a pure function of `now`, recomputed on
+ * every tick; the old loading/error/refresh/lastUpdated fields this hook
+ * used to expose (back when it shared a module-level fetch via
+ * `bossStore`) no longer mean anything and are gone.
  */
 export function useBossTimers(): UseBossTimersResult {
-	const t = useT();
-	const state = useSyncExternalStore(bossStore.subscribe, bossStore.getSnapshot);
 	const [now, setNow] = useState(() => Date.now());
 
 	useEffect(() => {
@@ -38,14 +26,7 @@ export function useBossTimers(): UseBossTimersResult {
 		return () => clearInterval(tick);
 	}, []);
 
-	const refresh = useCallback(() => bossStore.refresh(), []);
+	const data = useMemo(() => computeBossSpawnData(now), [now]);
 
-	return {
-		data: state.data,
-		loading: state.loading,
-		error: state.hasError ? t("bosses.fetchError") : null,
-		now,
-		lastUpdated: state.lastUpdated,
-		refresh,
-	};
+	return { data, now };
 }

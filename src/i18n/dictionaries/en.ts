@@ -186,9 +186,6 @@ const en: Record<TranslationKey, string> = {
 	"wz.eventWishSuffix": " made a wish to the dragon!",
 
 	// -- bosses --
-	"bosses.loading": "Loading boss timers…",
-	"bosses.errorTitle": "Couldn't load the bosses",
-	"bosses.fetchError": "Couldn't load the boss timers. This usually happens when the network blocks access to cort.ovh.",
 	"bosses.featuredTag": "About to respawn",
 	"bosses.countdownStatus": "Status",
 	"bosses.countdownReappearIn": "Respawns in",

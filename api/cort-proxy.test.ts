@@ -90,14 +90,13 @@ describe("cort-proxy handler", () => {
 		expect(result.json).toEqual(payload);
 	});
 
-	it("maps 'events', 'stats' and 'bosses' to their own cort.go.yo.fr and cort.ovh URLs", async () => {
+	it("maps 'events' and 'stats' to their own cort.go.yo.fr and cort.ovh URLs", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => [{}, {}, {}, {}] });
 		vi.stubGlobal("fetch", fetchMock);
 
 		for (const [endpoint, urls] of [
 			["events", ["https://cort.go.yo.fr/CoRT/api/var/events.json", "https://cort.ovh/api/var/events.json"]],
 			["stats", ["https://cort.go.yo.fr/CoRT/api/var/stats.json", "https://cort.ovh/api/var/stats.json"]],
-			["bosses", ["https://cort.go.yo.fr/CoRT/api/bin/bosses/bosses.php", "https://cort.ovh/api/bin/bosses/bosses.php"]],
 		] as const) {
 			const { res } = mockRes();
 			await handler({ method: "GET", query: { endpoint } }, res);
@@ -388,7 +387,7 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 		expect(result.status).toBe(502);
 	});
 
-	it("never falls back to GitHub for endpoints other than wstatus (events/stats/bosses have no snapshot to fall back to), even after both live candidates fail", async () => {
+	it("never falls back to GitHub for endpoints other than wstatus (events/stats have no snapshot to fall back to), even after both live candidates fail", async () => {
 		const fetchMock = vi.fn(async (url: string) => {
 			if (url.includes("cort.ovh") || url.includes("cort.go.yo.fr")) return { ok: false, status: 502, json: async () => ({}) };
 			throw new Error(`should never reach GitHub for a non-wstatus endpoint: ${url}`);
@@ -396,7 +395,7 @@ describe("cort-proxy handler — wstatus fallback to the last stored snapshot", 
 		vi.stubGlobal("fetch", fetchMock);
 
 		const { res, result } = mockRes();
-		await handler({ method: "GET", query: { endpoint: "bosses" } }, res);
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
 
 		expect(result.status).toBe(502);
 	});
