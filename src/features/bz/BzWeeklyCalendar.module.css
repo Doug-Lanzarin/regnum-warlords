@@ -1,0 +1,89 @@
+.card {
+	padding: var(--space-4) var(--space-5);
+}
+
+.scroller {
+	display: flex;
+	gap: var(--space-3);
+	overflow-x: auto;
+	scrollbar-width: thin;
+	padding-bottom: 4px;
+}
+
+.day {
+	flex: 0 0 108px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	padding: var(--space-3);
+	border-radius: var(--radius-md);
+	background: var(--forms);
+}
+
+.dayHeader {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.weekday {
+	font-weight: 700;
+	font-size: 0.82rem;
+	text-transform: capitalize;
+}
+
+.todayTag {
+	font-size: 0.66rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--links);
+}
+
+.empty {
+	color: var(--faded);
+	font-size: 0.8rem;
+}
+
+.slotList {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.slot {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 5px 8px;
+	border-radius: var(--radius-sm);
+	background: var(--card-background);
+	border: 1px solid var(--border);
+	font-size: 0.76rem;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.slot[data-highlighted="true"] {
+	background: color-mix(in srgb, var(--links) 16%, var(--card-background));
+	border-color: var(--links);
+	color: var(--foreground);
+}
+
+.slotTag {
+	font-size: 0.62rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--links);
+}
+
+@media (max-width: 480px) {
+	.card {
+		padding: var(--space-3) var(--space-4);
+	}
+	.day {
+		flex-basis: 96px;
+	}
+}

@@ -14,10 +14,12 @@ const es: Record<TranslationKey, string> = {
 
 	// -- tools hub --
 	"tools.title": "Herramientas",
-	"tools.subtitle": "Calculadoras para planear y armar tu personaje.",
+	"tools.subtitle": "Calculadoras y herramientas para planear, armar y jugar.",
 	"tools.trainerDesc": "Build de disciplinas y habilidades por puntos de poder.",
 	"tools.armorLabel": "Calculadora de Armadura",
 	"tools.armorDesc": "Puntos de protección por tipo de daño según tu armadura.",
+	"tools.bzLabel": "Horarios de la BZ",
+	"tools.bzDesc": "Calendario semanal con los horarios en que abre la Battle Zone.",
 
 	// -- armor calculator --
 	"armor.title": "Calculadora de Armadura",
@@ -59,6 +61,18 @@ const es: Record<TranslationKey, string> = {
 	"armor.simTypeLabel": "Tipo",
 	"armor.simDamageLabel": "Daño bruto",
 	"armor.simCaption": "de {damage} de daño bruto en {type} — reducción de ~{pct}%",
+
+	// -- bz --
+	"bz.title": "Horarios de la BZ",
+	"bz.subtitle": "Calendario semanal de cuándo abre y cierra la Battle Zone.",
+	"bz.statusOpen": "ABIERTA",
+	"bz.statusClosed": "CERRADA",
+	"bz.endsIn": "Termina en {duration}",
+	"bz.opensIn": "Abre en {duration}",
+	"bz.today": "Hoy",
+	"bz.nowTag": "ahora",
+	"bz.nextTag": "próxima",
+	"bz.localHoursNote": "Todos los horarios están en tu huso horario local.",
 
 	// -- common --
 	"common.tryAgain": "Intentar de nuevo",

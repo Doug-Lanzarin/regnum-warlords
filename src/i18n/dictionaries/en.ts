@@ -14,10 +14,12 @@ const en: Record<TranslationKey, string> = {
 
 	// -- tools hub --
 	"tools.title": "Tools",
-	"tools.subtitle": "Calculators to plan and build your character.",
+	"tools.subtitle": "Calculators and tools to plan, build and play.",
 	"tools.trainerDesc": "Discipline and skill build by power points.",
 	"tools.armorLabel": "Armor Calculator",
 	"tools.armorDesc": "Protection points per damage type from your armor.",
+	"tools.bzLabel": "BZ Schedule",
+	"tools.bzDesc": "Weekly calendar of when the Battle Zone opens.",
 
 	// -- armor calculator --
 	"armor.title": "Armor Calculator",
@@ -59,6 +61,18 @@ const en: Record<TranslationKey, string> = {
 	"armor.simTypeLabel": "Type",
 	"armor.simDamageLabel": "Raw damage",
 	"armor.simCaption": "out of {damage} raw {type} damage — ~{pct}% reduced",
+
+	// -- bz --
+	"bz.title": "BZ Schedule",
+	"bz.subtitle": "Weekly calendar of when the Battle Zone opens and closes.",
+	"bz.statusOpen": "OPEN",
+	"bz.statusClosed": "CLOSED",
+	"bz.endsIn": "Ends in {duration}",
+	"bz.opensIn": "Opens in {duration}",
+	"bz.today": "Today",
+	"bz.nowTag": "now",
+	"bz.nextTag": "next",
+	"bz.localHoursNote": "All hours are in your local timezone.",
 
 	// -- common --
 	"common.tryAgain": "Try again",

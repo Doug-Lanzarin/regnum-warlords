@@ -12,9 +12,10 @@ import styles from "./BottomTabBar.module.css";
 const TABS: { to: string; labelKey: TranslationKey; Icon: typeof WzTabIcon; end: boolean; alsoActiveOn?: string[] }[] = [
 	{ to: "/", labelKey: "nav.wz", Icon: WzTabIcon, end: true },
 	{ to: "/bosses", labelKey: "nav.bosses", Icon: BossesTabIcon, end: false },
-	// The Trainer and Armor Calculator pages live under this hub — highlight
-	// the tab while inside either of them too, not just on /ferramentas.
-	{ to: "/ferramentas", labelKey: "nav.tools", Icon: ToolsTabIcon, end: false, alsoActiveOn: ["/trainer", "/armadura"] },
+	// The Trainer, Armor Calculator and BZ schedule pages live under this
+	// hub — highlight the tab while inside any of them too, not just on
+	// /ferramentas.
+	{ to: "/ferramentas", labelKey: "nav.tools", Icon: ToolsTabIcon, end: false, alsoActiveOn: ["/trainer", "/armadura", "/bz"] },
 ];
 
 /** The app's only navigation surface (the header was removed) — docked to

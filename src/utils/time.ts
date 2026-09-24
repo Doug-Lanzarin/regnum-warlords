@@ -61,3 +61,10 @@ export function formatHourMinute(unixMs: number, lang: Lang): string {
 export function formatHourMinuteSecond(unixMs: number, lang: Lang): string {
 	return new Date(unixMs).toLocaleTimeString(LOCALE[lang], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
+
+/** Weekday name for a `Date`, e.g. "qui" (short) or "quinta-feira" (long) —
+ *  for a recurring-schedule calendar where the date itself is incidental
+ *  and only the day-of-week matters. */
+export function formatWeekday(date: Date, lang: Lang, style: "short" | "long" = "short"): string {
+	return date.toLocaleDateString(LOCALE[lang], { weekday: style });
+}

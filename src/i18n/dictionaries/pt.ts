@@ -15,10 +15,12 @@ const pt = {
 
 	// -- tools hub --
 	"tools.title": "Ferramentas",
-	"tools.subtitle": "Calculadoras pra montar e planejar seu personagem.",
+	"tools.subtitle": "Calculadoras e ferramentas pra montar, planejar e jogar.",
 	"tools.trainerDesc": "Build de disciplinas e habilidades por pontos de poder.",
 	"tools.armorLabel": "Calculadora de Armadura",
 	"tools.armorDesc": "Pontos de proteção por tipo de dano a partir da sua armadura.",
+	"tools.bzLabel": "Horários da BZ",
+	"tools.bzDesc": "Calendário semanal com os horários em que a Battle Zone abre.",
 
 	// -- armor calculator --
 	"armor.title": "Calculadora de Armadura",
@@ -60,6 +62,18 @@ const pt = {
 	"armor.simTypeLabel": "Tipo",
 	"armor.simDamageLabel": "Dano bruto",
 	"armor.simCaption": "de {damage} de dano bruto em {type} — redução de ~{pct}%",
+
+	// -- bz --
+	"bz.title": "Horários da BZ",
+	"bz.subtitle": "Calendário semanal de quando a Battle Zone abre e fecha.",
+	"bz.statusOpen": "ABERTA",
+	"bz.statusClosed": "FECHADA",
+	"bz.endsIn": "Termina em {duration}",
+	"bz.opensIn": "Abre em {duration}",
+	"bz.today": "Hoje",
+	"bz.nowTag": "agora",
+	"bz.nextTag": "próxima",
+	"bz.localHoursNote": "Todos os horários no seu fuso horário local.",
 
 	// -- common --
 	"common.tryAgain": "Tentar novamente",
