@@ -2,43 +2,71 @@
 	padding: var(--space-4) var(--space-5);
 }
 
-.scroller {
-	display: flex;
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
 	gap: var(--space-3);
-	overflow-x: auto;
-	scrollbar-width: thin;
-	padding-bottom: 4px;
 }
 
 .day {
-	flex: 0 0 108px;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-2);
+	gap: 10px;
 	padding: var(--space-3);
 	border-radius: var(--radius-md);
 	background: var(--forms);
+	border: 1px solid transparent;
+	min-width: 0;
+}
+.day[data-today="true"] {
+	border-color: color-mix(in srgb, var(--links) 40%, transparent);
+	background: color-mix(in srgb, var(--links) 6%, var(--forms));
 }
 
 .dayHeader {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2px;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-2);
 }
 
 .weekday {
 	font-weight: 700;
-	font-size: 0.82rem;
+	font-size: 0.86rem;
 	text-transform: capitalize;
 }
 
 .todayTag {
-	font-size: 0.66rem;
-	font-weight: 700;
+	font-size: 0.62rem;
+	font-weight: 800;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	color: var(--links);
+	flex-shrink: 0;
+}
+
+/* 24h shape strip — a thin track spanning midnight to midnight, with each
+   BZ window drawn as a positioned segment. Purely decorative (the chip
+   list below is the actual source of truth), so it's aria-hidden. */
+.timeline {
+	position: relative;
+	height: 6px;
+	border-radius: 999px;
+	background: var(--card-background);
+	overflow: hidden;
+}
+
+.timelineSegment {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	background: var(--faded);
+	opacity: 0.5;
+	border-radius: 999px;
+}
+.timelineSegment[data-highlighted="true"] {
+	background: var(--links);
+	opacity: 1;
 }
 
 .empty {
@@ -54,16 +82,17 @@
 
 .slot {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 2px;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	row-gap: 2px;
+	column-gap: 6px;
 	padding: 5px 8px;
 	border-radius: var(--radius-sm);
 	background: var(--card-background);
 	border: 1px solid var(--border);
 	font-size: 0.76rem;
 	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
 }
 .slot[data-highlighted="true"] {
 	background: color-mix(in srgb, var(--links) 16%, var(--card-background));
@@ -71,19 +100,46 @@
 	color: var(--foreground);
 }
 
+.slotMain {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.slotDot {
+	width: 5px;
+	height: 5px;
+	border-radius: 999px;
+	background: var(--faded);
+	flex-shrink: 0;
+}
+.slot[data-highlighted="true"] .slotDot {
+	background: var(--links);
+}
+
+.slotTime {
+	white-space: nowrap;
+}
+
 .slotTag {
-	font-size: 0.62rem;
+	font-size: 0.6rem;
 	font-weight: 800;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	color: var(--links);
+	flex-shrink: 0;
+	margin-left: auto;
 }
 
 @media (max-width: 480px) {
 	.card {
 		padding: var(--space-3) var(--space-4);
 	}
-	.day {
-		flex-basis: 96px;
+	.grid {
+		grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+		gap: var(--space-2);
+	}
+	.slotTime {
+		font-size: 0.72rem;
 	}
 }

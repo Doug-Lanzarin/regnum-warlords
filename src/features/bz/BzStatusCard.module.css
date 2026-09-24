@@ -1,31 +1,55 @@
 .card {
-	padding: var(--space-5);
+	padding: var(--space-4) var(--space-5);
 	display: flex;
-	flex-wrap: wrap;
 	align-items: center;
-	gap: var(--space-3);
+	gap: var(--space-4);
+	border-left: 4px solid var(--border);
+}
+.card[data-open="true"] {
+	border-left-color: var(--green);
 }
 
-.badge {
-	display: inline-flex;
-	align-items: center;
-	padding: 6px 16px;
-	border-radius: var(--radius-full);
-	font-weight: 800;
-	font-size: 0.95rem;
-	letter-spacing: 0.02em;
-	background: var(--forms);
-	color: var(--faded);
-	border: 1px solid var(--border);
+.dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 999px;
+	flex-shrink: 0;
+	background: var(--faded);
 }
-.badge[data-open="true"] {
-	background: color-mix(in srgb, var(--green) 18%, var(--card-background));
+.card[data-open="true"] .dot {
+	background: var(--green);
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 25%, transparent);
+}
+
+.text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.status {
+	font-family: var(--font-display);
+	font-weight: 800;
+	font-size: 1.15rem;
+	letter-spacing: 0.02em;
+}
+.card[data-open="true"] .status {
 	color: var(--green);
-	border-color: color-mix(in srgb, var(--green) 45%, var(--border));
 }
 
 .countdown {
-	font-size: 0.95rem;
+	font-size: 0.85rem;
 	color: var(--faded);
 	font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+	.card {
+		padding: var(--space-3) var(--space-4);
+		gap: var(--space-3);
+	}
+	.status {
+		font-size: 1.05rem;
+	}
 }

@@ -17,15 +17,16 @@ export function BzStatusCard({ status, now }: Props) {
 	const remainingMs = status.changesAtMs === null ? null : status.changesAtMs - now;
 
 	return (
-		<div className={`card ${styles.card}`}>
-			<span className={styles.badge} data-open={status.isOpen}>
-				{t(status.isOpen ? "bz.statusOpen" : "bz.statusClosed")}
-			</span>
-			{remainingMs !== null && (
-				<span className={styles.countdown}>
-					{t(status.isOpen ? "bz.endsIn" : "bz.opensIn", { duration: formatDuration(Math.max(0, remainingMs)) })}
-				</span>
-			)}
+		<div className={`card ${styles.card}`} data-open={status.isOpen}>
+			<div className={styles.dot} aria-hidden />
+			<div className={styles.text}>
+				<span className={styles.status}>{t(status.isOpen ? "bz.statusOpen" : "bz.statusClosed")}</span>
+				{remainingMs !== null && (
+					<span className={styles.countdown}>
+						{t(status.isOpen ? "bz.endsIn" : "bz.opensIn", { duration: formatDuration(Math.max(0, remainingMs)) })}
+					</span>
+				)}
+			</div>
 		</div>
 	);
 }
