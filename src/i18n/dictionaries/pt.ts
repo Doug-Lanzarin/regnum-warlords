@@ -112,7 +112,7 @@ const pt = {
 
 	// -- logs --
 	"logs.title": "Logs",
-	"logs.subtitle": "Pedidos ao Dragão e eventos recentes da Warzone.",
+	"logs.subtitle": "Histórico de eventos e estatísticas da Warzone.",
 
 	"wz.fortsTitle": "Fortes",
 	"wz.fortsCount": "{count} fortes",

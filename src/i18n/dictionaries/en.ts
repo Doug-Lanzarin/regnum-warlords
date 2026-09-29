@@ -110,7 +110,7 @@ const en: Record<TranslationKey, string> = {
 
 	// -- logs --
 	"logs.title": "Logs",
-	"logs.subtitle": "Dragon wishes and recent Warzone events.",
+	"logs.subtitle": "Event history and stats for the Warzone.",
 
 	"wz.fortsTitle": "Forts",
 	"wz.fortsCount": "{count} forts",

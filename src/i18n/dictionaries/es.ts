@@ -110,7 +110,7 @@ const es: Record<TranslationKey, string> = {
 
 	// -- logs --
 	"logs.title": "Logs",
-	"logs.subtitle": "Pedidos al dragón y eventos recientes de la Warzone.",
+	"logs.subtitle": "Historial de eventos y estadísticas de la Warzone.",
 
 	"wz.fortsTitle": "Fuertes",
 	"wz.fortsCount": "{count} fuertes",
