@@ -10,12 +10,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // testing exactly at midnight.
 const NOW = Date.UTC(2024, 0, 20, 12, 0, 0);
 
-/** A wish or fort event `daysAgo` UTC calendar days before NOW (0 = today). */
+/** A wish event for `location` `daysAgo` UTC calendar days before NOW (0 = today). */
 function wish(location: string, daysAgo: number): WzEvent {
 	return { date: Math.floor((NOW - daysAgo * DAY_MS) / 1000), name: "", location, owner: "", type: "wish" };
-}
-function fort(location: string, owner: string, daysAgo: number): WzEvent {
-	return { date: Math.floor((NOW - daysAgo * DAY_MS) / 1000), name: "Some Fort", location, owner, type: "fort" };
 }
 
 function balanceOf(events: WzEvent[], realm: "Alsius" | "Ignis" | "Syrtis" = "Alsius") {
@@ -46,7 +43,7 @@ describe("computeRealmBalance", () => {
 		expect(b.predictedChangeAtMs).toBe((today + 1) * 86400 * 1000);
 	});
 
-	it("tier 0 with 3+ wishes and no realm invading hard, predicting the drop to tier 3 once the oldest wish ages out", () => {
+	it("tier 0 with 3+ wishes and no enemy wishing hard, predicting the drop to tier 3 once the oldest wish ages out", () => {
 		const events = [wish("Alsius", 1), wish("Alsius", 2), wish("Alsius", 9)];
 		const b = balanceOf(events);
 		expect(b.tier).toBe(0);
@@ -55,65 +52,66 @@ describe("computeRealmBalance", () => {
 		expect(b.predictedChangeAtMs).toBe((today + 1) * 86400 * 1000);
 	});
 
-	it("an enemy invading 5+ times does NOT drag a fewer-than-2-wishes realm down to tier 2 — the wish-count rules are checked first and win outright", () => {
-		const events = [wish("Alsius", 1), ...Array.from({ length: 7 }, (_, i) => fort("Alsius", "Ignis", i))];
+	it("an enemy making 5+ wishes does NOT drag a fewer-than-2-wishes realm down to tier 2 — the wish-count rules are checked first and win outright", () => {
+		const events = [wish("Alsius", 1), ...Array.from({ length: 7 }, (_, i) => wish("Ignis", i))];
 		const b = balanceOf(events);
 		expect(b.wishCount).toBe(1);
-		expect(b.topInvader).toEqual({ realm: "Ignis", count: 7 });
+		expect(b.topEnemyWishes).toEqual({ realm: "Ignis", count: 7 });
 		expect(b.tier).toBe(4); // not 2 — see the doc comment on tierFor for why
 	});
 
-	it("tier 2 when wishes are 3+ AND some enemy invaded 5+ times — the invasion rule intercepts before falling to tier 0", () => {
+	it("tier 2 when wishes are 3+ AND some enemy made 5+ of its own wishes — the enemy-wish rule intercepts before falling to tier 0", () => {
 		const events = [
 			wish("Alsius", 1),
 			wish("Alsius", 2),
 			wish("Alsius", 3),
-			...Array.from({ length: 5 }, (_, i) => fort("Alsius", "Ignis", i)),
+			...Array.from({ length: 5 }, (_, i) => wish("Ignis", i)),
 		];
 		const b = balanceOf(events);
 		expect(b.wishCount).toBe(3);
-		expect(b.topInvader?.count).toBe(5);
+		expect(b.topEnemyWishes?.count).toBe(5);
 		expect(b.tier).toBe(2);
 	});
 
-	it("stays tier 0 when wishes are 3+ but the top invader is one short of the trigger (4, not 5)", () => {
+	it("stays tier 0 when wishes are 3+ but the top enemy is one short of the trigger (4, not 5)", () => {
 		const events = [
 			wish("Alsius", 1),
 			wish("Alsius", 2),
 			wish("Alsius", 3),
-			...Array.from({ length: 4 }, (_, i) => fort("Alsius", "Ignis", i)),
+			...Array.from({ length: 4 }, (_, i) => wish("Ignis", i)),
 		];
 		const b = balanceOf(events);
-		expect(b.topInvader?.count).toBe(4);
+		expect(b.topEnemyWishes?.count).toBe(4);
 		expect(b.tier).toBe(0);
 	});
 
-	it("topInvader picks whichever enemy realm invaded the most, not just whichever is checked first", () => {
+	it("topEnemyWishes picks whichever enemy realm wished the most, not just whichever is checked first", () => {
 		const events = [
 			wish("Alsius", 1),
 			wish("Alsius", 2),
 			wish("Alsius", 3),
-			...Array.from({ length: 2 }, (_, i) => fort("Alsius", "Ignis", i)),
-			...Array.from({ length: 6 }, (_, i) => fort("Alsius", "Syrtis", i)),
+			...Array.from({ length: 2 }, (_, i) => wish("Ignis", i)),
+			...Array.from({ length: 6 }, (_, i) => wish("Syrtis", i)),
 		];
 		const b = balanceOf(events);
-		expect(b.topInvader).toEqual({ realm: "Syrtis", count: 6 });
+		expect(b.topEnemyWishes).toEqual({ realm: "Syrtis", count: 6 });
 		expect(b.tier).toBe(2);
 	});
 
-	it("predicts the drop from tier 2 back toward tier 0 once the invading realm's count ages below the trigger", () => {
+	it("predicts the drop from tier 2 back toward tier 0 once the wishing enemy's count ages below the trigger", () => {
 		// 3 wishes spread across recent days (won't age out within the window
-		// this test cares about) + exactly 5 invasions, the oldest of which is
-		// 9 days back — removing it drops the invader to 4, under the trigger.
+		// this test cares about) + exactly 5 enemy wishes, the oldest of which
+		// is 9 days back — removing it drops the enemy count to 4, under the
+		// trigger.
 		const events = [
 			wish("Alsius", 0),
 			wish("Alsius", 0),
 			wish("Alsius", 0),
-			fort("Alsius", "Ignis", 0),
-			fort("Alsius", "Ignis", 1),
-			fort("Alsius", "Ignis", 2),
-			fort("Alsius", "Ignis", 3),
-			fort("Alsius", "Ignis", 9),
+			wish("Ignis", 0),
+			wish("Ignis", 1),
+			wish("Ignis", 2),
+			wish("Ignis", 3),
+			wish("Ignis", 9),
 		];
 		const b = balanceOf(events);
 		expect(b.tier).toBe(2);
@@ -147,7 +145,7 @@ describe("computeRealmBalance", () => {
 		expect(balanceOf([oneSecondAfter]).wishCount).toBe(1);
 	});
 
-	it("only counts wishes/invasions for the realm they're about — Ignis's wishes don't count toward Alsius's balance", () => {
+	it("only counts wishes for the realm they're about — Ignis's wishes count toward Ignis's own wishCount, not Alsius's", () => {
 		const events = [wish("Ignis", 1), wish("Ignis", 2), wish("Ignis", 3)];
 		const b = balanceOf(events, "Alsius");
 		expect(b.wishCount).toBe(0);

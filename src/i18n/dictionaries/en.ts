@@ -124,10 +124,10 @@ const en: Record<TranslationKey, string> = {
 	"wz.gemTooltipUnowned": "Gem {n}: unowned",
 
 	"wz.balanceTitle": "Balance",
-	"wz.balanceSubtitle": "Per-realm balance level, based on dragon wishes and invasions in the last 10 days (UTC day).",
+	"wz.balanceSubtitle": "Per-realm balance level, based on this realm's own dragon wishes and enemy realms' wishes in the last 10 days (UTC day).",
 	"wz.balanceTierLabel": "Balance",
 	"wz.balanceWishCount": "{count} dragon wishes in the last 10 days",
-	"wz.balanceTopInvader": "{realm} invaded {count}x in the last 10 days",
+	"wz.balanceTopEnemyWishes": "{realm} made {count} dragon wishes in the last 10 days",
 	"wz.balancePredictedChange": "Predicted change: {date}",
 	"wz.balanceNoChangePredicted": "No change predicted",
 	"wz.historyAriaLabel": "History of {name}",

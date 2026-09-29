@@ -124,10 +124,10 @@ const es: Record<TranslationKey, string> = {
 	"wz.gemTooltipUnowned": "Gema {n}: sin dueño",
 
 	"wz.balanceTitle": "Balance",
-	"wz.balanceSubtitle": "Nivel de balance por reino, según los pedidos al dragón e invasiones de los últimos 10 días (día UTC).",
+	"wz.balanceSubtitle": "Nivel de balance por reino, según los pedidos al dragón del propio reino y de los reinos enemigos en los últimos 10 días (día UTC).",
 	"wz.balanceTierLabel": "Balance",
 	"wz.balanceWishCount": "{count} pedidos al dragón en los últimos 10 días",
-	"wz.balanceTopInvader": "{realm} invadió {count}x en los últimos 10 días",
+	"wz.balanceTopEnemyWishes": "{realm} hizo {count} pedidos al dragón en los últimos 10 días",
 	"wz.balancePredictedChange": "Cambio previsto: {date}",
 	"wz.balanceNoChangePredicted": "Sin cambio previsto",
 	"wz.historyAriaLabel": "Historial de {name}",

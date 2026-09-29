@@ -39,9 +39,9 @@ export function BalanceSection({ balances }: Props) {
 							</div>
 
 							<p className={styles.detail}>{t("wz.balanceWishCount", { count: balance.wishCount })}</p>
-							{balance.tier === 2 && balance.topInvader && (
+							{balance.tier === 2 && balance.topEnemyWishes && (
 								<p className={styles.detail}>
-									{t("wz.balanceTopInvader", { realm: balance.topInvader.realm, count: balance.topInvader.count })}
+									{t("wz.balanceTopEnemyWishes", { realm: balance.topEnemyWishes.realm, count: balance.topEnemyWishes.count })}
 								</p>
 							)}
 
