@@ -1,0 +1,108 @@
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.heading {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding-left: 2px;
+}
+.heading h2 {
+	font-size: 1.05rem;
+}
+
+.subtitle {
+	font-size: 0.76rem;
+	color: var(--faded);
+}
+
+.grid {
+	display: grid;
+	/* auto-fit (not auto-fill): with exactly 3 realm columns, auto-fill was
+	   reserving extra empty tracks on wide screens and shoving the 3 real
+	   ones to the left instead of spreading them evenly across the row —
+	   see GemsSection.module.css, same layout. */
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: var(--space-3);
+	align-items: start;
+}
+
+.column {
+	--realm-color: var(--links);
+	padding: var(--space-4);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	min-width: 0;
+}
+
+.columnHeader {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.realmDot {
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	background: var(--realm-color);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--realm-color) 25%, transparent);
+	flex-shrink: 0;
+}
+
+.realmName {
+	margin: 0;
+	font-size: 0.95rem;
+	font-family: var(--font-display);
+	font-weight: 700;
+	flex: 1;
+}
+
+.tierBox {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: var(--space-3);
+	border-radius: var(--radius-md);
+	background: color-mix(in srgb, var(--realm-color) 10%, var(--card-background-alt));
+	border: 1px solid color-mix(in srgb, var(--realm-color) 30%, var(--border));
+}
+
+.tierLabel {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--faded);
+}
+
+.tierValue {
+	font-family: var(--font-display);
+	font-size: 2rem;
+	font-weight: 800;
+	color: var(--realm-color);
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+
+.detail {
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--foreground);
+}
+
+.predicted {
+	margin: 0;
+	font-size: 0.74rem;
+	color: var(--faded);
+}
+
+@media (max-width: 640px) {
+	.grid {
+		grid-template-columns: 1fr;
+	}
+}

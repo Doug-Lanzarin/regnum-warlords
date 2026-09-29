@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { BalanceSection } from "../features/wz/BalanceSection";
 import { FortHistoryModal } from "../features/wz/FortHistoryModal";
 import { FortsSection } from "../features/wz/FortsSection";
 import { GemsSection } from "../features/wz/GemsSection";
@@ -8,6 +9,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { useT } from "../i18n/useT";
 import { computeFortStatuses, computeGemStatuses, type FortStatus } from "../features/wz/wzEngine";
 import { computeFortHistory, computeWallVulnerability } from "../features/wz/wzEventsEngine";
+import { computeRealmBalance } from "../features/wz/wzBalanceEngine";
 import { formatHourMinuteSecond } from "../utils/time";
 import { WzMap } from "../features/wz/WzMap";
 import styles from "./WzStatusPage.module.css";
@@ -35,6 +37,7 @@ export function WzStatusPage() {
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const wallVulnerability = useMemo(() => computeWallVulnerability(forts, eventsDump, now), [forts, eventsDump, now]);
+	const balances = useMemo(() => computeRealmBalance(eventsDump, now), [eventsDump, now]);
 	const fortHistory = useMemo(
 		() => (selectedFort ? computeFortHistory(eventsDump, selectedFort.name, lang) : []),
 		[eventsDump, selectedFort, lang],
@@ -93,6 +96,7 @@ export function WzStatusPage() {
 			)}
 			<FortsSection forts={forts} wallVulnerability={wallVulnerability} now={now} />
 			<GemsSection gems={gems} />
+			<BalanceSection balances={balances} />
 		</div>
 	);
 }

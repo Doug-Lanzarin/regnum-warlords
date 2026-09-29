@@ -124,6 +124,15 @@ const pt = {
 	"wz.gemsClaimed": "{claimed}/{total} reivindicadas",
 	"wz.gemTooltipOwned": "Gema {n}: {owner}",
 	"wz.gemTooltipUnowned": "Gema {n}: sem dono",
+
+	"wz.balanceTitle": "Balanço",
+	"wz.balanceSubtitle": "Nível de balanceamento por reino, com base nos pedidos ao dragão e invasões dos últimos 10 dias (dia UTC).",
+	"wz.balanceTierLabel": "Balanço",
+	"wz.balanceWishCount": "{count} pedidos ao dragão nos últimos 10 dias",
+	"wz.balanceTopInvader": "{realm} invadiu {count}x nos últimos 10 dias",
+	"wz.balancePredictedChange": "Previsão de mudança: {date}",
+	"wz.balanceNoChangePredicted": "Sem mudança prevista",
+
 	"wz.historyAriaLabel": "Histórico de {name}",
 	"wz.historyCaptures": "{count} capturas recentes",
 	"wz.historyClose": "Fechar",
