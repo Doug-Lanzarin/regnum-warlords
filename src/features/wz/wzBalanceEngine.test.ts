@@ -3,20 +3,20 @@ import type { WzEvent } from "../../types/wz";
 import { computeRealmBalance } from "./wzBalanceEngine";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-// Noon UTC, deliberately not midnight — every helper below places events at
-// this same time-of-day on whichever UTC calendar day it targets, so a
-// day-bucketing bug (off-by-one against the UTC-midnight boundary the game
-// itself uses) would show up as a wrong day, not get masked by always
-// testing exactly at midnight.
-const NOW = Date.UTC(2024, 0, 20, 12, 0, 0);
+const HOUR_MS = 60 * 60 * 1000;
+const NOW = Date.UTC(2024, 0, 20, 12, 0, 0); // noon UTC
 
-/** A wish event for `location` `daysAgo` UTC calendar days before NOW (0 = today). */
-function wish(location: string, daysAgo: number): WzEvent {
-	return { date: Math.floor((NOW - daysAgo * DAY_MS) / 1000), name: "", location, owner: "", type: "wish" };
+/** A wish event for `location`, `msAgo` milliseconds before NOW. */
+function wish(location: string, msAgo: number): WzEvent {
+	return { date: Math.floor((NOW - msAgo) / 1000), name: "", location, owner: "", type: "wish" };
 }
 
 function balanceOf(events: WzEvent[], realm: "Alsius" | "Ignis" | "Syrtis" = "Alsius") {
 	return computeRealmBalance(events, NOW).find((b) => b.realm === realm)!;
+}
+
+function nextUtcMidnightAfter(ms: number): number {
+	return Math.ceil(ms / DAY_MS) * DAY_MS;
 }
 
 describe("computeRealmBalance", () => {
@@ -28,32 +28,33 @@ describe("computeRealmBalance", () => {
 	});
 
 	it("tier 4 with exactly 1 wish (still 'fewer than 2') — aging it out doesn't cross a tier boundary either", () => {
-		const b = balanceOf([wish("Alsius", 3)]);
+		const b = balanceOf([wish("Alsius", 3 * DAY_MS)]);
 		expect(b.tier).toBe(4);
 		expect(b.predictedChangeAtMs).toBeNull();
 	});
 
-	it("tier 3 with exactly 2 wishes, and predicts the change to tier 4 for when the older one ages out", () => {
-		const events = [wish("Alsius", 1), wish("Alsius", 9)]; // 9 = the oldest day still in a 10-day window
+	it("tier 3 with exactly 2 wishes, predicting the change to tier 4 at the next UTC midnight after the older one's 240h expiry", () => {
+		const oldWishAgeMs = 9 * DAY_MS + 5 * HOUR_MS; // still inside the 240h window
+		const events = [wish("Alsius", 1 * DAY_MS), wish("Alsius", oldWishAgeMs)];
 		const b = balanceOf(events);
 		expect(b.tier).toBe(3);
 		expect(b.wishCount).toBe(2);
-		// The day-9 wish ages out at the next UTC midnight (1 day from "today").
-		const today = Math.floor(Math.floor(NOW / 1000) / 86400);
-		expect(b.predictedChangeAtMs).toBe((today + 1) * 86400 * 1000);
+		const rawExpiryMs = NOW - oldWishAgeMs + 10 * DAY_MS;
+		expect(b.predictedChangeAtMs).toBe(nextUtcMidnightAfter(rawExpiryMs));
 	});
 
-	it("tier 0 with 3+ wishes and no enemy wishing hard, predicting the drop to tier 3 once the oldest wish ages out", () => {
-		const events = [wish("Alsius", 1), wish("Alsius", 2), wish("Alsius", 9)];
+	it("tier 0 with 3+ wishes and no enemy wishing hard, predicting the drop to tier 3 once the oldest wish's 240h expires", () => {
+		const oldWishAgeMs = 9 * DAY_MS;
+		const events = [wish("Alsius", 1 * DAY_MS), wish("Alsius", 2 * DAY_MS), wish("Alsius", oldWishAgeMs)];
 		const b = balanceOf(events);
 		expect(b.tier).toBe(0);
 		expect(b.wishCount).toBe(3);
-		const today = Math.floor(Math.floor(NOW / 1000) / 86400);
-		expect(b.predictedChangeAtMs).toBe((today + 1) * 86400 * 1000);
+		const rawExpiryMs = NOW - oldWishAgeMs + 10 * DAY_MS;
+		expect(b.predictedChangeAtMs).toBe(nextUtcMidnightAfter(rawExpiryMs));
 	});
 
 	it("an enemy making 5+ wishes does NOT drag a fewer-than-2-wishes realm down to tier 2 — the wish-count rules are checked first and win outright", () => {
-		const events = [wish("Alsius", 1), ...Array.from({ length: 7 }, (_, i) => wish("Ignis", i))];
+		const events = [wish("Alsius", 1 * DAY_MS), ...Array.from({ length: 7 }, (_, i) => wish("Ignis", i * DAY_MS))];
 		const b = balanceOf(events);
 		expect(b.wishCount).toBe(1);
 		expect(b.topEnemyWishes).toEqual({ realm: "Ignis", count: 7 });
@@ -62,10 +63,10 @@ describe("computeRealmBalance", () => {
 
 	it("tier 2 when wishes are 3+ AND some enemy made 5+ of its own wishes — the enemy-wish rule intercepts before falling to tier 0", () => {
 		const events = [
-			wish("Alsius", 1),
-			wish("Alsius", 2),
-			wish("Alsius", 3),
-			...Array.from({ length: 5 }, (_, i) => wish("Ignis", i)),
+			wish("Alsius", 1 * DAY_MS),
+			wish("Alsius", 2 * DAY_MS),
+			wish("Alsius", 3 * DAY_MS),
+			...Array.from({ length: 5 }, (_, i) => wish("Ignis", i * DAY_MS)),
 		];
 		const b = balanceOf(events);
 		expect(b.wishCount).toBe(3);
@@ -75,10 +76,10 @@ describe("computeRealmBalance", () => {
 
 	it("stays tier 0 when wishes are 3+ but the top enemy is one short of the trigger (4, not 5)", () => {
 		const events = [
-			wish("Alsius", 1),
-			wish("Alsius", 2),
-			wish("Alsius", 3),
-			...Array.from({ length: 4 }, (_, i) => wish("Ignis", i)),
+			wish("Alsius", 1 * DAY_MS),
+			wish("Alsius", 2 * DAY_MS),
+			wish("Alsius", 3 * DAY_MS),
+			...Array.from({ length: 4 }, (_, i) => wish("Ignis", i * DAY_MS)),
 		];
 		const b = balanceOf(events);
 		expect(b.topEnemyWishes?.count).toBe(4);
@@ -87,73 +88,62 @@ describe("computeRealmBalance", () => {
 
 	it("topEnemyWishes picks whichever enemy realm wished the most, not just whichever is checked first", () => {
 		const events = [
-			wish("Alsius", 1),
-			wish("Alsius", 2),
-			wish("Alsius", 3),
-			...Array.from({ length: 2 }, (_, i) => wish("Ignis", i)),
-			...Array.from({ length: 6 }, (_, i) => wish("Syrtis", i)),
+			wish("Alsius", 1 * DAY_MS),
+			wish("Alsius", 2 * DAY_MS),
+			wish("Alsius", 3 * DAY_MS),
+			...Array.from({ length: 2 }, (_, i) => wish("Ignis", i * DAY_MS)),
+			...Array.from({ length: 6 }, (_, i) => wish("Syrtis", i * DAY_MS)),
 		];
 		const b = balanceOf(events);
 		expect(b.topEnemyWishes).toEqual({ realm: "Syrtis", count: 6 });
 		expect(b.tier).toBe(2);
 	});
 
-	it("predicts the drop from tier 2 back toward tier 0 once the wishing enemy's count ages below the trigger", () => {
-		// 3 wishes spread across recent days (won't age out within the window
-		// this test cares about) + exactly 5 enemy wishes, the oldest of which
-		// is 9 days back — removing it drops the enemy count to 4, under the
-		// trigger.
+	it("predicts the drop from tier 2 back toward tier 0 once the wishing enemy's oldest wish ages past 240h", () => {
+		const oldestAgeMs = 9 * DAY_MS + 12 * HOUR_MS;
 		const events = [
-			wish("Alsius", 0),
-			wish("Alsius", 0),
-			wish("Alsius", 0),
+			wish("Alsius", 1 * HOUR_MS),
+			wish("Alsius", 2 * HOUR_MS),
+			wish("Alsius", 3 * HOUR_MS),
 			wish("Ignis", 0),
-			wish("Ignis", 1),
-			wish("Ignis", 2),
-			wish("Ignis", 3),
-			wish("Ignis", 9),
+			wish("Ignis", 1 * DAY_MS),
+			wish("Ignis", 2 * DAY_MS),
+			wish("Ignis", 3 * DAY_MS),
+			wish("Ignis", oldestAgeMs),
 		];
 		const b = balanceOf(events);
 		expect(b.tier).toBe(2);
-		const today = Math.floor(Math.floor(NOW / 1000) / 86400);
-		expect(b.predictedChangeAtMs).toBe((today + 1) * 86400 * 1000);
+		const rawExpiryMs = NOW - oldestAgeMs + 10 * DAY_MS;
+		expect(b.predictedChangeAtMs).toBe(nextUtcMidnightAfter(rawExpiryMs));
 	});
 
-	it("buckets events by UTC calendar day (the window's own start boundary), not a rolling 240h window — two wishes 2 seconds apart land on opposite sides of it", () => {
-		// windowStartDay's own UTC midnight — 9 calendar days before today's
-		// midnight (today is Jan 20, so this is Jan 11 00:00 UTC).
-		const windowStartMidnight = Date.UTC(2024, 0, 11, 0, 0, 0);
-		const oneSecondBefore: WzEvent = {
-			date: Math.floor(windowStartMidnight / 1000) - 1,
-			name: "",
-			location: "Alsius",
-			owner: "",
-			type: "wish",
-		};
-		const oneSecondAfter: WzEvent = {
-			date: Math.floor(windowStartMidnight / 1000) + 1,
-			name: "",
-			location: "Alsius",
-			owner: "",
-			type: "wish",
-		};
-		// A rolling 240h (10-day) window measured from NOW would include both
-		// (they're 2 seconds apart, both well under 240h old) — only a
-		// calendar-day window whose start is pinned to this exact UTC
-		// midnight excludes the earlier one.
-		expect(balanceOf([oneSecondBefore]).wishCount).toBe(0);
-		expect(balanceOf([oneSecondAfter]).wishCount).toBe(1);
+	it("rounds a predicted change up to the next UTC midnight, never showing a mid-day timestamp", () => {
+		// A wish whose exact 240h expiry lands mid-afternoon shouldn't predict
+		// a mid-afternoon change — the observable tier only ever flips at a
+		// UTC day boundary (21:00 in Brasília time), per the game's own
+		// day-reset convention.
+		const events = [wish("Alsius", 1 * DAY_MS), wish("Alsius", 9 * DAY_MS + 3 * HOUR_MS)];
+		const b = balanceOf(events);
+		expect(b.predictedChangeAtMs).not.toBeNull();
+		expect(b.predictedChangeAtMs! % DAY_MS).toBe(0);
+	});
+
+	it("uses an exact rolling 240h window, not a calendar-day one — a wish 239h59m old still counts, one at 240h01m doesn't", () => {
+		const justInside = balanceOf([wish("Alsius", 10 * DAY_MS - 60_000)]);
+		const justOutside = balanceOf([wish("Alsius", 10 * DAY_MS + 60_000)]);
+		expect(justInside.wishCount).toBe(1);
+		expect(justOutside.wishCount).toBe(0);
 	});
 
 	it("only counts wishes for the realm they're about — Ignis's wishes count toward Ignis's own wishCount, not Alsius's", () => {
-		const events = [wish("Ignis", 1), wish("Ignis", 2), wish("Ignis", 3)];
+		const events = [wish("Ignis", 1 * DAY_MS), wish("Ignis", 2 * DAY_MS), wish("Ignis", 3 * DAY_MS)];
 		const b = balanceOf(events, "Alsius");
 		expect(b.wishCount).toBe(0);
 		expect(b.tier).toBe(4);
 	});
 
 	it("computes all 3 realms independently in one call", () => {
-		const events = [wish("Alsius", 1), wish("Alsius", 2)];
+		const events = [wish("Alsius", 1 * DAY_MS), wish("Alsius", 2 * DAY_MS)];
 		const all = computeRealmBalance(events, NOW);
 		expect(all).toHaveLength(3);
 		expect(all.find((b) => b.realm === "Alsius")!.tier).toBe(3);
