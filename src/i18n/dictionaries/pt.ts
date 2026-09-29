@@ -6,6 +6,7 @@ const pt = {
 	"nav.ariaLabel": "Navegação principal",
 	"nav.wz": "Warzone",
 	"nav.bosses": "Épicos",
+	"nav.logs": "Logs",
 	"nav.trainer": "Treinador",
 	"nav.tools": "Ferramentas",
 	"nav.notifications": "Notificações",
@@ -21,6 +22,7 @@ const pt = {
 	"tools.armorDesc": "Pontos de proteção por tipo de dano a partir da sua armadura.",
 	"tools.bzLabel": "Horários da BZ",
 	"tools.bzDesc": "Calendário semanal com os horários em que a Battle Zone abre.",
+	"tools.bossesDesc": "Contagem regressiva para o respawn dos chefes de mundo.",
 
 	// -- armor calculator --
 	"armor.title": "Calculadora de Armadura",
@@ -107,6 +109,11 @@ const pt = {
 	"wz.eventsTitle": "Eventos da WZ",
 	"wz.eventsCountLabel": "eventos recentes",
 	"wz.eventsEmpty": "Nenhum evento recente.",
+
+	// -- logs --
+	"logs.title": "Logs",
+	"logs.subtitle": "Pedidos ao Dragão e eventos recentes da Warzone.",
+
 	"wz.fortsTitle": "Fortes",
 	"wz.fortsCount": "{count} fortes",
 	"wz.fortsHeld": "{held}/{total} sob controle",

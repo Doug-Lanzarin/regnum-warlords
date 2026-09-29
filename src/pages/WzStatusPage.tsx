@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { EventsLogSection } from "../features/wz/EventsLogSection";
 import { FortActivityChart, type FortActivityRange } from "../features/wz/FortActivityChart";
 import { FortActivityTimeline } from "../features/wz/FortActivityTimeline";
 import { FortHistoryModal } from "../features/wz/FortHistoryModal";
@@ -16,8 +15,6 @@ import { useLanguage } from "../i18n/LanguageContext";
 import { useT } from "../i18n/useT";
 import { computeFortStatuses, computeGemStatuses, type FortStatus } from "../features/wz/wzEngine";
 import {
-	computeDragonWishes,
-	computeEventLog,
 	computeFortActivityByRealm,
 	computeFortActivityFromStats,
 	computeEnemyFortHoldDuration,
@@ -59,8 +56,6 @@ export function WzStatusPage() {
 	const forts = useMemo(() => (data ? computeFortStatuses(data) : []), [data]);
 	const gems = useMemo(() => (data ? computeGemStatuses(data) : []), [data]);
 	const wallVulnerability = useMemo(() => computeWallVulnerability(forts, eventsDump, now), [forts, eventsDump, now]);
-	const events = useMemo(() => computeEventLog(eventsDump, lang), [eventsDump, lang]);
-	const wishes = useMemo(() => computeDragonWishes(eventsDump, lang), [eventsDump, lang]);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
 			"24h": computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
@@ -152,10 +147,6 @@ export function WzStatusPage() {
 			)}
 			<FortsSection forts={forts} wallVulnerability={wallVulnerability} now={now} />
 			<GemsSection gems={gems} />
-			{wishes.length > 0 && (
-				<EventsLogSection events={wishes} now={now} title={t("wz.dragonWishesTitle")} countLabel={t("wz.dragonWishesCountLabel")} />
-			)}
-			<EventsLogSection events={events} now={now} />
 			<FortActivityChart rangeData={fortActivityRanges} />
 			<FortActivityTimeline events={eventsDump} now={now} />
 			<RealmHourlyActivityChart points={hourlyActivity} />

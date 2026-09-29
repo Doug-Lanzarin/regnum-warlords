@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/translate";
-import { BossesTabIcon, ToolsTabIcon, WzTabIcon } from "./NavIcons";
+import { LogsTabIcon, ToolsTabIcon, WzTabIcon } from "./NavIcons";
 import styles from "./BottomTabBar.module.css";
 
 // The Notificações tab is pulled for now (notifications feature itself is
@@ -9,13 +9,22 @@ import styles from "./BottomTabBar.module.css";
 // still exists and works for anyone with a direct link, just not linked
 // from here. Re-add a `{ to: "/notificacoes", ... }` entry to bring the tab
 // back once notifications are unpaused.
+//
+// Épicos (Bosses) moved off this bar and into the Ferramentas hub as a
+// tile instead (see ToolsPage.tsx) — this slot is Logs now.
 const TABS: { to: string; labelKey: TranslationKey; Icon: typeof WzTabIcon; end: boolean; alsoActiveOn?: string[] }[] = [
 	{ to: "/", labelKey: "nav.wz", Icon: WzTabIcon, end: true },
-	{ to: "/bosses", labelKey: "nav.bosses", Icon: BossesTabIcon, end: false },
-	// The Trainer, Armor Calculator and BZ schedule pages live under this
-	// hub — highlight the tab while inside any of them too, not just on
-	// /ferramentas.
-	{ to: "/ferramentas", labelKey: "nav.tools", Icon: ToolsTabIcon, end: false, alsoActiveOn: ["/trainer", "/armadura", "/bz"] },
+	{ to: "/logs", labelKey: "nav.logs", Icon: LogsTabIcon, end: false },
+	// The Trainer, Armor Calculator, BZ schedule and Bosses pages live under
+	// this hub — highlight the tab while inside any of them too, not just
+	// on /ferramentas.
+	{
+		to: "/ferramentas",
+		labelKey: "nav.tools",
+		Icon: ToolsTabIcon,
+		end: false,
+		alsoActiveOn: ["/trainer", "/armadura", "/bz", "/bosses"],
+	},
 ];
 
 /** The app's only navigation surface (the header was removed) — docked to

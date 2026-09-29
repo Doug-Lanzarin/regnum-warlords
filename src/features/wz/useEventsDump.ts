@@ -6,6 +6,7 @@ import type { WzEvent } from "../../types/wz";
 export interface UseEventsDumpResult {
 	events: WzEvent[];
 	loading: boolean;
+	lastUpdated: number | null;
 	refresh: () => void;
 }
 
@@ -18,6 +19,7 @@ export interface UseEventsDumpResult {
 export function useEventsDump(): UseEventsDumpResult {
 	const [events, setEvents] = useState<WzEvent[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 	const requestId = useRef(0);
 
 	const fetchData = useCallback(() => {
@@ -28,6 +30,7 @@ export function useEventsDump(): UseEventsDumpResult {
 			.then((result) => {
 				if (id !== requestId.current) return;
 				setEvents(result.filter((entry): entry is WzEvent => "type" in entry));
+				setLastUpdated(Date.now());
 			})
 			.catch(() => {
 				// fails soft — see doc comment above
@@ -43,5 +46,5 @@ export function useEventsDump(): UseEventsDumpResult {
 		return () => clearInterval(poll);
 	}, [fetchData]);
 
-	return { events, loading, refresh: fetchData };
+	return { events, loading, lastUpdated, refresh: fetchData };
 }

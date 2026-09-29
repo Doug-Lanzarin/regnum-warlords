@@ -1,0 +1,41 @@
+.wrap {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-5);
+}
+
+.header {
+	padding: var(--space-5);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.title {
+	font-size: 1.3rem;
+}
+
+.subtitle {
+	margin: 4px 0 0;
+	color: var(--faded);
+	font-size: 0.88rem;
+	max-width: 56ch;
+}
+
+.statusRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	font-size: 0.8rem;
+	color: var(--faded);
+}
+
+@media (max-width: 480px) {
+	.header {
+		padding: var(--space-4);
+	}
+	.statusRow {
+		width: 100%;
+	}
+}

@@ -3,6 +3,7 @@ import { AppLayout } from "./layout/AppLayout";
 import { TrainerPage } from "./pages/TrainerPage";
 import { ArmorPage } from "./pages/ArmorPage";
 import { BzSchedulePage } from "./pages/BzSchedulePage";
+import { LogsPage } from "./pages/LogsPage";
 import { ToolsPage } from "./pages/ToolsPage";
 import { BossesPage } from "./pages/BossesPage";
 import { WzStatusPage } from "./pages/WzStatusPage";
@@ -22,6 +23,7 @@ export default function App() {
 				<Route path="/armadura" element={<ArmorPage />} />
 				<Route path="/bz" element={<BzSchedulePage />} />
 				<Route path="/bosses" element={<BossesPage />} />
+				<Route path="/logs" element={<LogsPage />} />
 				<Route path="/notificacoes" element={<NotificationsPage />} />
 				<Route path="/warlords/gerenciamento/notificacoes" element={<NotificationsAdminPage />} />
 				<Route path="*" element={<NotFoundPage />} />

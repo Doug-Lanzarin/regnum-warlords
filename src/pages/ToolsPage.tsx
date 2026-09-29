@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useT } from "../i18n/useT";
-import { ArmorToolIcon, BzToolIcon, TrainerTabIcon } from "../layout/NavIcons";
+import { ArmorToolIcon, BossesTabIcon, BzToolIcon, TrainerTabIcon } from "../layout/NavIcons";
 import styles from "./ToolsPage.module.css";
 
 export function ToolsPage() {
@@ -35,6 +35,14 @@ export function ToolsPage() {
 					</span>
 					<span className={styles.tileTitle}>{t("tools.bzLabel")}</span>
 					<span className={styles.tileDesc}>{t("tools.bzDesc")}</span>
+				</Link>
+
+				<Link to="/bosses" className={`card ${styles.tile}`}>
+					<span className={styles.tileIcon}>
+						<BossesTabIcon className={styles.tileIconSvg} />
+					</span>
+					<span className={styles.tileTitle}>{t("nav.bosses")}</span>
+					<span className={styles.tileDesc}>{t("tools.bossesDesc")}</span>
 				</Link>
 			</div>
 		</div>

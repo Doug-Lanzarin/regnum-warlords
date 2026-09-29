@@ -5,6 +5,7 @@ const en: Record<TranslationKey, string> = {
 	"nav.ariaLabel": "Main navigation",
 	"nav.wz": "Warzone",
 	"nav.bosses": "Epics",
+	"nav.logs": "Logs",
 	"nav.trainer": "Trainer",
 	"nav.tools": "Tools",
 	"nav.notifications": "Notifications",
@@ -20,6 +21,7 @@ const en: Record<TranslationKey, string> = {
 	"tools.armorDesc": "Protection points per damage type from your armor.",
 	"tools.bzLabel": "BZ Schedule",
 	"tools.bzDesc": "Weekly calendar of when the Battle Zone opens.",
+	"tools.bossesDesc": "Countdown to world bosses' respawns.",
 
 	// -- armor calculator --
 	"armor.title": "Armor Calculator",
@@ -105,6 +107,11 @@ const en: Record<TranslationKey, string> = {
 	"wz.eventsTitle": "WZ events",
 	"wz.eventsCountLabel": "recent events",
 	"wz.eventsEmpty": "No recent events.",
+
+	// -- logs --
+	"logs.title": "Logs",
+	"logs.subtitle": "Dragon wishes and recent Warzone events.",
+
 	"wz.fortsTitle": "Forts",
 	"wz.fortsCount": "{count} forts",
 	"wz.fortsHeld": "{held}/{total} held",
