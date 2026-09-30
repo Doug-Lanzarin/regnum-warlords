@@ -53,11 +53,17 @@
    a single column on its own, but the explicit override below matches
    this app's usual phone breakpoint exactly, same as GemsSection/
    BalanceSection's own grids. */
+/* stretch (not start): the "Tempo médio de" card runs taller than its
+   neighbors (its rows carry a 2-line value+sample-count each, unlike the
+   single-line rows in the other two) — stretching lets every card in the
+   row match that tallest one instead of trailing off at different
+   heights. Each chart's own `.card` class centers its content in the
+   extra space (see FortActivityChart.module.css/RealmDurationChart.module.css). */
 .chartsGrid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
 	gap: var(--space-5);
-	align-items: start;
+	align-items: stretch;
 }
 
 @media (max-width: 480px) {

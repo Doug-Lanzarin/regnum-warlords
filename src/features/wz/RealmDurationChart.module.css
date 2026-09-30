@@ -105,6 +105,14 @@
 
 .card {
 	padding: var(--space-4) var(--space-5);
+	/* Same rationale as FortActivityChart.module.css's own `.card` — grows
+	   to match a taller/shorter neighbor when stretched by LogsPage's
+	   chartsGrid. This is usually the tallest of the three already (2-line
+	   rows), so this mostly keeps it consistent if that ever changes. */
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 
 .empty {
