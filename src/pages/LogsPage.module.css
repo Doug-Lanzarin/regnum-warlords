@@ -31,11 +31,33 @@
 	color: var(--faded);
 }
 
+/* The compact bar-style charts (fort activity, hold/recovery duration,
+   wishes by realm) are short and don't need the full page width the way
+   the timeline/hourly-curve charts do — letting them sit 2-3 per row on
+   wide screens keeps them from looking stretched out. `.container`'s own
+   1400px cap keeps auto-fit from ever going past 3 columns here. Below
+   the minmax threshold (phones, most tablets) this already collapses to
+   a single column on its own, but the explicit override below matches
+   this app's usual phone breakpoint exactly, same as GemsSection/
+   BalanceSection's own grids. */
+.chartsGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+	gap: var(--space-5);
+	align-items: start;
+}
+
 @media (max-width: 480px) {
 	.header {
 		padding: var(--space-4);
 	}
 	.statusRow {
 		width: 100%;
+	}
+}
+
+@media (max-width: 640px) {
+	.chartsGrid {
+		grid-template-columns: 1fr;
 	}
 }
