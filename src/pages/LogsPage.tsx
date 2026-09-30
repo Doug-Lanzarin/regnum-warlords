@@ -115,8 +115,11 @@ export function LogsPage() {
 				<EventsLogSection events={wishes} now={now} title={t("wz.dragonWishesTitle")} countLabel={t("wz.dragonWishesCountLabel")} />
 			)}
 			<EventsLogSection events={events} now={now} />
-			<FortActivityTimeline events={eventsDump} now={now} />
-			<RealmHourlyActivityChart points={hourlyActivity} />
+
+			<div className={styles.timelineGrid}>
+				<FortActivityTimeline events={eventsDump} now={now} />
+				<RealmHourlyActivityChart points={hourlyActivity} />
+			</div>
 
 			<div className={styles.chartsGrid}>
 				<FortActivityChart rangeData={fortActivityRanges} />

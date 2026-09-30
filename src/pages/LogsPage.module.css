@@ -31,6 +31,19 @@
 	color: var(--faded);
 }
 
+/* The two time-series charts (24h timeline, weekly hourly curve) need
+   real width to keep their time axis legible, so they only pair up on
+   genuinely wide desktop screens (minmax(620px,...) means 2 columns need
+   ~1360px+ of viewport) — phones and tablets always get them full width,
+   one per row, same as the compact grid above but with a taller
+   threshold. */
+.timelineGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(620px, 1fr));
+	gap: var(--space-5);
+	align-items: start;
+}
+
 /* The compact bar-style charts (fort activity, hold/recovery duration,
    wishes by realm) are short and don't need the full page width the way
    the timeline/hourly-curve charts do — letting them sit 2-3 per row on
@@ -57,7 +70,8 @@
 }
 
 @media (max-width: 640px) {
-	.chartsGrid {
+	.chartsGrid,
+	.timelineGrid {
 		grid-template-columns: 1fr;
 	}
 }
