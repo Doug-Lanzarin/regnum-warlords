@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { REALMS, REALM_COLOR, type Realm } from "../../data/realms";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
 import { formatHourMinute } from "../../utils/time";
@@ -7,10 +8,13 @@ import type { RealmActivityByTimeOfDay } from "./wzEventsEngine";
 import styles from "./RealmHourlyActivityChart.module.css";
 
 const VB_W = 600;
-const VB_H = 220;
+// Same rationale as FortActivityTimeline's own VB_H_MOBILE/VB_H_DESKTOP —
+// flatter on wide screens where this chart otherwise runs noticeably tall,
+// phones keep the original ratio.
+const VB_H_MOBILE = 220;
+const VB_H_DESKTOP = 140;
 const PAD = { top: 14, right: 10, bottom: 26, left: 28 };
 const PLOT_W = VB_W - PAD.left - PAD.right;
-const PLOT_H = VB_H - PAD.top - PAD.bottom;
 
 /** Same "round up to a friendly gridline number" helper `FortActivityTimeline`
  *  uses, just allowing 1-decimal steps too — per-day averages are often well
@@ -48,6 +52,9 @@ export function RealmHourlyActivityChart({ points }: Props) {
 	const [visible, setVisible] = useState<Record<Realm, boolean>>({ Alsius: true, Ignis: true, Syrtis: true });
 	const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
+	const isDesktop = useMediaQuery("(min-width: 641px)");
+	const VB_H = isDesktop ? VB_H_DESKTOP : VB_H_MOBILE;
+	const PLOT_H = VB_H - PAD.top - PAD.bottom;
 
 	const n = points.length;
 	const visibleRealms = REALMS.filter((r) => visible[r]);
@@ -127,6 +134,7 @@ export function RealmHourlyActivityChart({ points }: Props) {
 					<svg
 						ref={svgRef}
 						className={styles.svg}
+						style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
 						viewBox={`0 0 ${VB_W} ${VB_H}`}
 						preserveAspectRatio="none"
 						role="img"

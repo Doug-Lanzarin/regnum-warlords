@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/translate";
@@ -18,10 +19,15 @@ const GRANULARITY_LABEL_KEY: Record<Granularity, TranslationKey> = {
 };
 
 const VB_W = 600;
-const VB_H = 220;
+// Flatter on wide screens (desktop/tablet) than on phones — at phone width
+// the chart is already short in absolute pixels since it's scaled down
+// with the rest of the page, but at desktop width (spanning the full
+// ~1400px content column) the same 600:220 ratio made this chart
+// noticeably tall. Phones keep the original ratio untouched.
+const VB_H_MOBILE = 220;
+const VB_H_DESKTOP = 140;
 const PAD = { top: 14, right: 10, bottom: 26, left: 28 };
 const PLOT_W = VB_W - PAD.left - PAD.right;
-const PLOT_H = VB_H - PAD.top - PAD.bottom;
 
 /** Rounds a max value up to a "nice" gridline-friendly number (next 5, 10,
  *  25, 50... depending on magnitude) instead of an arbitrary data max. */
@@ -41,6 +47,9 @@ export function FortActivityTimeline({ events, now }: { events: WzEvent[]; now: 
 	const [granularity, setGranularity] = useState<Granularity>(30);
 	const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
+	const isDesktop = useMediaQuery("(min-width: 641px)");
+	const VB_H = isDesktop ? VB_H_DESKTOP : VB_H_MOBILE;
+	const PLOT_H = VB_H - PAD.top - PAD.bottom;
 
 	const buckets = useMemo(
 		() => computeFortActivityTimeline(events, WINDOW_MS, granularity * 60 * 1000, now),
@@ -116,6 +125,7 @@ export function FortActivityTimeline({ events, now }: { events: WzEvent[]; now: 
 					<svg
 						ref={svgRef}
 						className={styles.svg}
+						style={{ aspectRatio: `${VB_W} / ${VB_H}` }}
 						viewBox={`0 0 ${VB_W} ${VB_H}`}
 						preserveAspectRatio="none"
 						role="img"

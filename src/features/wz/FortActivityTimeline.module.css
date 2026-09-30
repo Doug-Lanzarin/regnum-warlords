@@ -81,7 +81,6 @@
 	display: block;
 	width: 100%;
 	height: auto;
-	aspect-ratio: 600 / 220;
 	touch-action: pan-y;
 	cursor: crosshair;
 }
