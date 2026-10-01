@@ -483,6 +483,12 @@ export function computeWallVulnerability(forts: FortStatus[], events: WzEvent[],
 		const inactive: WallVulnerability = { homeRealm, wallName, aggressor: null, fortCount: 0, vulnerableAtMs: null, isVulnerable: false };
 
 		if (!castle || !wall || keeps.length === 0 || castle.owner === homeRealm) return inactive;
+		// The wall itself has already been captured — vulnerability describes
+		// the window *before* that happens, so once it's flipped there's
+		// nothing left to be "vulnerable": show the new owner's color instead
+		// (castle+keeps can easily still be held by the same aggressor here,
+		// which without this check would keep flagging it vulnerable forever).
+		if (wall.owner !== homeRealm) return inactive;
 
 		const aggressor = castle.owner;
 		const fortCount = keeps.filter((k) => k.owner === aggressor).length;

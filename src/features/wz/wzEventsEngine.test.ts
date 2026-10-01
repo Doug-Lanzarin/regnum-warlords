@@ -151,6 +151,27 @@ describe("computeWallVulnerability", () => {
 		expect(result.vulnerableAtMs).toBe(retakeAt + 5 * MIN);
 		expect(result.isVulnerable).toBe(false);
 	});
+
+	it("goes inactive once the wall itself is captured, even though the aggressor still holds castle + keeps", () => {
+		// Ignis took the castle and both keeps 20 minutes ago (well past the
+		// 5min baseline) and has since captured the wall too — the whole
+		// realm now belongs to Ignis. Without checking the wall's own owner,
+		// this would keep reporting Alsius as "vulnerable" forever, even
+		// though there's nothing left to become vulnerable: it's already
+		// captured.
+		const now = Date.now();
+		const t0 = now - 20 * MIN;
+		const forts = alsiusForts({ castle: "Ignis", keep1: "Ignis", keep2: "Ignis", wall: "Ignis" });
+		const events = [
+			event("Imperia Castle", "Ignis", t0 / 1000),
+			event("Fort Aggersborg", "Ignis", t0 / 1000),
+			event("Fort Trelleborg", "Ignis", t0 / 1000),
+			event("Great Wall of Alsius", "Ignis", (now - 1 * MIN) / 1000),
+		];
+		const result = alsiusResult(forts, events, now);
+		expect(result.aggressor).toBeNull();
+		expect(result.isVulnerable).toBe(false);
+	});
 });
 
 describe("computeEventLog", () => {
