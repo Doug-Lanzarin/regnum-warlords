@@ -116,7 +116,13 @@ export function LogsPage() {
 			</div>
 
 			{wishes.length > 0 && (
-				<EventsLogSection events={wishes} now={now} title={t("wz.dragonWishesTitle")} countLabel={t("wz.dragonWishesCountLabel")} />
+				<EventsLogSection
+					events={wishes}
+					now={now}
+					title={t("wz.dragonWishesTitle")}
+					countLabel={t("wz.dragonWishesCountLabel")}
+					showAbsoluteTime
+				/>
 			)}
 			<EventsLogSection events={events} now={now} />
 

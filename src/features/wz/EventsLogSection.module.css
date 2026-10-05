@@ -68,6 +68,21 @@
 	white-space: nowrap;
 }
 
+.timeStack {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	gap: 1px;
+}
+
+.timeAbsolute {
+	font-size: 0.68rem;
+	font-weight: 500;
+	color: var(--faded);
+	opacity: 0.8;
+	white-space: nowrap;
+}
+
 .line {
 	min-width: 0;
 }
@@ -83,7 +98,8 @@
 		align-items: flex-start;
 		gap: 2px;
 	}
-	.time {
+	.time,
+	.timeStack {
 		width: auto;
 	}
 }

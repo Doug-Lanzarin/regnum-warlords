@@ -11,9 +11,16 @@ interface Props {
 	title?: string;
 	countLabel?: string;
 	emptyMessage?: string;
+	/** Shows the exact date/time under the relative "há Xh" label instead of
+	 *  only as a hover tooltip — hover doesn't exist on a phone, so without
+	 *  this the exact timestamp is effectively invisible on mobile. Opt-in
+	 *  (rather than always-on) because stacking a second line onto every row
+	 *  of the much longer general event log would make that list
+	 *  considerably taller for comparatively little benefit there. */
+	showAbsoluteTime?: boolean;
 }
 
-export function EventsLogSection({ events, now, title, countLabel, emptyMessage }: Props) {
+export function EventsLogSection({ events, now, title, countLabel, emptyMessage, showAbsoluteTime }: Props) {
 	const { lang } = useLanguage();
 	const t = useT();
 	const resolvedTitle = title ?? t("wz.eventsTitle");
@@ -34,9 +41,12 @@ export function EventsLogSection({ events, now, title, countLabel, emptyMessage 
 					<ul className={styles.list}>
 						{events.map((event) => (
 							<li key={event.key} className={`${styles.row} ${event.isWish ? styles.rowWish : ""}`}>
-								<time className={styles.time} title={formatDateTime(event.date, lang)}>
-									{formatRelativePast(now - event.date * 1000, lang)}
-								</time>
+								<span className={styles.timeStack}>
+									<time className={styles.time} title={formatDateTime(event.date, lang)}>
+										{formatRelativePast(now - event.date * 1000, lang)}
+									</time>
+									{showAbsoluteTime && <span className={styles.timeAbsolute}>{formatDateTime(event.date, lang)}</span>}
+								</span>
 								<span className={styles.line}>
 									{event.emoji && <span aria-hidden>{event.emoji} </span>}
 									{event.segments.map((segment, i) => (
