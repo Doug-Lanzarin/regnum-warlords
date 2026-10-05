@@ -13,13 +13,16 @@ import { computeBossSpawnData } from "../../src/features/bosses/bossScheduleEngi
 import { computeFortStatuses, computeGemStatuses } from "../../src/features/wz/wzEngine.js";
 import { computeWallVulnerability } from "../../src/features/wz/wzEventsEngine.js";
 import type { WzEvent, WzEventsDumpEntry, WzStatusData } from "../../src/types/wz";
+import { mergeIntoHistory } from "../_eventsHistory.js";
 import { detectBossEvents, type BossEvent } from "../_push/boss.js";
 import { diffState, type CategoryEvent, type CategoryEvents } from "../_push/diff.js";
 import { sendPush, type PushNotificationPayload } from "../_push/push.js";
 import {
+	readEventsHistory,
 	readLiveSnapshot,
 	readState,
 	readSubscribers,
+	writeEventsHistory,
 	writeLiveSnapshot,
 	writeState,
 	writeSubscribers,
@@ -255,6 +258,22 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			}
 		} catch (err) {
 			console.error("push tick: failed to update live snapshot", err);
+		}
+
+		// Best-effort, same reasoning as the live snapshot above: accumulate
+		// `events` (already fetched for wall-vulnerability, above) into our
+		// own growing history so a 10-day rule still has the data days after
+		// cort.ovh's own ~10-day window has forgotten it (see
+		// _eventsHistory.ts's doc comment). Only commits when the merge
+		// actually changed something — most ticks add nothing new.
+		try {
+			const { history: prevHistory, sha: historySha } = await readEventsHistory();
+			const mergedEvents = mergeIntoHistory(prevHistory.events, events, now);
+			if (JSON.stringify(mergedEvents) !== JSON.stringify(prevHistory.events)) {
+				await writeEventsHistory({ events: mergedEvents, updatedAt: now }, historySha, "push: atualiza histórico acumulado de eventos");
+			}
+		} catch (err) {
+			console.error("push tick: failed to update events history", err);
 		}
 
 		// No fetch for this anymore — see computeBossSpawnData's doc comment

@@ -169,7 +169,17 @@ notificar mesmo com o app **fechado**, o app usa Web Push de verdade:
   push via VAPID pra quem se aplica. Protegido por um segredo
   compartilhado (`PUSH_TICK_SECRET`, no header `Authorization: Bearer` ou
   `?secret=`) — sem ele, ninguém além de quem sabe o segredo consegue
-  disparar um tick.
+  disparar um tick. A mesma chamada já busca o `events.json` (~10 dias,
+  pro cálculo de vulnerabilidade de muralha) e aproveita pra ir acumulando
+  esses eventos em `content/events-history.json` (deduplicado, até 90
+  dias de retenção, só reescrito quando algo realmente novo aparece) —
+  isso existe porque o próprio `events.json` do cort.ovh só guarda ~10
+  dias; sem esse acúmulo próprio, uma regra de "últimos 10 dias" (Balanço,
+  vulnerabilidade de muralha) perde silenciosamente um evento assim que o
+  cort.ovh esquece dele, mesmo que ainda devesse contar. `api/cort-proxy.ts`
+  lê esse arquivo e mescla no endpoint `events` (mesma lógica de dedup),
+  então o cliente já recebe esse histórico estendido sem precisar saber
+  que ele existe.
 - `src/sw.ts` — service worker customizado (o app usa o modo
   `injectManifest` do `vite-plugin-pwa` em vez do `generateSW` padrão,
   justamente pra poder ter esse código próprio) com os handlers de

@@ -115,7 +115,8 @@
 // "second attempt only runs after the first fails" latency tax — worst
 // case is now one timeout, not two stacked.
 
-import { readLiveSnapshot } from "./_push/storage.js";
+import { dedupKeyOf } from "./_eventsHistory.js";
+import { DEFAULT_EVENTS_HISTORY, readEventsHistory, readLiveSnapshot } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
 import statsBackfill from "./_statsBackfill.js";
 import type { WzEvent } from "../src/types/wz";
@@ -124,31 +125,19 @@ function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
 }
 
-// Two independently-scraped sources record the *same* real action a
-// couple of seconds apart rather than at an identical timestamp (seen
-// directly: the mirror's own events.json had a dragon wish at :07:56:02
-// while cort.ovh had the same wish at :07:56:00). An exact-timestamp dedup
-// key would treat those as two different events and double-list it.
-// Rounding to the minute a scrape happened in is coarse enough to collapse
-// that, without merging two genuinely different events of the same
-// type/name/location/owner — those aren't expected to repeat inside the
-// same 60s window (forts in particular can't flip ownership that fast;
-// see the vulnerability countdown in wzEventsEngine.ts) and even a wish
-// coincidentally repeating within a minute just undercounts by one,
-// nowhere near as bad as the double-count this avoids.
-const dedupKeyOf = (e: WzEvent) => `${Math.round(e.date / 60)}-${e.type}-${e.name}-${e.location}-${e.owner}`;
-
 /** Merges every source's events.json array (each already known to be an
- *  array — see `fetchAllCandidates`) with the hand-fetched backfill into
- *  one deduped, newest-first list. Safe to include a source that itself
- *  already carries part of the backfilled window (e.g. cort.ovh, when
- *  reachable, or the mirror for whatever slice it did catch): entries for
- *  the same real event collide on the dedup key (see `dedupKeyOf`) and
- *  only survive once. Each array's own leading `{generated}` header entry
- *  (no `type` field — see `WzEventsDumpEntry`) is set aside before the
- *  merge/sort; the freshest one (highest `generated`) is put back at the
- *  front, rather than any header being treated as just another event. */
-function mergeEventSources(dataList: unknown[]): unknown {
+ *  array — see `fetchAllCandidates`) with the hand-fetched backfill and our
+ *  own accumulated history (`extraEvents` — see `_eventsHistory.ts`'s doc
+ *  comment for why that exists) into one deduped, newest-first list. Safe
+ *  to include a source that itself already carries part of that older
+ *  window (e.g. cort.ovh, when reachable, or the mirror for whatever slice
+ *  it did catch): entries for the same real event collide on the dedup key
+ *  (see `dedupKeyOf`) and only survive once. Each array's own leading
+ *  `{generated}` header entry (no `type` field — see `WzEventsDumpEntry`)
+ *  is set aside before the merge/sort; the freshest one (highest
+ *  `generated`) is put back at the front, rather than any header being
+ *  treated as just another event. */
+function mergeEventSources(dataList: unknown[], extraEvents: WzEvent[] = []): unknown {
 	const headers: { generated: number }[] = [];
 	const liveEvents: WzEvent[] = [];
 	for (const data of dataList) {
@@ -160,7 +149,7 @@ function mergeEventSources(dataList: unknown[]): unknown {
 
 	const seen = new Set<string>();
 	const merged: WzEvent[] = [];
-	for (const entry of [...liveEvents, ...backfillEvents]) {
+	for (const entry of [...liveEvents, ...extraEvents, ...backfillEvents]) {
 		const key = dedupKeyOf(entry);
 		if (seen.has(key)) continue;
 		seen.add(key);
@@ -262,12 +251,20 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		return;
 	}
 
+	// Kicked off alongside the live fetches (not after) so reading our own
+	// accumulated history doesn't add its own latency on top of theirs —
+	// only relevant for "events", and best-effort: a GitHub hiccup here
+	// should never turn an otherwise-healthy response into an error.
+	const historyPromise =
+		endpoint === "events" ? readEventsHistory().catch(() => ({ history: DEFAULT_EVENTS_HISTORY, sha: null as string | null })) : null;
+
 	const results = await fetchAllCandidates(urls);
 	if (results.length > 0) {
 		res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
 		let responseData: unknown;
 		if (endpoint === "events") {
-			responseData = mergeEventSources(results.map((r) => r.data));
+			const { history } = (await historyPromise)!;
+			responseData = mergeEventSources(results.map((r) => r.data), history.events);
 		} else if (endpoint === "stats") {
 			const preferred = preferCortOvh(results)!;
 			// cort.ovh's own live copy is always accurate — pass it straight

@@ -1,6 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import handler from "./cort-proxy";
 import statsBackfill from "./_statsBackfill";
+import { readEventsHistory } from "./_push/storage";
+
+// Preserves the real implementation by default (so every existing test
+// below — none of which set NOTIFICATIONS_GITHUB_TOKEN — still exercises
+// the real "no token configured" failure that cort-proxy.ts already
+// catches and falls back from, same as before this mock existed) while
+// letting the one test that cares override it with populated history.
+vi.mock("./_push/storage.js", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("./_push/storage")>();
+	return { ...actual, readEventsHistory: vi.fn(actual.readEventsHistory) };
+});
 
 interface MockResult {
 	status: number | null;
@@ -216,6 +227,35 @@ describe("cort-proxy handler", () => {
 		// Newest-first: the live entry with the far-future date leads the
 		// (non-header) part of the list.
 		expect(body[1]).toEqual(live[1]);
+	});
+
+	it("merges api/push/tick.ts's accumulated events history into 'events' responses — the whole point of that history (see _eventsHistory.ts's doc comment): a wish cort.ovh's own ~10-day window has already forgotten still shows up here", async () => {
+		const live = [{ generated: 999 }, { date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" }];
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		const oldWish = { date: 1_000_000_000, name: "", location: "Syrtis", owner: "", type: "wish" as const };
+		vi.mocked(readEventsHistory).mockResolvedValueOnce({ history: { events: [oldWish], updatedAt: 1_000_000_500 }, sha: "abc" });
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(result.json).toContainEqual(oldWish);
+	});
+
+	it("still answers normally for 'events' when reading the accumulated history fails (no token configured, GitHub hiccup, ...) — a best-effort extra, not a hard dependency", async () => {
+		const live = [{ generated: 999 }, { date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" }];
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readEventsHistory).mockRejectedValueOnce(new Error("NOTIFICATIONS_GITHUB_TOKEN não configurado"));
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(result.json).toContainEqual(live[1]);
 	});
 
 	it("falls back to the frozen _statsBackfill.ts snapshot, NOT the mirror's own undercounted copy, when cort.ovh's attempt fails", async () => {

@@ -1,7 +1,7 @@
 import type { PushSubscription } from "@block65/webcrypto-web-push";
 import type { Realm } from "../../src/data/realms";
 import type { AlertSettings } from "../../src/types/alertSettings";
-import type { WzStatusData } from "../../src/types/wz";
+import type { WzEvent, WzStatusData } from "../../src/types/wz";
 import { emptyCategorySets, type CategorySets } from "./diff.js";
 import type { BossState } from "./boss";
 
@@ -43,6 +43,17 @@ export interface LiveSnapshot {
 
 export const DEFAULT_LIVE_SNAPSHOT: LiveSnapshot = { wstatus: null, savedAt: null };
 
+/** Our own growing copy of events.json, accumulated tick by tick (see
+ *  `api/_eventsHistory.ts`'s doc comment for why this exists — cort.ovh's
+ *  own ~10-day window forgets things our 10-day game rules still need days
+ *  later). */
+export interface EventsHistory {
+	events: WzEvent[];
+	updatedAt: number | null;
+}
+
+export const DEFAULT_EVENTS_HISTORY: EventsHistory = { events: [], updatedAt: null };
+
 // Same "GitHub as a database" trick `api/notifications.ts` already uses —
 // no Postgres/Redis to provision, and it's one less account for whoever
 // runs this fork to set up. Writes are commits, so `tick.ts` only writes
@@ -54,6 +65,8 @@ const BRANCH = "main";
 const SUBSCRIBERS_PATH = "content/push-subscribers.json";
 const STATE_PATH = "content/push-state.json";
 const SNAPSHOT_PATH = "content/live-snapshot.json";
+const EVENTS_HISTORY_PATH = "content/events-history.json";
+
 
 function githubToken(): string {
 	const token = process.env.NOTIFICATIONS_GITHUB_TOKEN;
@@ -123,4 +136,13 @@ export async function readLiveSnapshot(): Promise<{ snapshot: LiveSnapshot; sha:
 
 export async function writeLiveSnapshot(snapshot: LiveSnapshot, sha: string | null, message: string): Promise<void> {
 	await writeJsonFile(SNAPSHOT_PATH, snapshot, sha, message);
+}
+
+export async function readEventsHistory(): Promise<{ history: EventsHistory; sha: string | null }> {
+	const { data, sha } = await readJsonFile<EventsHistory>(EVENTS_HISTORY_PATH, DEFAULT_EVENTS_HISTORY);
+	return { history: data, sha };
+}
+
+export async function writeEventsHistory(history: EventsHistory, sha: string | null, message: string): Promise<void> {
+	await writeJsonFile(EVENTS_HISTORY_PATH, history, sha, message);
 }
