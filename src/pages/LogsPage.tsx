@@ -61,7 +61,11 @@ export function LogsPage() {
 	};
 
 	const events = useMemo(() => computeEventLog(eventsDump, lang), [eventsDump, lang]);
-	const wishes = useMemo(() => computeDragonWishes(eventsDump, lang), [eventsDump, lang]);
+	// events.json only covers ~10 days, and dragon wishes are rare enough
+	// that even a generous limit here rarely gets hit — but the default of
+	// 5 was cutting the list short well before that, with nothing left to
+	// scroll through in the card's own 420px scroll area.
+	const wishes = useMemo(() => computeDragonWishes(eventsDump, lang, 50), [eventsDump, lang]);
 	const fortActivityRanges = useMemo<Record<FortActivityRange, RealmActivityCount[] | null>>(
 		() => ({
 			"24h": computeFortActivityByRealm(eventsDump, FORT_ACTIVITY_WINDOW_MS, now),
