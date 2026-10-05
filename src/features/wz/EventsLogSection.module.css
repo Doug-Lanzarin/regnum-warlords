@@ -70,9 +70,10 @@
 
 .timeStack {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	align-items: baseline;
 	flex-shrink: 0;
-	gap: 1px;
+	gap: 6px;
 }
 
 .timeAbsolute {
