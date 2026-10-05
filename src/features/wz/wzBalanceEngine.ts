@@ -10,16 +10,17 @@ export type BalanceTier = 0 | 2 | 3 | 4;
 export interface RealmBalance {
 	realm: Realm;
 	tier: BalanceTier;
-	/** Dragon wishes for this realm in the trailing 240h window. */
+	/** Dragon wishes for this realm in the current 10-day window, as of the
+	 *  last UTC-midnight flip (see `computeRealmBalance`'s own doc comment —
+	 *  this is frozen between flips, not a continuous live count). */
 	wishCount: number;
 	/** Whichever enemy realm made the most dragon wishes (for itself) in the
 	 *  window, and how many — `null` if neither enemy made any. Only
 	 *  relevant to the tier once it's reached `ENEMY_WISH_TRIGGER`. */
 	topEnemyWishes: { realm: Realm; count: number } | null;
-	/** Timestamp (ms) of the next UTC-midnight "flip" at which today's tier
-	 *  would show as changed, assuming no further events happen. `null`
-	 *  when nothing currently in the window is old enough to matter — the
-	 *  tier would stay the same even as the window kept aging. */
+	/** Timestamp (ms) of the next UTC-midnight flip at which the tier would
+	 *  show as changed, assuming no further events happen. `null` when
+	 *  nothing currently in the window is old enough to matter. */
 	predictedChangeAtMs: number | null;
 }
 
@@ -48,21 +49,26 @@ function pickTop(counts: Map<Realm, number>): { realm: Realm; count: number } | 
 
 /** Per-realm "Balanço" status — how many dragon wishes were made for this
  *  realm, and whether some specific enemy has been wishing heavily for
- *  itself, over the trailing 10 days (240h). Like every other "last N
- *  days" stat in this app, the window is a continuous rolling one measured
- *  from each event's exact timestamp — NOT bucketed by UTC calendar day.
- *  What IS tied to the UTC calendar day (= 21:00 in Brasília time) is when
- *  a predicted tier change actually becomes visible: the game's own
- *  "system" only flips its displayed numbers once per day, at UTC
- *  midnight, so even though an event's 240h technically expires at some
- *  arbitrary time of day, the resulting tier change won't show up until
- *  the next UTC midnight at or after that exact moment.
- *  `predictedChangeAtMs` accounts for that: it finds the exact moment
- *  (walking the window's contents oldest-expiring-first) where the tier
- *  would first differ from today's, then rounds that moment *up* to the
- *  next UTC-midnight boundary. */
+ *  itself, over the trailing 10 days (240h). The game's own day only rolls
+ *  over once daily, at UTC 00:00 (21:00 in Brasília time) — "the balance
+ *  only updates at 21:00," per how this was described — so the displayed
+ *  figure is frozen as of the most recent flip, not a continuously live
+ *  count: a wish made 5 minutes ago doesn't show up yet, and one that
+ *  technically crossed the 240h mark 10 minutes ago hasn't dropped out
+ *  yet either. Both wait for the next flip. That's why `now` is first
+ *  snapped down to `effectiveNow` (the latest UTC midnight at or before
+ *  it) before anything else here — the window is [effectiveNow - 240h,
+ *  effectiveNow], not [now - 240h, now].
+ *
+ *  `predictedChangeAtMs` walks the window's contents oldest-expiring-first
+ *  from that same `effectiveNow` to find the first future flip where the
+ *  tier would differ from today's — always strictly after `effectiveNow`,
+ *  which is itself always still in the future relative to the real `now`
+ *  (since `effectiveNow <= now < effectiveNow + 24h` by construction), so
+ *  "today's" frozen figure stays valid right up until that flip. */
 export function computeRealmBalance(events: WzEvent[], now: number): RealmBalance[] {
-	const cutoff = now - WINDOW_MS;
+	const effectiveNow = Math.floor(now / DAY_MS) * DAY_MS;
+	const cutoff = effectiveNow - WINDOW_MS;
 
 	const wishesByRealm = new Map<Realm, WzEvent[]>();
 	for (const realm of REALMS) wishesByRealm.set(realm, []);
@@ -71,9 +77,14 @@ export function computeRealmBalance(events: WzEvent[], now: number): RealmBalanc
 		const list = wishesByRealm.get(event.location as Realm);
 		if (!list) continue;
 		const eventMs = event.date * 1000;
-		if (eventMs < cutoff || eventMs > now) continue;
+		if (eventMs < cutoff || eventMs > effectiveNow) continue;
 		list.push(event);
 	}
+
+	const nextFlipAfterEffectiveNow = (expiresAtMs: number): number => {
+		const boundary = Math.ceil(expiresAtMs / DAY_MS) * DAY_MS;
+		return boundary > effectiveNow ? boundary : effectiveNow + DAY_MS;
+	};
 
 	return REALMS.map((realm) => {
 		const ownWishes = wishesByRealm.get(realm)!;
@@ -98,7 +109,7 @@ export function computeRealmBalance(events: WzEvent[], now: number): RealmBalanc
 
 			const simTier = tierFor(simWishCount, pickTop(simEnemyCounts)?.count ?? 0);
 			if (simTier !== currentTier) {
-				predictedChangeAtMs = Math.ceil(item.expiresAtMs / DAY_MS) * DAY_MS;
+				predictedChangeAtMs = nextFlipAfterEffectiveNow(item.expiresAtMs);
 				break;
 			}
 		}
