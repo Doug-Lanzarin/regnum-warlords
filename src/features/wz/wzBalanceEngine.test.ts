@@ -55,12 +55,20 @@ describe("computeRealmBalance", () => {
 		expect(b.wishCount).toBe(1);
 	});
 
-	it("doesn't count a wish made later today (after the last flip) until the next flip", () => {
+	it("counts a wish made later today (after the last flip) right away — lowering the balance doesn't wait for the next flip, only raising it does", () => {
 		// 1h after EFFECTIVE_NOW (so still before the raw NOW of noon) —
-		// made today, but the figure for today was already fixed at the
-		// last flip and won't pick this up until tonight's.
+		// made today, after the last flip, but it's this realm's OWN wish,
+		// so it counts immediately against its own tier instead of waiting
+		// for tonight's flip.
 		const b = balanceOf([wishAt("Alsius", -1 * HOUR_MS)]);
-		expect(b.wishCount).toBe(0);
+		expect(b.wishCount).toBe(1);
+	});
+
+	it("does NOT count an enemy's wish made later today until the next flip — only this realm's own wishes apply live", () => {
+		const events = [wishAt("Alsius", 1 * DAY_MS), wishAt("Alsius", 2 * DAY_MS), wishAt("Alsius", 3 * DAY_MS), ...Array.from({ length: 5 }, (_, i) => wishAt("Ignis", -(i + 1) * HOUR_MS))];
+		const b = balanceOf(events);
+		expect(b.topEnemyWishes).toBeNull();
+		expect(b.tier).toBe(0); // not 2 — Ignis's wishes are all after the flip, so they don't count yet
 	});
 
 	it("exact window boundary: a wish precisely at the 10-day cutoff counts, one 1ms older doesn't", () => {
