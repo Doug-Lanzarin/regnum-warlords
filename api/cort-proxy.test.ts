@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import handler from "./cort-proxy";
 import statsBackfill from "./_statsBackfill";
-import { readEventsHistory } from "./_push/storage";
+import { readEventsHistory, writeEventsHistory } from "./_push/storage";
 
-// Preserves the real implementation by default (so every existing test
+// Preserves the real implementations by default (so every existing test
 // below — none of which set NOTIFICATIONS_GITHUB_TOKEN — still exercises
 // the real "no token configured" failure that cort-proxy.ts already
-// catches and falls back from, same as before this mock existed) while
-// letting the one test that cares override it with populated history.
+// catches and falls back from, same as before these mocks existed) while
+// letting the tests that care override them.
 vi.mock("./_push/storage.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("./_push/storage")>();
-	return { ...actual, readEventsHistory: vi.fn(actual.readEventsHistory) };
+	return { ...actual, readEventsHistory: vi.fn(actual.readEventsHistory), writeEventsHistory: vi.fn(actual.writeEventsHistory) };
 });
 
 interface MockResult {
@@ -38,6 +38,8 @@ function mockRes() {
 
 afterEach(() => {
 	vi.unstubAllGlobals();
+	vi.mocked(readEventsHistory).mockClear();
+	vi.mocked(writeEventsHistory).mockClear();
 });
 
 describe("cort-proxy handler", () => {
@@ -256,6 +258,53 @@ describe("cort-proxy handler", () => {
 
 		expect(result.status).toBe(200);
 		expect(result.json).toContainEqual(live[1]);
+	});
+
+	it("writes the merged history back when it's due (never written, or past EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS) — this is what keeps history growing while tick.ts sits idle (NOTIFICATIONS_PAUSED)", async () => {
+		const live = [{ generated: 999 }, { date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" }];
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readEventsHistory).mockResolvedValueOnce({ history: { events: [], updatedAt: null }, sha: "abc" });
+		vi.mocked(writeEventsHistory).mockResolvedValueOnce(undefined);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeEventsHistory).toHaveBeenCalledTimes(1);
+		const [savedHistory, sha] = vi.mocked(writeEventsHistory).mock.calls[0];
+		expect(savedHistory.events).toContainEqual(live[1]);
+		expect(sha).toBe("abc");
+	});
+
+	it("skips the write when the history was updated recently — the throttle that keeps a busy page from turning into a commit-a-minute", async () => {
+		const live = [{ generated: 999 }, { date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" }];
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readEventsHistory).mockResolvedValueOnce({ history: { events: [], updatedAt: Date.now() }, sha: "abc" });
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeEventsHistory).not.toHaveBeenCalled();
+	});
+
+	it("does not write when the merged history is identical to what's already stored — nothing new to persist", async () => {
+		const existing = { date: 5_000_000_000, name: "Fort Herbred", location: "Syrtis", owner: "Syrtis", type: "fort" as const };
+		const live = [{ generated: 999 }, existing]; // same event the stored history already has
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => live });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readEventsHistory).mockResolvedValueOnce({ history: { events: [existing], updatedAt: null }, sha: "abc" });
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "events" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeEventsHistory).not.toHaveBeenCalled();
 	});
 
 	it("falls back to the frozen _statsBackfill.ts snapshot, NOT the mirror's own undercounted copy, when cort.ovh's attempt fails", async () => {

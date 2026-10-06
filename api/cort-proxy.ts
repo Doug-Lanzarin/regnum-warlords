@@ -115,8 +115,8 @@
 // "second attempt only runs after the first fails" latency tax — worst
 // case is now one timeout, not two stacked.
 
-import { dedupKeyOf } from "./_eventsHistory.js";
-import { DEFAULT_EVENTS_HISTORY, readEventsHistory, readLiveSnapshot } from "./_push/storage.js";
+import { dedupKeyOf, mergeIntoHistory } from "./_eventsHistory.js";
+import { DEFAULT_EVENTS_HISTORY, readEventsHistory, readLiveSnapshot, writeEventsHistory } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
 import statsBackfill from "./_statsBackfill.js";
 import type { WzEvent } from "../src/types/wz";
@@ -125,19 +125,14 @@ function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
 }
 
-/** Merges every source's events.json array (each already known to be an
- *  array — see `fetchAllCandidates`) with the hand-fetched backfill and our
- *  own accumulated history (`extraEvents` — see `_eventsHistory.ts`'s doc
- *  comment for why that exists) into one deduped, newest-first list. Safe
- *  to include a source that itself already carries part of that older
- *  window (e.g. cort.ovh, when reachable, or the mirror for whatever slice
- *  it did catch): entries for the same real event collide on the dedup key
- *  (see `dedupKeyOf`) and only survive once. Each array's own leading
- *  `{generated}` header entry (no `type` field — see `WzEventsDumpEntry`)
- *  is set aside before the merge/sort; the freshest one (highest
- *  `generated`) is put back at the front, rather than any header being
- *  treated as just another event. */
-function mergeEventSources(dataList: unknown[], extraEvents: WzEvent[] = []): unknown {
+/** Pulls the `WzEvent[]` entries out of every source's events.json array
+ *  (each already known to be an array — see `fetchAllCandidates`),
+ *  alongside each array's own leading `{generated}` header entry (no
+ *  `type` field — see `WzEventsDumpEntry`), set aside rather than treated
+ *  as just another event. Shared by `mergeEventSources` (building the
+ *  response) and the accumulated-history write below (persisting just the
+ *  live events, not the static backfill or the history itself). */
+function splitEventSources(dataList: unknown[]): { headers: { generated: number }[]; liveEvents: WzEvent[] } {
 	const headers: { generated: number }[] = [];
 	const liveEvents: WzEvent[] = [];
 	for (const data of dataList) {
@@ -146,6 +141,20 @@ function mergeEventSources(dataList: unknown[], extraEvents: WzEvent[] = []): un
 		if (header) headers.push(header);
 		liveEvents.push(...data.filter(isWzEvent));
 	}
+	return { headers, liveEvents };
+}
+
+/** Merges every source's live events with the hand-fetched backfill and our
+ *  own accumulated history (`extraEvents` — see `_eventsHistory.ts`'s doc
+ *  comment for why that exists) into one deduped, newest-first list. Safe
+ *  to include a source that itself already carries part of that older
+ *  window (e.g. cort.ovh, when reachable, or the mirror for whatever slice
+ *  it did catch): entries for the same real event collide on the dedup key
+ *  (see `dedupKeyOf`) and only survive once. The freshest header (highest
+ *  `generated`) is put back at the front, rather than any header being
+ *  treated as just another event. */
+function mergeEventSources(dataList: unknown[], extraEvents: WzEvent[] = []): unknown {
+	const { headers, liveEvents } = splitEventSources(dataList);
 
 	const seen = new Set<string>();
 	const merged: WzEvent[] = [];
@@ -189,6 +198,20 @@ const ENDPOINTS: Record<string, readonly string[]> = {
 // looking like abuse traffic and looking like what this actually is: a
 // small community tool making a couple of requests a minute.
 const CORT_USER_AGENT = "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app)";
+
+// api/push/tick.ts also accumulates into the same events-history file (its
+// own doc comment there explains why), but it's gated behind
+// NOTIFICATIONS_PAUSED and currently idle while that's on — so this is the
+// path actually keeping the history fresh in practice right now. Every
+// "events" request already fetches live events.json regardless of that
+// flag (this proxy has nothing to do with notifications), so accumulating
+// here adds zero new cort.ovh traffic; the only new cost is an occasional
+// GitHub write, throttled by this interval the same way
+// SNAPSHOT_MIN_INTERVAL_MS throttles live-snapshot.json writes in tick.ts
+// — frequent enough that a 5-wish-a-week realm never goes more than ~10min
+// without its history caught up, infrequent enough that a busy page
+// doesn't turn into a commit-a-minute.
+const EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS = 10 * 60 * 1000;
 
 interface CandidateResult {
 	url: string;
@@ -263,8 +286,26 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		res.setHeader("Cache-Control", "max-age=0, s-maxage=45");
 		let responseData: unknown;
 		if (endpoint === "events") {
-			const { history } = (await historyPromise)!;
+			const { history, sha: historySha } = (await historyPromise)!;
+			const { liveEvents } = splitEventSources(results.map((r) => r.data));
 			responseData = mergeEventSources(results.map((r) => r.data), history.events);
+
+			// Best-effort and throttled (see EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS)
+			// — never let a GitHub hiccup, or just not being this request's turn,
+			// turn an otherwise-healthy response into an error or extra latency
+			// for most requests.
+			const historyAge = history.updatedAt ? Date.now() - history.updatedAt : Infinity;
+			if (historyAge >= EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS) {
+				try {
+					const now = Date.now();
+					const mergedHistory = mergeIntoHistory(history.events, liveEvents, now);
+					if (JSON.stringify(mergedHistory) !== JSON.stringify(history.events)) {
+						await writeEventsHistory({ events: mergedHistory, updatedAt: now }, historySha, "push: atualiza histórico acumulado de eventos");
+					}
+				} catch (err) {
+					console.error("cort-proxy: failed to update events history", err);
+				}
+			}
 		} else if (endpoint === "stats") {
 			const preferred = preferCortOvh(results)!;
 			// cort.ovh's own live copy is always accurate — pass it straight
