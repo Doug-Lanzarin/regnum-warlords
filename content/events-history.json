@@ -1,6 +1,363 @@
 {
 	"events": [
 		{
+			"date": 1791540843,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791540069,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791539288,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791539107,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791538747,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791538027,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791537129,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791535507,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791534968,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791534787,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791534248,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791528367,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791525367,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791523627,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791522908,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791522782,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791522062,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791519848,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791519489,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791516847,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791516847,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791516365,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791513067,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791513067,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791512887,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791512222,
+			"name": "Trelleborg",
+			"location": "altar",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1791512222,
+			"name": "Aggersborg",
+			"location": "altar",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1791512167,
+			"name": "Fort Trelleborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791512167,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791512167,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791511562,
+			"name": "Great Wall of Syrtis",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791511562,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791511562,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791510362,
+			"name": "Trelleborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1791510362,
+			"name": "Aggersborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1791510362,
+			"name": "1",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "gem"
+		},
+		{
+			"date": 1791510307,
+			"name": "Fort Trelleborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791510062,
+			"name": "1",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "gem"
+		},
+		{
+			"date": 1791510062,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791508867,
+			"name": "Great Wall of Syrtis",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791508509,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791508509,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791507969,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791507670,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791506827,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791506529,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791506529,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791506403,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791505442,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791505442,
+			"name": "Fort Trelleborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791505267,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1791504608,
 			"name": "Fort Trelleborg",
 			"location": "Alsius",
@@ -13210,5 +13567,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791505191567
+	"updatedAt": 1791544127175
 }
