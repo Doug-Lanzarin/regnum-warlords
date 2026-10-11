@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1791732062,
+			"name": "Menirah",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
 			"date": 1791730622,
 			"name": "Great Wall of Ignis",
 			"location": "Ignis",
@@ -15170,5 +15177,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791730666203
+	"updatedAt": 1791732070712
 }
