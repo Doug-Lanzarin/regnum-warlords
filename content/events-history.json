@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1791733082,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1791732188,
 			"name": "Great Wall of Ignis",
 			"location": "Ignis",
@@ -15205,5 +15212,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791732729412
+	"updatedAt": 1791733329677
 }
