@@ -1,6 +1,76 @@
 {
 	"events": [
 		{
+			"date": 1791683102,
+			"name": "Samal",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1791683047,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791682747,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791682622,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791682622,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791682322,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1791682147,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791681852,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791681550,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791681121,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1791680522,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -14701,5 +14771,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791680525164
+	"updatedAt": 1791683210129
 }
