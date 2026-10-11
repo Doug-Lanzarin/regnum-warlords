@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1791729602,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791729602,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1791729302,
 			"name": "Shaanarid Castle",
 			"location": "Ignis",
@@ -15135,5 +15149,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791729346143
+	"updatedAt": 1791730006170
 }
