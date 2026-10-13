@@ -1,6 +1,48 @@
 {
 	"events": [
 		{
+			"date": 1791934087,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791934087,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1791934087,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791934087,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791933787,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1791933787,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1791933489,
 			"name": "Fort Algaros",
 			"location": "Syrtis",
@@ -17487,5 +17529,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791933503324
+	"updatedAt": 1791934163357
 }
