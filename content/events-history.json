@@ -1,6 +1,48 @@
 {
 	"events": [
 		{
+			"date": 1792019102,
+			"name": "Menirah",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792019102,
+			"name": "Samal",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792019047,
+			"name": "Great Wall of Ignis",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792019047,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792019047,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792019047,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792018622,
 			"name": "2",
 			"location": "Ignis",
@@ -18418,5 +18460,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792018629436
+	"updatedAt": 1792019289437
 }
