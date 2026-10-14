@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1791956107,
+			"name": "Great Wall of Alsius",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1791955082,
 			"name": "Imperia Castle",
 			"location": "Alsius",
@@ -17795,5 +17802,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1791955787108
+	"updatedAt": 1791956446335
 }
