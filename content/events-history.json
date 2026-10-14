@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1792016402,
+			"name": "Menirah",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792016402,
+			"name": "Samal",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792016103,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792016103,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792016103,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792015209,
 			"name": "Fort Herbred",
 			"location": "Syrtis",
@@ -18355,5 +18390,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792015841483
+	"updatedAt": 1792016470446
 }
