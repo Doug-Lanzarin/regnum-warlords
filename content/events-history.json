@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792076469,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792076469,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792076041,
 			"name": "Fort Herbred",
 			"location": "Syrtis",
@@ -18859,5 +18873,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792076059184
+	"updatedAt": 1792076660523
 }
