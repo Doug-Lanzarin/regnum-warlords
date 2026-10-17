@@ -1,6 +1,27 @@
 {
 	"events": [
 		{
+			"date": 1792232587,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792232587,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792232587,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792229522,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -20140,5 +20161,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792229771200
+	"updatedAt": 1792232605236
 }
