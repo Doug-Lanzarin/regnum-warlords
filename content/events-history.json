@@ -1,6 +1,27 @@
 {
 	"events": [
 		{
+			"date": 1792258622,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792258622,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792258447,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792258147,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -20434,5 +20455,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792258265988
+	"updatedAt": 1792258866013
 }
