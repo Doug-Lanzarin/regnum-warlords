@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792274167,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792273147,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -20728,5 +20735,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792273506080
+	"updatedAt": 1792274225774
 }
