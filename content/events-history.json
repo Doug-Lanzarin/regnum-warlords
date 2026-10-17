@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1792271102,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792270927,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792270927,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792270927,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792270802,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792270327,
 			"name": "Fort Samal",
 			"location": "Ignis",
@@ -20672,5 +20707,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792270685742
+	"updatedAt": 1792271286061
 }
