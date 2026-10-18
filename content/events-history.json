@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792364468,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792364468,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792364042,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -21610,5 +21624,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792364158447
+	"updatedAt": 1792364759484
 }
