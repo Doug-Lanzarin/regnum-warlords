@@ -1,6 +1,27 @@
 {
 	"events": [
 		{
+			"date": 1792334107,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792333982,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792333506,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792333203,
 			"name": "Fort Menirah",
 			"location": "Ignis",
@@ -21274,5 +21295,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792333499409
+	"updatedAt": 1792334158350
 }
