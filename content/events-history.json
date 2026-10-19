@@ -1,6 +1,27 @@
 {
 	"events": [
 		{
+			"date": 1792406462,
+			"name": "Trelleborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1792406462,
+			"name": "Aggersborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1792406462,
+			"name": "Fort Trelleborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792406162,
 			"name": "Fort Samal",
 			"location": "Ignis",
@@ -21953,5 +21974,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792406412243
+	"updatedAt": 1792407071016
 }
