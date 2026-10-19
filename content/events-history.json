@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792439289,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792439162,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792438987,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -22198,5 +22212,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792439074203
+	"updatedAt": 1792439674458
 }
