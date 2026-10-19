@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792408689,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792408562,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792408262,
 			"name": "Trelleborg",
 			"location": "altar",
@@ -22009,5 +22023,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792408270931
+	"updatedAt": 1792408871234
 }
