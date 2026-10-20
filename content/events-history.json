@@ -1,6 +1,27 @@
 {
 	"events": [
 		{
+			"date": 1792538582,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792538222,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792538103,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792537982,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -23311,5 +23332,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792538025095
+	"updatedAt": 1792538685065
 }
