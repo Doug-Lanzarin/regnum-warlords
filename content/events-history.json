@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1792542182,
+			"name": "Samal",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792542182,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792541942,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792541222,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792541103,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792540742,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -23388,5 +23423,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792540906294
+	"updatedAt": 1792543280606
 }
