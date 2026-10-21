@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792622410,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792622410,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792621622,
 			"name": "Menirah",
 			"location": "transit",
@@ -24424,5 +24438,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792621931778
+	"updatedAt": 1792622531979
 }
