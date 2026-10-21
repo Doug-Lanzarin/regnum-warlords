@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792605602,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792605302,
 			"name": "Algaros",
 			"location": "altar",
@@ -24158,5 +24165,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792605311697
+	"updatedAt": 1792605911727
 }
