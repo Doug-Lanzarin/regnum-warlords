@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1792605302,
+			"name": "Algaros",
+			"location": "altar",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1792605250,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792605250,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792605250,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792605250,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792603562,
 			"name": "Algaros",
 			"location": "transit",
@@ -24123,5 +24158,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792604172055
+	"updatedAt": 1792605311697
 }
