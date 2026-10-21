@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792621262,
+			"name": "Shaanarid Castle",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792621262,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792619041,
 			"name": "Fort Samal",
 			"location": "Ignis",
@@ -24368,5 +24382,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792619051779
+	"updatedAt": 1792621272174
 }
