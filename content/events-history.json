@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1792687862,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1792687622,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792687449,
 			"name": "Great Wall of Syrtis",
 			"location": "Syrtis",
@@ -25474,5 +25488,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792687460964
+	"updatedAt": 1792688120947
 }
