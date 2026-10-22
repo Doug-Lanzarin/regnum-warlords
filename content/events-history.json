@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792675742,
+			"name": "Great Wall of Syrtis",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792674303,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -25145,5 +25152,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792674442300
+	"updatedAt": 1792675762308
 }
