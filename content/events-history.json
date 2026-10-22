@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1792682403,
+			"name": "Menirah",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792682403,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1792682282,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792682282,
+			"name": "Fort Menirah",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
+			"date": 1792682282,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792681922,
 			"name": "Shaanarid Castle",
 			"location": "Ignis",
@@ -25341,5 +25376,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792681940926
+	"updatedAt": 1792682542325
 }
