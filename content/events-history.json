@@ -1,6 +1,69 @@
 {
 	"events": [
 		{
+			"date": 1792758722,
+			"name": "Algaros",
+			"location": "transit",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Herbred",
+			"location": "transit",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Eferias",
+			"location": "transit",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Menirah",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Samal",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Shaanarid",
+			"location": "transit",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Trelleborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Aggersborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1792758722,
+			"name": "Imperia",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
 			"date": 1792758482,
 			"name": "Fort Herbred",
 			"location": "Syrtis",
@@ -26286,5 +26349,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792758493905
+	"updatedAt": 1792759093937
 }
