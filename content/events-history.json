@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792800068,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792799649,
 			"name": "Fort Algaros",
 			"location": "Syrtis",
@@ -26902,5 +26909,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792799655174
+	"updatedAt": 1792800255489
 }
