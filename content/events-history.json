@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792855803,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1792855627,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -27182,5 +27189,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792855653523
+	"updatedAt": 1792856253846
 }
