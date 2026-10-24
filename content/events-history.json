@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792801502,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792800068,
 			"name": "Fort Algaros",
 			"location": "Syrtis",
@@ -26909,5 +26916,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792800255489
+	"updatedAt": 1792801515445
 }
