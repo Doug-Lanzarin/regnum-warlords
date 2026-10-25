@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792928462,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1792927502,
 			"name": "Imperia Castle",
 			"location": "Alsius",
@@ -27987,5 +27994,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792927600053
+	"updatedAt": 1792928499747
 }
