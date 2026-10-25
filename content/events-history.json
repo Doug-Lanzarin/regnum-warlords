@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1792925948,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1792924022,
 			"name": "Fort Aggersborg",
 			"location": "Alsius",
@@ -27959,5 +27966,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1792924059759
+	"updatedAt": 1792925979781
 }
