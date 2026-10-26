@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1793020211,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1793020211,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
 			"date": 1793018403,
 			"name": "Eferias Castle",
 			"location": "Syrtis",
@@ -29023,5 +29037,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793018621338
+	"updatedAt": 1793022548370
 }
