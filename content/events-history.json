@@ -1,6 +1,41 @@
 {
 	"events": [
 		{
+			"date": 1793013542,
+			"name": "Great Wall of Syrtis",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1793013542,
+			"name": "Eferias Castle",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1793013542,
+			"name": "Fort Herbred",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1793013542,
+			"name": "Fort Algaros",
+			"location": "Syrtis",
+			"owner": "Syrtis",
+			"type": "fort"
+		},
+		{
+			"date": 1793013242,
+			"name": "Fort Samal",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1793012947,
 			"name": "Shaanarid Castle",
 			"location": "Ignis",
@@ -28876,5 +28911,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793013101131
+	"updatedAt": 1793013702320
 }
