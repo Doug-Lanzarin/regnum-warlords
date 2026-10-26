@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1793013962,
+			"name": "Great Wall of Ignis",
+			"location": "Ignis",
+			"owner": "Alsius",
+			"type": "fort"
+		},
+		{
 			"date": 1793013542,
 			"name": "Great Wall of Syrtis",
 			"location": "Syrtis",
@@ -28911,5 +28918,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793013702320
+	"updatedAt": 1793014302342
 }
