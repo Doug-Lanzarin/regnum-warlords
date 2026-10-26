@@ -1,6 +1,20 @@
 {
 	"events": [
 		{
+			"date": 1793054282,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
+			"date": 1793053861,
+			"name": "Fort Aggersborg",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1793053147,
 			"name": "Fort Samal",
 			"location": "Ignis",
@@ -29191,5 +29205,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793053658431
+	"updatedAt": 1793054318140
 }
