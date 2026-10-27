@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1793141642,
+			"name": "Eferias",
+			"location": "transit",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
 			"date": 1793139541,
 			"name": "Algaros",
 			"location": "transit",
@@ -29842,5 +29849,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793139634528
+	"updatedAt": 1793141663517
 }
