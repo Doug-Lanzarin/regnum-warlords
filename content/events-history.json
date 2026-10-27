@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1793131387,
+			"name": "Imperia Castle",
+			"location": "Alsius",
+			"owner": "Ignis",
+			"type": "fort"
+		},
+		{
 			"date": 1793130722,
 			"name": "Fort Herbred",
 			"location": "Syrtis",
@@ -29716,5 +29723,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793130874456
+	"updatedAt": 1793131474472
 }
