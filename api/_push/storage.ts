@@ -98,9 +98,18 @@ async function readJsonFile<T>(path: string, fallback: T): Promise<{ data: T; sh
 
 async function writeJsonFile(path: string, data: unknown, sha: string | null, message: string): Promise<void> {
 	const content = Buffer.from(JSON.stringify(data, null, "\t") + "\n", "utf-8").toString("base64");
+	// "[vercel skip]" stops this commit from spending one of Vercel's 100
+	// free deployments/day — these commits only ever touch a content/*.json
+	// data file, which nothing reads at build time (every reader here hits
+	// the GitHub API live, at request time), so there's nothing a rebuild
+	// would pick up. Without this, the events-history write alone (up to
+	// every 10 minutes, see EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS in
+	// cort-proxy.ts) can reach ~144 commits/day on its own and exhaust the
+	// quota, blocking real code deploys for the rest of the day — confirmed
+	// 2026-10-28 via Vercel's "api-deployments-free-per-day" error.
 	const res = await githubRequest(`/repos/${OWNER}/${REPO}/contents/${path}`, {
 		method: "PUT",
-		body: JSON.stringify({ message, content, branch: BRANCH, ...(sha ? { sha } : {}) }),
+		body: JSON.stringify({ message: `${message} [vercel skip]`, content, branch: BRANCH, ...(sha ? { sha } : {}) }),
 	});
 	if (!res.ok) {
 		const body = await res.text();
