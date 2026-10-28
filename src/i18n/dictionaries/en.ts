@@ -25,6 +25,7 @@ const en: Record<TranslationKey, string> = {
 	"tools.countersXymerald": "Xymerald",
 	"tools.countersAboboras": "Pumpkins",
 	"tools.countersResetIn": "Resets in",
+	"tools.countersBrasiliaTime": "Brasília time",
 
 	// -- armor calculator --
 	"armor.title": "Armor Calculator",
