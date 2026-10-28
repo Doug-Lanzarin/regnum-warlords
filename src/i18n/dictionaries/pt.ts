@@ -23,6 +23,9 @@ const pt = {
 	"tools.bzLabel": "Horários da BZ",
 	"tools.bzDesc": "Calendário semanal com os horários em que a Battle Zone abre.",
 	"tools.bossesDesc": "Contagem regressiva para o respawn dos chefes de mundo.",
+	"tools.countersXimerald": "Ximerald",
+	"tools.countersAboboras": "Abóboras",
+	"tools.countersResetIn": "Reseta em",
 
 	// -- armor calculator --
 	"armor.title": "Calculadora de Armadura",

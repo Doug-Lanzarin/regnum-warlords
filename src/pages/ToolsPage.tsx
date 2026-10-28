@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useT } from "../i18n/useT";
 import { ArmorToolIcon, BossesTabIcon, BzToolIcon, TrainerTabIcon } from "../layout/NavIcons";
+import { ToolCountersSection } from "../features/tools/ToolCountersSection";
 import styles from "./ToolsPage.module.css";
 
 export function ToolsPage() {
@@ -11,6 +12,8 @@ export function ToolsPage() {
 				<h1 className={styles.title}>{t("tools.title")}</h1>
 				<p className={styles.subtitle}>{t("tools.subtitle")}</p>
 			</div>
+
+			<ToolCountersSection />
 
 			<div className={styles.grid}>
 				<Link to="/trainer" className={`card ${styles.tile}`}>
