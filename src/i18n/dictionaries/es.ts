@@ -22,7 +22,7 @@ const es: Record<TranslationKey, string> = {
 	"tools.bzLabel": "Horarios de la BZ",
 	"tools.bzDesc": "Calendario semanal con los horarios en que abre la Battle Zone.",
 	"tools.bossesDesc": "Cuenta regresiva para el respawn de los jefes de mundo.",
-	"tools.countersXimerald": "Ximerald",
+	"tools.countersXymerald": "Xymerald",
 	"tools.countersAboboras": "Calabazas",
 	"tools.countersResetIn": "Reinicia en",
 

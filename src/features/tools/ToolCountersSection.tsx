@@ -4,20 +4,28 @@ import { formatDuration } from "../../utils/time";
 import { useToolCounters } from "./useToolCounters";
 import styles from "./ToolCountersSection.module.css";
 
+// Fixed identity colors, not theme tokens — same reasoning as BOSS_INFO's
+// own `color` field (bossConstants.ts): Xymerald should read as "blue" and
+// Abóboras as "orange" (pumpkin) no matter which app theme is active.
+// `--blue` exists as a theme token already; orange doesn't, so it's a
+// literal hex instead.
+const XYMERALD_COLOR = "var(--blue)";
+const ABOBORAS_COLOR = "#ff9f40";
+
 export function ToolCountersSection() {
 	const t = useT();
-	const { aboboras, ximerald, now } = useToolCounters();
+	const { aboboras, xymerald, now } = useToolCounters();
 
 	return (
 		<div className={styles.grid}>
-			<div className={`card ${styles.card}`} style={{ "--counter-color": "var(--links)" } as CSSProperties}>
-				<span className={styles.name}>{t("tools.countersXimerald")}</span>
+			<div className={`card ${styles.card}`} style={{ "--counter-color": XYMERALD_COLOR } as CSSProperties}>
+				<span className={styles.name}>{t("tools.countersXymerald")}</span>
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>
-					<span className={styles.value}>{formatDuration(ximerald.nextResetMs - now)}</span>
+					<span className={styles.value}>{formatDuration(xymerald.nextResetMs - now)}</span>
 				</div>
 			</div>
-			<div className={`card ${styles.card}`} style={{ "--counter-color": "var(--purple)" } as CSSProperties}>
+			<div className={`card ${styles.card}`} style={{ "--counter-color": ABOBORAS_COLOR } as CSSProperties}>
 				<span className={styles.name}>{t("tools.countersAboboras")}</span>
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>

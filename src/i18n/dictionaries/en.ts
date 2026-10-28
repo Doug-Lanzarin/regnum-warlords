@@ -22,7 +22,7 @@ const en: Record<TranslationKey, string> = {
 	"tools.bzLabel": "BZ Schedule",
 	"tools.bzDesc": "Weekly calendar of when the Battle Zone opens.",
 	"tools.bossesDesc": "Countdown to world bosses' respawns.",
-	"tools.countersXimerald": "Ximerald",
+	"tools.countersXymerald": "Xymerald",
 	"tools.countersAboboras": "Pumpkins",
 	"tools.countersResetIn": "Resets in",
 
