@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
+import { useLanguage } from "../../i18n/LanguageContext";
 import { useT } from "../../i18n/useT";
-import { formatDuration } from "../../utils/time";
+import { formatDateTime, formatDuration } from "../../utils/time";
 import { useToolCounters } from "./useToolCounters";
 import styles from "./ToolCountersSection.module.css";
 
@@ -14,6 +15,7 @@ const ABOBORAS_COLOR = "#ff9f40";
 
 export function ToolCountersSection() {
 	const t = useT();
+	const { lang } = useLanguage();
 	const { aboboras, xymerald, now } = useToolCounters();
 
 	return (
@@ -23,6 +25,7 @@ export function ToolCountersSection() {
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>
 					<span className={styles.value}>{formatDuration(xymerald.nextResetMs - now)}</span>
+					<span className={styles.resetAt}>{formatDateTime(Math.floor(xymerald.nextResetMs / 1000), lang)}</span>
 				</div>
 			</div>
 			<div className={`card ${styles.card}`} style={{ "--counter-color": ABOBORAS_COLOR } as CSSProperties}>
@@ -30,6 +33,7 @@ export function ToolCountersSection() {
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>
 					<span className={styles.value}>{formatDuration(aboboras.nextResetMs - now)}</span>
+					<span className={styles.resetAt}>{formatDateTime(Math.floor(aboboras.nextResetMs / 1000), lang)}</span>
 				</div>
 			</div>
 		</div>

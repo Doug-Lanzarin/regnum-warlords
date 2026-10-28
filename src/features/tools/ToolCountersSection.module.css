@@ -1,6 +1,6 @@
 .grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 	gap: var(--space-3);
 }
 
@@ -13,6 +13,12 @@
 	border-left: 3px solid var(--counter-color);
 	background: color-mix(in srgb, var(--counter-color) 7%, var(--card-background));
 	box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 640px) {
+	.grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .name {
@@ -48,4 +54,10 @@
 	font-weight: 800;
 	font-variant-numeric: tabular-nums;
 	color: var(--foreground);
+}
+
+.resetAt {
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--faded);
 }
