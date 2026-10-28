@@ -35,8 +35,14 @@ export function formatRelativePast(ms: number, lang: Lang): string {
 	return translate(lang, "time.fewSecondsAgo");
 }
 
-/** Full local date/time for a Unix-seconds timestamp, e.g. "seg, 31/08, 23:09". */
-export function formatDateTime(unixSeconds: number, lang: Lang): string {
+/** Full date/time for a Unix-seconds timestamp, e.g. "seg, 31/08, 23:09" —
+ *  in the viewer's own local timezone by default, or a fixed `timeZone`
+ *  (IANA name, e.g. "America/Sao_Paulo") when the time means something
+ *  specific regardless of who's looking — a game mechanic tied to a fixed
+ *  real-world clock (see `features/tools/ToolCountersSection.tsx`), rather
+ *  than "when did this happen", which reads naturally in each viewer's own
+ *  time. */
+export function formatDateTime(unixSeconds: number, lang: Lang, timeZone?: string): string {
 	const date = new Date(unixSeconds * 1000);
 	const formatted = date.toLocaleString(LOCALE[lang], {
 		weekday: "short",
@@ -44,6 +50,7 @@ export function formatDateTime(unixSeconds: number, lang: Lang): string {
 		month: "2-digit",
 		hour: "2-digit",
 		minute: "2-digit",
+		...(timeZone ? { timeZone } : {}),
 	});
 	return formatted.replace(/\.\s*/, ", ").replace(/,\s*,/, ",");
 }
