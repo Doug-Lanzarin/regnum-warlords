@@ -1,6 +1,69 @@
 {
 	"events": [
 		{
+			"date": 1793187542,
+			"name": "Algaros",
+			"location": "altar",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Herbred",
+			"location": "altar",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Eferias",
+			"location": "altar",
+			"owner": "Syrtis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Menirah",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Samal",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Shaanarid",
+			"location": "altar",
+			"owner": "Ignis",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Trelleborg",
+			"location": "altar",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Aggersborg",
+			"location": "altar",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
+			"date": 1793187542,
+			"name": "Imperia",
+			"location": "altar",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
 			"date": 1793184722,
 			"name": "Algaros",
 			"location": "transit",
@@ -30472,5 +30535,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793187496531
+	"updatedAt": 1793188137458
 }
