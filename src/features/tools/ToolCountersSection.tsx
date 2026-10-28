@@ -32,7 +32,7 @@ export function ToolCountersSection() {
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>
 					<span className={styles.value}>{formatDuration(xymerald.nextResetMs - now)}</span>
-					<span className={styles.resetAt}>{formatDateTime(Math.floor(xymerald.nextResetMs / 1000), lang, BRASILIA_TIME_ZONE)} ({t("tools.countersBrasiliaTime")})</span>
+					<span className={styles.resetAt}>{formatDateTime(Math.floor(xymerald.nextResetMs / 1000), lang, BRASILIA_TIME_ZONE)}</span>
 				</div>
 			</div>
 			<div className={`card ${styles.card}`} style={{ "--counter-color": ABOBORAS_COLOR } as CSSProperties}>
@@ -40,7 +40,7 @@ export function ToolCountersSection() {
 				<div className={styles.countdown}>
 					<span className={styles.label}>{t("tools.countersResetIn")}</span>
 					<span className={styles.value}>{formatDuration(aboboras.nextResetMs - now)}</span>
-					<span className={styles.resetAt}>{formatDateTime(Math.floor(aboboras.nextResetMs / 1000), lang, BRASILIA_TIME_ZONE)} ({t("tools.countersBrasiliaTime")})</span>
+					<span className={styles.resetAt}>{formatDateTime(Math.floor(aboboras.nextResetMs / 1000), lang, BRASILIA_TIME_ZONE)}</span>
 				</div>
 			</div>
 		</div>

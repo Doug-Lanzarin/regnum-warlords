@@ -26,7 +26,6 @@ const pt = {
 	"tools.countersXymerald": "Xymerald",
 	"tools.countersAboboras": "Abóboras",
 	"tools.countersResetIn": "Reseta em",
-	"tools.countersBrasiliaTime": "horário de Brasília",
 
 	// -- armor calculator --
 	"armor.title": "Calculadora de Armadura",
