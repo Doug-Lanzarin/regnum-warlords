@@ -1,6 +1,13 @@
 {
 	"events": [
 		{
+			"date": 1793226721,
+			"name": "Aggersborg",
+			"location": "transit",
+			"owner": "Alsius",
+			"type": "relic"
+		},
+		{
 			"date": 1793225882,
 			"name": "Fort Trelleborg",
 			"location": "Alsius",
@@ -30913,5 +30920,5 @@
 			"type": "wish"
 		}
 	],
-	"updatedAt": 1793225936236
+	"updatedAt": 1793226775301
 }
