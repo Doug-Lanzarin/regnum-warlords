@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useT } from "../../i18n/useT";
 import { formatDuration } from "../../utils/time";
 import { useToolCounters } from "./useToolCounters";
@@ -9,15 +10,19 @@ export function ToolCountersSection() {
 
 	return (
 		<div className={styles.grid}>
-			<div className={`card ${styles.card}`}>
+			<div className={`card ${styles.card}`} style={{ "--counter-color": "var(--links)" } as CSSProperties}>
 				<span className={styles.name}>{t("tools.countersXimerald")}</span>
-				<span className={styles.label}>{t("tools.countersResetIn")}</span>
-				<span className={styles.value}>{formatDuration(ximerald.nextResetMs - now)}</span>
+				<div className={styles.countdown}>
+					<span className={styles.label}>{t("tools.countersResetIn")}</span>
+					<span className={styles.value}>{formatDuration(ximerald.nextResetMs - now)}</span>
+				</div>
 			</div>
-			<div className={`card ${styles.card}`}>
+			<div className={`card ${styles.card}`} style={{ "--counter-color": "var(--purple)" } as CSSProperties}>
 				<span className={styles.name}>{t("tools.countersAboboras")}</span>
-				<span className={styles.label}>{t("tools.countersResetIn")}</span>
-				<span className={styles.value}>{formatDuration(aboboras.nextResetMs - now)}</span>
+				<div className={styles.countdown}>
+					<span className={styles.label}>{t("tools.countersResetIn")}</span>
+					<span className={styles.value}>{formatDuration(aboboras.nextResetMs - now)}</span>
+				</div>
 			</div>
 		</div>
 	);
