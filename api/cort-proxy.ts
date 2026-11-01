@@ -116,10 +116,14 @@
 // case is now one timeout, not two stacked.
 
 import { dedupKeyOf, mergeIntoHistory } from "./_eventsHistory.js";
-import { DEFAULT_EVENTS_HISTORY, readEventsHistory, readLiveSnapshot, writeEventsHistory } from "./_push/storage.js";
+import { DEFAULT_EVENTS_HISTORY, DEFAULT_LIVE_SNAPSHOT, readEventsHistory, readLiveSnapshot, writeEventsHistory, writeLiveSnapshot } from "./_push/storage.js";
 import backfillEvents from "./_eventsBackfill.js";
 import statsBackfill from "./_statsBackfill.js";
-import type { WzEvent } from "../src/types/wz";
+import type { WzEvent, WzStatusData } from "../src/types/wz";
+
+function isWzStatusData(data: unknown): data is WzStatusData {
+	return !!data && typeof data === "object" && "forts" in data && "events_log" in data;
+}
 
 function isWzEvent(entry: unknown): entry is WzEvent {
 	return !!entry && typeof entry === "object" && "type" in entry;
@@ -213,6 +217,17 @@ const CORT_USER_AGENT = "RegnumWarlords/1.0 (+https://regnum-warlords.vercel.app
 // doesn't turn into a commit-a-minute.
 const EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS = 10 * 60 * 1000;
 
+// Same story as EVENTS_HISTORY_WRITE_MIN_INTERVAL_MS, for the OTHER file
+// tick.ts was supposed to keep fresh while idle: content/live-snapshot.json
+// never got written at all (confirmed 2026-11-01: 404 from GitHub) because
+// tick.ts's whole body sits behind NOTIFICATIONS_PAUSED, so this proxy's own
+// 502-with-no-fallback was the real effect — a cort.ovh/mirror outage (the
+// trigger that day) had nothing to fall back to. "wstatus" is already
+// fetched on every request regardless of that flag, so writing the snapshot
+// from here costs nothing extra upstream, same reasoning as the history
+// write above.
+const SNAPSHOT_WRITE_MIN_INTERVAL_MS = 10 * 60 * 1000;
+
 interface CandidateResult {
 	url: string;
 	data: unknown;
@@ -275,11 +290,13 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 	}
 
 	// Kicked off alongside the live fetches (not after) so reading our own
-	// accumulated history doesn't add its own latency on top of theirs —
-	// only relevant for "events", and best-effort: a GitHub hiccup here
-	// should never turn an otherwise-healthy response into an error.
+	// accumulated history/snapshot doesn't add its own latency on top of
+	// theirs — best-effort: a GitHub hiccup here should never turn an
+	// otherwise-healthy response into an error.
 	const historyPromise =
 		endpoint === "events" ? readEventsHistory().catch(() => ({ history: DEFAULT_EVENTS_HISTORY, sha: null as string | null })) : null;
+	const snapshotWritePromise =
+		endpoint === "wstatus" ? readLiveSnapshot().catch(() => ({ snapshot: DEFAULT_LIVE_SNAPSHOT, sha: null as string | null })) : null;
 
 	const results = await fetchAllCandidates(urls);
 	if (results.length > 0) {
@@ -318,6 +335,23 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 			// stale-but-accurate answer beats a live-but-wrong one. See
 			// _statsBackfill.ts's own doc comment for when it was last refreshed.
 			responseData = preferred.url.includes("cort.ovh") ? preferred.data : statsBackfill;
+		} else if (endpoint === "wstatus") {
+			responseData = preferCortOvh(results)!.data;
+
+			// Best-effort and throttled (see SNAPSHOT_WRITE_MIN_INTERVAL_MS) —
+			// never let a GitHub hiccup, or just not being this request's turn,
+			// turn an otherwise-healthy response into an error or extra latency.
+			if (isWzStatusData(responseData)) {
+				const { snapshot, sha: snapshotSha } = (await snapshotWritePromise)!;
+				const snapshotAge = snapshot.savedAt ? Date.now() - snapshot.savedAt : Infinity;
+				if (snapshotAge >= SNAPSHOT_WRITE_MIN_INTERVAL_MS) {
+					try {
+						await writeLiveSnapshot({ wstatus: responseData, savedAt: Date.now() }, snapshotSha, "push: atualiza snapshot de fallback da WZ");
+					} catch (err) {
+						console.error("cort-proxy: failed to update live snapshot", err);
+					}
+				}
+			}
 		} else {
 			responseData = preferCortOvh(results)!.data;
 		}
@@ -325,13 +359,14 @@ export default async function handler(req: VercelLikeRequest, res: VercelLikeRes
 		return;
 	}
 
-	// Every live attempt failed. For wstatus specifically, `api/push/tick.ts`
+	// Every live attempt failed. For wstatus specifically, this same handler
 	// keeps a periodically-refreshed full copy of the last one that worked
-	// (`content/live-snapshot.json`) — falling back to that beats a hard
-	// error, since `WzStatusData.generated` (cort.ovh's own timestamp,
-	// untouched here) already tells the client exactly how old it is rather
-	// than pretending it's current. Best-effort: if this itself fails (or
-	// there's no snapshot yet), fall through to the same 502 as before.
+	// (`content/live-snapshot.json`, written above) — falling back to that
+	// beats a hard error, since `WzStatusData.generated` (cort.ovh's own
+	// timestamp, untouched here) already tells the client exactly how old it
+	// is rather than pretending it's current. Best-effort: if this itself
+	// fails (or there's no snapshot yet), fall through to the same 502 as
+	// before.
 	if (endpoint === "wstatus") {
 		try {
 			const { snapshot } = await readLiveSnapshot();

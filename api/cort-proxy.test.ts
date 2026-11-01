@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import handler from "./cort-proxy";
 import statsBackfill from "./_statsBackfill";
-import { readEventsHistory, writeEventsHistory } from "./_push/storage";
+import { readEventsHistory, readLiveSnapshot, writeEventsHistory, writeLiveSnapshot } from "./_push/storage";
 
 // Preserves the real implementations by default (so every existing test
 // below — none of which set NOTIFICATIONS_GITHUB_TOKEN — still exercises
@@ -10,7 +10,13 @@ import { readEventsHistory, writeEventsHistory } from "./_push/storage";
 // letting the tests that care override them.
 vi.mock("./_push/storage.js", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("./_push/storage")>();
-	return { ...actual, readEventsHistory: vi.fn(actual.readEventsHistory), writeEventsHistory: vi.fn(actual.writeEventsHistory) };
+	return {
+		...actual,
+		readEventsHistory: vi.fn(actual.readEventsHistory),
+		writeEventsHistory: vi.fn(actual.writeEventsHistory),
+		readLiveSnapshot: vi.fn(actual.readLiveSnapshot),
+		writeLiveSnapshot: vi.fn(actual.writeLiveSnapshot),
+	};
 });
 
 interface MockResult {
@@ -40,6 +46,8 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 	vi.mocked(readEventsHistory).mockClear();
 	vi.mocked(writeEventsHistory).mockClear();
+	vi.mocked(readLiveSnapshot).mockClear();
+	vi.mocked(writeLiveSnapshot).mockClear();
 });
 
 describe("cort-proxy handler", () => {
@@ -101,6 +109,50 @@ describe("cort-proxy handler", () => {
 
 		expect(result.status).toBe(200);
 		expect(result.json).toEqual(payload);
+	});
+
+	it("writes the live snapshot back when it's due (never written, or past SNAPSHOT_WRITE_MIN_INTERVAL_MS) — this is what keeps live-snapshot.json fresh while tick.ts sits idle (NOTIFICATIONS_PAUSED)", async () => {
+		const payload = { forts: [{ name: "Imperia Castle" }], events_log: [], generated: 999 };
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readLiveSnapshot).mockResolvedValueOnce({ snapshot: { wstatus: null, savedAt: null }, sha: "abc" });
+		vi.mocked(writeLiveSnapshot).mockResolvedValueOnce(undefined);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeLiveSnapshot).toHaveBeenCalledTimes(1);
+		const [savedSnapshot, sha] = vi.mocked(writeLiveSnapshot).mock.calls[0];
+		expect(savedSnapshot.wstatus).toEqual(payload);
+		expect(sha).toBe("abc");
+	});
+
+	it("skips the snapshot write when it was updated recently — the throttle that keeps a busy page from turning into a commit-a-minute", async () => {
+		const payload = { forts: [{ name: "Imperia Castle" }], events_log: [], generated: 999 };
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+		vi.stubGlobal("fetch", fetchMock);
+
+		vi.mocked(readLiveSnapshot).mockResolvedValueOnce({ snapshot: { wstatus: payload, savedAt: Date.now() }, sha: "abc" });
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeLiveSnapshot).not.toHaveBeenCalled();
+	});
+
+	it("never writes a snapshot for a payload that doesn't look like real wstatus data (missing events_log) — the existing tests above use shorthand payloads and must not trigger a write", async () => {
+		const payload = { forts: [{ name: "Imperia Castle" }] };
+		const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => payload });
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { res, result } = mockRes();
+		await handler({ method: "GET", query: { endpoint: "wstatus" } }, res);
+
+		expect(result.status).toBe(200);
+		expect(writeLiveSnapshot).not.toHaveBeenCalled();
 	});
 
 	it("maps 'events' and 'stats' to their own cort.go.yo.fr and cort.ovh URLs", async () => {
