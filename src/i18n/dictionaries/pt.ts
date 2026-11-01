@@ -24,7 +24,6 @@ const pt = {
 	"tools.bzDesc": "Calendário semanal com os horários em que a Battle Zone abre.",
 	"tools.bossesDesc": "Contagem regressiva para o respawn dos chefes de mundo.",
 	"tools.countersXymerald": "Xymerald",
-	"tools.countersAboboras": "Abóboras",
 	"tools.countersResetIn": "Reseta em",
 	"tools.countersBrasiliaTime": "horário de Brasília",
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ABOBORAS_RESET_INTERVAL_MS, XYMERALD_RESET_INTERVAL_MS, computeToolCounters, nextReset } from "./toolCountersEngine";
+import { XYMERALD_RESET_INTERVAL_MS, computeToolCounters, nextReset } from "./toolCountersEngine";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -37,13 +37,6 @@ describe("nextReset", () => {
 });
 
 describe("computeToolCounters", () => {
-	it("Abóboras' next reset is always strictly after `now` and a multiple of its 16h interval away from an aligned instant", () => {
-		const now = Date.now();
-		const { aboboras } = computeToolCounters(now);
-		expect(aboboras.nextResetMs).toBeGreaterThan(now);
-		expect(aboboras.nextResetMs % ABOBORAS_RESET_INTERVAL_MS).toBe(((Date.UTC(2026, 9, 28, 3, 0, 0) % ABOBORAS_RESET_INTERVAL_MS) + ABOBORAS_RESET_INTERVAL_MS) % ABOBORAS_RESET_INTERVAL_MS);
-	});
-
 	it("Xymerald's next reset is always strictly after `now` and a multiple of its 23h interval away from an aligned instant", () => {
 		const now = Date.now();
 		const { xymerald } = computeToolCounters(now);
@@ -51,13 +44,7 @@ describe("computeToolCounters", () => {
 		expect(xymerald.nextResetMs % XYMERALD_RESET_INTERVAL_MS).toBe(((Date.UTC(2026, 9, 28, 18, 0, 0) % XYMERALD_RESET_INTERVAL_MS) + XYMERALD_RESET_INTERVAL_MS) % XYMERALD_RESET_INTERVAL_MS);
 	});
 
-	it("confirms the stated anchors: Abóboras next resets at 2026-10-28T00:00 Brasília (2026-10-28T03:00Z) when asked right before it", () => {
-		const justBefore = Date.UTC(2026, 9, 28, 2, 59, 59);
-		const { aboboras } = computeToolCounters(justBefore);
-		expect(aboboras.nextResetMs).toBe(Date.UTC(2026, 9, 28, 3, 0, 0));
-	});
-
-	it("confirms the stated anchors: Xymerald next resets at 2026-10-28T15:00 Brasília (2026-10-28T18:00Z) when asked right before it", () => {
+	it("confirms the stated anchor: Xymerald next resets at 2026-10-28T15:00 Brasília (2026-10-28T18:00Z) when asked right before it", () => {
 		const justBefore = Date.UTC(2026, 9, 28, 17, 59, 59);
 		const { xymerald } = computeToolCounters(justBefore);
 		expect(xymerald.nextResetMs).toBe(Date.UTC(2026, 9, 28, 18, 0, 0));
